@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trading Calculator</title>
+
+  <!-- Telegram Mini App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    :root {
+      --bg: #000;
+      --panel: #0b0b0b;
+      --text: #fff;
+      --muted: #8a8a8a;
+      --border: #111;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+      height: 100%;
+    }
+
+    #app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 16px;
+    }
+
+    .tabs button {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 14px;
+      padding: 6px 8px;
+      cursor: pointer;
+    }
+
+    .tabs button.active {
+      color: var(--text);
+      border-bottom: 2px solid var(--text);
+    }
+
+    .lang {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .lang button {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .lang button.active {
+      color: var(--text);
+      border-color: #444;
+    }
+
+    main {
+      flex: 1;
+      padding: 14px;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 6px;
+    }
+
+    .field {
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      background: #050505;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .result {
+      margin-top: 10px;
+      padding: 8px;
+      background: #050505;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      border-radius: 4px;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 10px;
+      text-align: center;
+    }
+
+    .tags {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+
+    .links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .rainbow {
+      font-weight: 700;
+      text-decoration: none;
+      background: linear-gradient(
+        90deg,
+        red, orange, yellow, green, cyan, blue, violet
+      );
+      background-size: 400% 400%;
+      color: transparent;
+      -webkit-background-clip: text;
+      background-clip: text;
+      animation: rainbow 4s linear infinite;
+    }
+
+    @keyframes rainbow {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+
+    canvas {
+      width: 100%;
+      height: 200px;
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      background: #000;
+    }
+  </style>
+</head>
+
+<body>
+<div id="app">
+
+  <header>
+    <div class="tabs">
+      <button class="tab active" data-tab="dca">DCA</button>
+      <button class="tab" data-tab="rr">R/R</button>
+      <button class="tab" data-tab="capital">Capital</button>
+      <button class="tab" data-tab="visual">Visual</button>
+    </div>
+    <div class="lang">
+      <button id="lang-ru" class="active">RU</button>
+      <button id="lang-en">EN</button>
+    </div>
+  </header>
+
+  <main>
+
+    <section id="dca" class="screen active">
+      <div class="card">
+        <div class="field"><label>Price 1</label><input id="dca_p1" type="number"></div>
+        <div class="field"><label>Volume 1</label><input id="dca_v1" type="number"></div>
+        <div class="field"><label>Price 2</label><input id="dca_p2" type="number"></div>
+        <div class="field"><label>Volume 2</label><input id="dca_v2" type="number"></div>
+        <div class="result" id="dca_res">Average price: —</div>
+      </div>
+    </section>
+
+    <section id="rr" class="screen">
+      <div class="card">
+        <div class="field"><label>Entry</label><input id="rr_e" type="number"></div>
+        <div class="field"><label>Stop Loss</label><input id="rr_sl" type="number"></div>
+        <div class="field"><label>Take Profit</label><input id="rr_tp" type="number"></div>
+        <div class="result" id="rr_res">R/R: —</div>
+      </div>
+    </section>
+
+    <section id="capital" class="screen">
+      <div class="card">
+        <div class="field"><label>Deposit</label><input id="cap_dep" type="number"></div>
+        <div class="field"><label>Risk %</label><input id="cap_risk" type="number"></div>
+        <div class="field"><label>Entry</label><input id="cap_e" type="number"></div>
+        <div class="field"><label>Stop Loss</label><input id="cap_sl" type="number"></div>
+        <div class="result" id="cap_res">Position size: —</div>
+      </div>
+    </section>
+
+    <section id="visual" class="screen">
+      <div class="card">
+        <div class="field"><label>Entry</label><input id="v_e" type="number"></div>
+        <div class="field"><label>Stop Loss</label><input id="v_sl" type="number"></div>
+        <div class="field"><label>Take Profit</label><input id="v_tp" type="number"></div>
+        <canvas id="chart"></canvas>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="tags">АИРДРОП · НОВОСТИ · ТРЕЙДИНГ</div>
+    <div class="links">
+      <a href="https://t.me/InvestTraderTrade" class="rainbow" target="_blank">TELEGRAM</a>
+      <a href="https://www.youtube.com/@TRADER_TRADE" class="rainbow" target="_blank">YOUTUBE</a>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  const tg = window.Telegram?.WebApp;
+  try { tg && tg.expand(); } catch(e){}
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(btn=>{
+    btn.onclick=()=>{
+      document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    }
+  });
+
+  // DCA
+  function calcDca(){
+    const p1=+dca_p1.value||0,v1=+dca_v1.value||0;
+    const p2=+dca_p2.value||0,v2=+dca_v2.value||0;
+    const v=v1+v2;
+    dca_res.textContent=v?`Average price: ${((p1*v1+p2*v2)/v).toFixed(8)}`:'Average price: —';
+  }
+  [dca_p1,dca_v1,dca_p2,dca_v2].forEach(i=>i.oninput=calcDca);
+
+  // R/R
+  function calcRR(){
+    const e=+rr_e.value,sl=+rr_sl.value,tp=+rr_tp.value;
+    if(!e||!sl||!tp) return rr_res.textContent='R/R: —';
+    rr_res.textContent=`R/R: 1:${(Math.abs(tp-e)/Math.abs(e-sl)).toFixed(2)}`;
+  }
+  [rr_e,rr_sl,rr_tp].forEach(i=>i.oninput=calcRR);
+
+  // Capital
+  function calcCap(){
+    const d=+cap_dep.value,r=+cap_risk.value,e=+cap_e.value,sl=+cap_sl.value;
+    if(!d||!r||!e||!sl) return cap_res.textContent='Position size: —';
+    cap_res.textContent=`Position size: ${(d*(r/100)/Math.abs(e-sl)).toFixed(8)}`;
+  }
+  [cap_dep,cap_risk,cap_e,cap_sl].forEach(i=>i.oninput=calcCap);
+
+  // Chart
+  const c=document.getElementById('chart'),ctx=c.getContext('2d');
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    const e=+v_e.value,sl=+v_sl.value,tp=+v_tp.value;
+    if(!e||!sl||!tp) return;
+    const max=Math.max(e,sl,tp),min=Math.min(e,sl,tp);
+    const y=v=>c.height-(v-min)/(max-min)*c.height;
+    ctx.strokeStyle='#fff';
+    [e,sl,tp].forEach(v=>{
+      ctx.beginPath();ctx.moveTo(0,y(v));ctx.lineTo(c.width,y(v));ctx.stroke();
+    });
+  }
+  [v_e,v_sl,v_tp].forEach(i=>i.oninput=draw);
+</script>
+</body>
+</html>
