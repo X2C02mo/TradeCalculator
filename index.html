@@ -157,7 +157,6 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
   animation:rain 3.5s linear infinite
 }
 @keyframes rain{0%{background-position:0% 50%}100%{background-position:100% 50%}}
-
 @media(min-width:900px){main{flex-direction:row}}
 </style>
 </head>
@@ -179,6 +178,11 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
       <button class="iconbtn" id="share_btn" aria-label="Share" title="Share">
         <span class="ico">📋</span>
         <span class="small" data-i18n="share">Share</span>
+      </button>
+
+      <button class="iconbtn" id="card_btn" aria-label="Trade Card PNG" title="Trade Card PNG">
+        <span class="ico">🖼️</span>
+        <span class="small" data-i18n="cardpng">Card PNG</span>
       </button>
     </div>
 
@@ -391,7 +395,6 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
             </div>
           </div>
 
-          <!-- Unique: Market Mood -->
           <div class="field">
             <label data-i18n="ind.mood.label">Market Mood</label>
             <div class="result">
@@ -445,6 +448,7 @@ const locales = {
     "tab.dca":"DCA","tab.rr":"R/R","tab.cap":"Capital","tab.ind":"Indicators",
     "theme.dark":"Тёмная","theme.light":"Светлая",
     "share":"Шер",
+    "cardpng":"Карточка PNG",
     "common.clear":"Очистить","common.copy":"Копировать","common.copied":"Скопировано",
 
     "dca.tip":"Совет: добавляй несколько входов — калькулятор посчитает среднюю цену, общий объём и сумму.",
@@ -498,14 +502,21 @@ const locales = {
     "ind.cached":"Показаны данные из кеша",
     "ind.rate":"Лимит/ошибка API — попробуй позже",
 
-    "hist.title":"История","hist.clear":"Очистить","hist.export":"Экспорт",
+    "hist.title":"История",
+    "hist.clear":"Очистить",
+    "hist.export":"Экспорт .txt",
     "hist.note":"Сохранено локально в браузере",
-    "footer.tags":"АИРДРОП · НОВОСТИ · ТРЕЙДИНГ"
+
+    "footer.tags":"АИРДРОП · НОВОСТИ · ТРЕЙДИНГ",
+
+    "card.saved":"PNG сохранён",
+    "card.nodata":"Нет данных для карточки"
   },
   en:{
     "tab.dca":"DCA","tab.rr":"R/R","tab.cap":"Capital","tab.ind":"Indicators",
     "theme.dark":"Dark","theme.light":"Light",
     "share":"Share",
+    "cardpng":"Card PNG",
     "common.clear":"Clear","common.copy":"Copy","common.copied":"Copied",
 
     "dca.tip":"Tip: add multiple entries — it will calculate average price, total size and total cost.",
@@ -559,9 +570,15 @@ const locales = {
     "ind.cached":"Showing cached data",
     "ind.rate":"API limit/error — try later",
 
-    "hist.title":"History","hist.clear":"Clear","hist.export":"Export",
+    "hist.title":"History",
+    "hist.clear":"Clear",
+    "hist.export":"Export .txt",
     "hist.note":"Saved locally in your browser",
-    "footer.tags":"AIRDROP · NEWS · TRADING"
+
+    "footer.tags":"AIRDROP · NEWS · TRADING",
+
+    "card.saved":"PNG saved",
+    "card.nodata":"No data for card"
   }
 };
 
@@ -582,7 +599,7 @@ function translateAll(){
 }
 
 /* theme toggle */
-const THEME_KEY = 'tc_theme_v2';
+const THEME_KEY = 'tc_theme_v3';
 function getInitialTheme(){
   const saved = localStorage.getItem(THEME_KEY);
   if(saved === 'dark' || saved === 'light') return saved;
@@ -678,13 +695,13 @@ async function copyText(text){
 }
 
 /* History */
-const HISTORY_KEY = 'trader_calc_history_v4';
+const HISTORY_KEY = 'trader_calc_history_v5';
 function loadHistory(){ try{ return JSON.parse(localStorage.getItem(HISTORY_KEY))||[] }catch(e){ return [] } }
 function saveHistory(arr){ localStorage.setItem(HISTORY_KEY, JSON.stringify(arr)); renderHistory(); }
 function pushHistory(item){
   const arr = loadHistory();
   arr.unshift(item);
-  if(arr.length > 80) arr.pop();
+  if(arr.length > 120) arr.pop();
   saveHistory(arr);
 }
 function renderHistory(){
@@ -718,12 +735,19 @@ document.getElementById('clear_history').addEventListener('click', ()=>{
   haptic('notify','success');
 });
 document.getElementById('export_history').addEventListener('click', ()=>{
-  const data = JSON.stringify(loadHistory(), null, 2);
-  const blob = new Blob([data], {type:'application/json'});
+  const arr = loadHistory();
+  const lines = arr.map(it=>{
+    const ts = new Date(it.t).toLocaleString();
+    const type = (it.type || '').toString();
+    const sum = (it.summary || '').toString().replace(/\s+/g,' ').trim();
+    return `${ts} | ${type} | ${sum}`;
+  });
+  const txt = lines.join('\n') || '';
+  const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'history.json';
+  a.download = 'history.txt';
   a.click();
   URL.revokeObjectURL(url);
   haptic('impact','light');
@@ -799,6 +823,15 @@ function getDcaLegs(){
   return { valid, ignored };
 }
 
+function getDcaBaseSafe(){
+  const { valid } = getDcaLegs();
+  if(!valid.length) return null;
+  let totalVol=0,totalCost=0;
+  for(const leg of valid){ totalVol+=leg.v; totalCost+=leg.p*leg.v; }
+  const avg = totalCost/totalVol;
+  return { totalVol, totalCost, avg };
+}
+
 function calcDCA(){
   const { valid, ignored } = getDcaLegs();
 
@@ -830,18 +863,15 @@ function calcDCA(){
   dcaCopyBtn.disabled = false;
 
   scheduleSave('DCA', `AVG ${avgText} · vol ${fmt(totalVol, 8)} · cost ${fmtMoney(totalCost)}`, avgText);
-
   calcDcaGoal({ totalVol, totalCost, avg });
 }
 
 function calcDcaGoal(base){
-  // base = { totalVol, totalCost, avg } or null
   const X = safeNum(dcaGoalPrice.value);
   const Y = safeNum(dcaGoalAvg.value);
   const feePct = safeNum(dcaFee.value);
   const fee = Number.isFinite(feePct) ? Math.max(0, feePct) / 100 : 0;
 
-  // default UI
   dcaNeedVol.textContent = '—';
   dcaNeedCost.textContent = '—';
   dcaGoalStatus.textContent = t('dca.goal.status.na');
@@ -861,27 +891,20 @@ function calcDcaGoal(base){
     return;
   }
 
-  // include buy fee into added cost (approx): effective add price = X*(1+fee)
   const Xeff = X * (1 + fee);
-
-  // Solve for v:
-  // (totalCost + Xeff*v) / (totalVol + v) = Y
-  // totalCost + Xeff*v = Y*totalVol + Y*v
-  // v*(Xeff - Y) = Y*totalVol - totalCost
   const numerator = (Y * base.totalVol) - base.totalCost;
   const denom = (Xeff - Y);
 
-  const v = numerator / denom;
-
-  // already at target (within tiny tolerance)
-  if(Math.abs(base.avg - Y) / (Math.abs(Y) || 1) < 1e-9){
+  // already at target
+  if(Math.abs(base.avg - Y) / (Math.abs(Y) || 1) < 1e-10){
     dcaGoalStatus.textContent = t('dca.goal.status.already');
     dcaNeedVol.textContent = '0';
     dcaNeedCost.textContent = '$0';
     return;
   }
 
-  // Need positive volume to "buy". Negative means you'd need to "sell" or it's not achievable by buying at X.
+  const v = numerator / denom;
+
   if(!Number.isFinite(v) || v <= 0){
     dcaGoalStatus.textContent = t('dca.goal.status.impossible');
     return;
@@ -892,20 +915,7 @@ function calcDcaGoal(base){
   dcaNeedCost.textContent = fmtMoney(needCost);
   dcaGoalStatus.textContent = t('dca.goal.status.ok');
 
-  // small smart hint
-  if (Xeff > base.avg && Y < base.avg){
-    dcaGoalHint.textContent = (lang==='ru')
-      ? 'Подсказка: если цена докупки выше текущей средней, среднюю “снизить” не получится покупкой.'
-      : 'Tip: if add price is above current average, you cannot lower average by buying.';
-  } else if (Xeff < base.avg && Y > base.avg){
-    dcaGoalHint.textContent = (lang==='ru')
-      ? 'Подсказка: если цена докупки ниже текущей средней, среднюю “поднять” покупкой сложно — цель выше текущей.'
-      : 'Tip: if add price is below current average, raising the average by buying is tricky.';
-  } else {
-    dcaGoalHint.textContent = '';
-  }
-
-  scheduleSave('DCA_GOAL', `Need vol ${fmt(v, 8)} @ ${X} to target ${Y}`, fmt(v, 8));
+  scheduleSave('DCA_GOAL', `Need ${fmt(v, 8)} @ ${X} to target ${Y}`, fmt(v, 8));
 }
 
 document.getElementById('dca_add').addEventListener('click', ()=>{
@@ -948,16 +958,7 @@ dcaCopyBtn.addEventListener('click', async ()=>{
     haptic('notify','success');
   }
 });
-
 [dcaGoalPrice, dcaGoalAvg, dcaFee].forEach(el=>el.addEventListener('input', ()=>calcDcaGoal(getDcaBaseSafe())));
-function getDcaBaseSafe(){
-  const { valid } = getDcaLegs();
-  if(!valid.length) return null;
-  let totalVol=0,totalCost=0;
-  for(const leg of valid){ totalVol+=leg.v; totalCost+=leg.p*leg.v; }
-  const avg = totalCost/totalVol;
-  return { totalVol, totalCost, avg };
-}
 
 /* R/R (gross + net with fees) */
 const rr_entry=document.getElementById('rr_entry');
@@ -993,17 +994,9 @@ function calcRR(){
   const gross = (reward / risk).toFixed(2);
   rr_value.textContent = `1:${gross}`;
 
-  // fees-aware approximation:
-  // riskNet = risk + fee*(e + sl)
-  // rewardNet = reward - fee*(e + tp)
   const riskNet = risk + fee * (Math.abs(e) + Math.abs(sl));
   const rewardNet = reward - fee * (Math.abs(e) + Math.abs(tp));
-  if(rewardNet <= 0){
-    rr_net.textContent = '0.00';
-  }else{
-    const net = (rewardNet / riskNet);
-    rr_net.textContent = net.toFixed(2);
-  }
+  rr_net.textContent = (rewardNet <= 0) ? '0.00' : (rewardNet / riskNet).toFixed(2);
 
   scheduleSave('RR', `Gross 1:${gross} · Net ${rr_net.textContent}`, gross);
 }
@@ -1062,9 +1055,6 @@ function calcCap(){
   }
 
   const riskUsd = dep * (rp/100);
-
-  // per-unit risk includes approximate fees on entry+exit at SL:
-  // feeCost per unit ~ fee*(e + sl)
   const perUnit = Math.abs(e - sl) + fee*(Math.abs(e) + Math.abs(sl));
   const size = riskUsd / perUnit;
 
@@ -1076,7 +1066,6 @@ function calcCap(){
   cap_value.textContent = size.toFixed(8);
   cap_riskUsd.textContent = '$' + riskUsd.toFixed(2);
 
-  // margin estimate (spot/linear): notional = size*entry; margin = notional/lev
   const notional = Math.abs(size * e);
   cap_margin.textContent = fmtMoney(notional / lev);
 
@@ -1103,7 +1092,7 @@ const altDomEl = document.getElementById('alt_dom');
 const moodEl = document.getElementById('mood_value');
 const indNote = document.getElementById('ind_note');
 
-const IND_CACHE_KEY = 'trader_ind_cache_v3';
+const IND_CACHE_KEY = 'trader_ind_cache_v4';
 const IND_CACHE_TTL_MS = 60_000;
 let indInFlight = false;
 
@@ -1112,7 +1101,6 @@ function setIndCache(data){ localStorage.setItem(IND_CACHE_KEY, JSON.stringify({
 
 function computeMood(fngValue, altDom){
   if(!Number.isFinite(fngValue) || !Number.isFinite(altDom)) return '—';
-  // simple but useful heuristic
   if(fngValue >= 60 && altDom >= 55) return '🟢 Risk-on';
   if(fngValue <= 40 && altDom <= 45) return '🔴 Risk-off';
   return '🟡 Neutral';
@@ -1179,9 +1167,8 @@ document.getElementById('share_btn').addEventListener('click', async ()=>{
 
   if(activeTab === 'dca'){
     text += `DCA AVG: ${dcaAvgEl.textContent}\nVOL: ${dcaTotalVolEl.textContent}\nCOST: ${dcaTotalCostEl.textContent}\n`;
-    const nv = dcaNeedVol.textContent;
-    if(nv && nv !== '—'){
-      text += `\n🎯 Goal\nNeed: ${nv}\nCost: ${dcaNeedCost.textContent}\n`;
+    if(dcaNeedVol.textContent && dcaNeedVol.textContent !== '—'){
+      text += `\n🎯 Goal\nNeed: ${dcaNeedVol.textContent}\nCost: ${dcaNeedCost.textContent}\n`;
     }
   }
   if(activeTab === 'rr'){
@@ -1196,6 +1183,228 @@ document.getElementById('share_btn').addEventListener('click', async ()=>{
 
   const ok = await copyText(text);
   if(ok) haptic('notify','success');
+});
+
+/* Trade Card PNG */
+function cssVar(name){
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+function roundRect(ctx, x, y, w, h, r){
+  const rr = Math.min(r, w/2, h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+rr, y);
+  ctx.arcTo(x+w, y, x+w, y+h, rr);
+  ctx.arcTo(x+w, y+h, x, y+h, rr);
+  ctx.arcTo(x, y+h, x, y, rr);
+  ctx.arcTo(x, y, x+w, y, rr);
+  ctx.closePath();
+}
+function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines=10){
+  const words = String(text || '').split(' ');
+  let line = '';
+  let lines = 0;
+  for(let n=0; n<words.length; n++){
+    const testLine = line + words[n] + ' ';
+    const metrics = ctx.measureText(testLine);
+    if(metrics.width > maxWidth && n > 0){
+      ctx.fillText(line.trim(), x, y);
+      line = words[n] + ' ';
+      y += lineHeight;
+      lines++;
+      if(lines >= maxLines) return y;
+    }else{
+      line = testLine;
+    }
+  }
+  ctx.fillText(line.trim(), x, y);
+  return y + lineHeight;
+}
+
+function activeTabId(){
+  return document.querySelector('.tab.active')?.dataset?.tab || 'dca';
+}
+
+function getCardPayload(){
+  const tab = activeTabId();
+  const dt = new Date().toLocaleString();
+  const brand = 'InvestTraderTrade';
+  const tgLink = '@InvestTraderTrade';
+
+  let title = 'Trader Calculator';
+  let subtitle = `${tab.toUpperCase()} · ${dt}`;
+  let lines = [];
+
+  if(tab === 'dca'){
+    const avg = dcaAvgEl.textContent.trim();
+    const vol = dcaTotalVolEl.textContent.trim();
+    const cost = dcaTotalCostEl.textContent.trim();
+    if(avg === '—' && vol === '—') return null;
+
+    lines.push({k:'AVG', v:avg});
+    lines.push({k:'VOL', v:vol});
+    lines.push({k:'COST', v:cost});
+
+    const goalVol = dcaNeedVol.textContent.trim();
+    if(goalVol && goalVol !== '—'){
+      lines.push({k:'GOAL NEED', v:goalVol});
+      lines.push({k:'GOAL COST', v:dcaNeedCost.textContent.trim()});
+      lines.push({k:'STATUS', v:dcaGoalStatus.textContent.trim()});
+    }
+  }
+
+  if(tab === 'rr'){
+    const g = rr_value.textContent.trim();
+    const n = rr_net.textContent.trim();
+    if(g === '—' && n === '—') return null;
+
+    lines.push({k:'GROSS', v:g});
+    lines.push({k:'NET', v:n});
+  }
+
+  if(tab === 'cap'){
+    const s = cap_value.textContent.trim();
+    const r = cap_riskUsd.textContent.trim();
+    const m = cap_margin.textContent.trim();
+    if(s === '—' && r === '—') return null;
+
+    lines.push({k:'SIZE', v:s});
+    lines.push({k:'RISK', v:r});
+    lines.push({k:'MARGIN', v:m});
+  }
+
+  if(tab === 'ind'){
+    const fg = fgEl.textContent.trim();
+    const ad = altDomEl.textContent.trim();
+    const mood = moodEl.textContent.trim();
+    if(fg === '—' && ad === '—') return null;
+
+    lines.push({k:'F&G', v:fg});
+    lines.push({k:'ALT DOM', v:ad});
+    lines.push({k:'MOOD', v:mood});
+  }
+
+  return { title, subtitle, lines, brand, tgLink, tab };
+}
+
+async function exportCardPNG(){
+  const payload = getCardPayload();
+  if(!payload){
+    try{ tg?.showAlert?.(t('card.nodata')); }catch(e){}
+    return;
+  }
+
+  // Square 1080x1080 for sharing
+  const W = 1080, H = 1080;
+  const scale = 2; // crisp
+  const canvas = document.createElement('canvas');
+  canvas.width = W * scale;
+  canvas.height = H * scale;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(scale, scale);
+
+  const bg = cssVar('--bg') || '#000';
+  const panel = cssVar('--panel') || '#0b0b0b';
+  const border = cssVar('--border') || '#151515';
+  const text = cssVar('--text') || '#fff';
+  const muted = cssVar('--muted') || '#9a9a9a';
+  const accent = cssVar('--accent') || '#7CFC00';
+
+  // background
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,W,H);
+
+  // big panel
+  const pad = 70;
+  const cardX = pad, cardY = pad, cardW = W - pad*2, cardH = H - pad*2;
+  ctx.fillStyle = panel;
+  roundRect(ctx, cardX, cardY, cardW, cardH, 36);
+  ctx.fill();
+
+  ctx.strokeStyle = border;
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // accent bar
+  ctx.fillStyle = accent;
+  roundRect(ctx, cardX+28, cardY+28, 10, cardH-56, 10);
+  ctx.fill();
+
+  // title
+  ctx.fillStyle = text;
+  ctx.font = '900 54px Inter, Arial, sans-serif';
+  ctx.fillText(payload.title, cardX+60, cardY+90);
+
+  // subtitle
+  ctx.fillStyle = muted;
+  ctx.font = '700 28px Inter, Arial, sans-serif';
+  ctx.fillText(payload.subtitle, cardX+60, cardY+135);
+
+  // content
+  let y = cardY + 210;
+  const left = cardX + 60;
+  const right = cardX + cardW - 60;
+
+  ctx.font = '800 34px Inter, Arial, sans-serif';
+  payload.lines.slice(0, 12).forEach((row)=>{
+    // key
+    ctx.fillStyle = muted;
+    ctx.textAlign = 'left';
+    ctx.fillText(String(row.k), left, y);
+
+    // value (wrap if too long)
+    ctx.fillStyle = text;
+    ctx.textAlign = 'right';
+    const value = String(row.v ?? '');
+    const maxW = 560;
+    if(ctx.measureText(value).width <= maxW){
+      ctx.fillText(value, right, y);
+      y += 70;
+    }else{
+      // wrap value (right-aligned simulated by drawing lines)
+      ctx.textAlign = 'left';
+      const boxW = maxW;
+      const startX = right - boxW;
+      // draw first line key on left already. now wrap value block
+      ctx.fillStyle = text;
+      ctx.font = '800 28px Inter, Arial, sans-serif';
+      y = wrapText(ctx, value, startX, y-6, boxW, 36, 3);
+      ctx.font = '800 34px Inter, Arial, sans-serif';
+      y += 18;
+      // restore alignment
+      ctx.textAlign = 'left';
+    }
+  });
+
+  // footer
+  ctx.textAlign = 'left';
+  ctx.fillStyle = muted;
+  ctx.font = '700 26px Inter, Arial, sans-serif';
+  ctx.fillText(payload.tgLink, cardX+60, cardY+cardH-60);
+
+  ctx.textAlign = 'right';
+  ctx.fillStyle = muted;
+  ctx.fillText(payload.brand, cardX+cardW-60, cardY+cardH-60);
+
+  // export
+  return new Promise((resolve)=>{
+    canvas.toBlob((blob)=>{
+      if(!blob) return resolve(false);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `trade_card_${payload.tab}_${Date.now()}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      haptic('notify','success');
+      try{ tg?.showPopup?.({ title: 'OK', message: t('card.saved'), buttons:[{type:'ok'}] }); }catch(e){}
+      resolve(true);
+    }, 'image/png');
+  });
+}
+
+document.getElementById('card_btn').addEventListener('click', ()=>{
+  exportCardPNG();
 });
 
 /* links */
