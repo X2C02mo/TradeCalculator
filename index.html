@@ -1,3 +1,4 @@
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
 diff --git a/index.html b/index.html
 index d119897b15096f67c3322c367a50fcb728d182cb..58cd1a944bed425aba9c971f057a5eeea0c9ebdb 100644
 --- a/index.html
@@ -416,3 +417,6 @@ index d119897b15096f67c3322c367a50fcb728d182cb..58cd1a944bed425aba9c971f057a5eee
    const url = URL.createObjectURL(blob);
    const a = document.createElement('a');
    a.href = url;
+ 
+EOF
+)
