@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -7,27 +7,32 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root{
+  /* dark (default) */
   --bg:#000;
   --panel:#0b0b0b;
   --border:#151515;
-  --input:#070707;
-  --result:#060606;
   --text:#fff;
   --muted:#9a9a9a;
   --accent:#7CFC00;
   --danger:#ff4d4f;
+
+  --input-bg:#070707;
+  --result-bg:#060606;
+  --chip-bg:#0a0a0a;
 }
 
 :root[data-theme="light"]{
-  --bg:#f7f7f8;
-  --panel:#ffffff;
-  --border:#dcdcdc;
-  --input:#f1f3f6;
-  --result:#eef1f5;
-  --text:#0c0c0d;
-  --muted:#4c4f54;
-  --accent:#1677ff;
+  --bg:#ffffff;
+  --panel:#f6f6f6;
+  --border:#e6e6e6;
+  --text:#111111;
+  --muted:#666666;
+  --accent:#0bbf5e;
   --danger:#d9363e;
+
+  --input-bg:#ffffff;
+  --result-bg:#ffffff;
+  --chip-bg:#f1f1f1;
 }
 
 *{box-sizing:border-box}
@@ -35,62 +40,121 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-famil
 body{padding-bottom:env(safe-area-inset-bottom); padding-top:env(safe-area-inset-top)}
 #app{min-height:100vh;display:flex;flex-direction:column}
 
-header{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 12px;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap}
-.header-left{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap}
-.tabs{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.tab{background:none;border:none;color:var(--muted);font-size:13px;padding:6px 10px;cursor:pointer;border-radius:4px}
-.tab.active{color:var(--accent);border-bottom:2px solid var(--accent)}
-.lang{display:flex;gap:6px;align-items:center;flex:0 0 auto}
-.lang button{background:none;border:1px solid var(--border);color:var(--muted);padding:4px 8px;cursor:pointer;border-radius:4px}
+/* header */
+header{
+  position:sticky; top:0; z-index:10;
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  padding:10px 12px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg);
+}
+.leftbar{display:flex;gap:8px;align-items:center}
+.lang{display:flex;gap:6px;align-items:center}
+.lang button{
+  background:none;border:1px solid var(--border);color:var(--muted);
+  padding:4px 8px;cursor:pointer;border-radius:6px
+}
 .lang button.active{color:var(--accent);border-color:var(--accent)}
-.header-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}
-.theme-toggle{background:transparent;border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;cursor:pointer;font-weight:600}
-.theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+
+.iconbtn{
+  background:none;border:1px solid var(--border);color:var(--muted);
+  padding:6px 10px;cursor:pointer;border-radius:8px;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+}
+.iconbtn:active{transform:translateY(1px)}
+.iconbtn .ico{font-size:14px;line-height:1}
+.iconbtn.active{border-color:var(--accent);color:var(--accent)}
+
+.tabs{
+  display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+  margin-left:auto;
+}
+.tab{
+  background:none;border:none;color:var(--muted);
+  font-size:13px;padding:6px 10px;cursor:pointer;border-radius:6px
+}
+.tab.active{color:var(--accent);border-bottom:2px solid var(--accent)}
 
 main{flex:1;padding:14px;display:flex;gap:16px;flex-direction:column}
 .panels{display:flex;gap:16px;flex-wrap:wrap}
 .screen{display:none;width:100%}
 .screen.active{display:block}
 
-.card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;max-width:760px}
+.card{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:10px;padding:12px;max-width:760px
+}
 .field{margin-bottom:10px}
-label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}␊
-input{␊
-  width:100%;padding:10px;background:var(--input);border:1px solid var(--border);
-  color:var(--text);border-radius:6px;font-size:14px;outline:none␊
-}␊
-input:focus{border-color:#2a2a2a}␊
-␊
-.result{␊
-  margin-top:8px;padding:10px;border-radius:6px;background:var(--result);border:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;gap:10px␊
-}␊
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+input{
+  width:100%;padding:10px;background:var(--input-bg);
+  border:1px solid var(--border);color:var(--text);
+  border-radius:8px;font-size:14px;outline:none
+}
+input:focus{border-color:color-mix(in oklab, var(--accent) 45%, var(--border))}
+
+.row{
+  display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;
+  padding:10px; border:1px solid var(--border); border-radius:10px; background:color-mix(in oklab, var(--panel) 75%, var(--bg));
+}
+.row .col{flex:1; min-width:130px}
+.row .mini{
+  width:40px; height:40px; display:flex; align-items:center; justify-content:center;
+  border-radius:10px; border:1px solid var(--border);
+  background:var(--chip-bg); cursor:pointer; color:var(--muted);
+}
+.row .mini:hover{border-color:color-mix(in oklab, var(--accent) 25%, var(--border))}
+.row .mini:active{transform:translateY(1px)}
+
+.result{
+  margin-top:8px;padding:10px;border-radius:10px;
+  background:var(--result-bg);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:10px
+}
+.res-left{display:flex;flex-direction:column;gap:3px}
 .res-label{color:var(--muted);font-size:12px}
-.res-value{font-weight:700;font-size:14px}
+.res-value{font-weight:800;font-size:14px}
 .res-value.muted{color:var(--muted);font-weight:600}
 .res-value.danger{color:var(--danger)}
 
 .controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-.btn{background:transparent;color:var(--accent);border:1px solid var(--border);padding:8px 10px;border-radius:6px;cursor:pointer;font-weight:600}
+.btn{
+  background:transparent;color:var(--accent);
+  border:1px solid #2b2b2b;padding:8px 10px;border-radius:10px;
+  cursor:pointer;font-weight:700
+}
+:root[data-theme="light"] .btn{border-color:var(--border)}
 .btn:active{transform:translateY(1px)}
 .btn.ghost{color:var(--muted);border-color:var(--border)}
+.btn.small{padding:6px 8px;border-radius:10px;font-weight:700}
 
-.history{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px;max-width:420px}
-.history-list{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow:auto}
-.note{font-size:12px;color:var(--muted)}
+.note{font-size:12px;color:var(--muted);line-height:1.35}
 .small{font-size:11px;color:var(--muted)}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  border:1px solid var(--border);
+  background:var(--chip-bg);
+  padding:6px 10px;border-radius:999px;
+  color:var(--muted);font-size:12px
+}
 
+/* right panel */
+.history{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:10px;max-width:420px}
+.history-list{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow:auto}
+
+/* footer */
 footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px}
 .tags{font-size:12px;color:var(--muted);letter-spacing:1px}
 .links{display:flex;gap:18px;margin-top:2px}
 .rainbow{
-  display:inline-block;font-weight:700;text-decoration:none;
+  display:inline-block;font-weight:800;text-decoration:none;
   background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet);
   background-size:400% 400%;
   -webkit-background-clip:text;color:transparent;
   animation:rain 3.5s linear infinite
 }
 @keyframes rain{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+
 @media(min-width:900px){main{flex-direction:row}}
 </style>
 </head>
@@ -98,20 +162,23 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
 <body>
 <div id="app">
   <header>
-    <div class="header-left">
+    <div class="leftbar">
       <div class="lang">
         <button id="btn_ru" class="active">RU</button>
         <button id="btn_en">EN</button>
       </div>
-      <div class="tabs" role="tablist">
-        <button class="tab active" data-tab="dca" data-i18n="tab.dca">DCA</button>
-        <button class="tab" data-tab="rr" data-i18n="tab.rr">R/R</button>
-        <button class="tab" data-tab="cap" data-i18n="tab.cap">Capital</button>
-        <button class="tab" data-tab="ind" data-i18n="tab.ind">Indicators</button>
-      </div>
+
+      <button class="iconbtn" id="theme_toggle" aria-label="Theme" title="Theme">
+        <span class="ico" id="theme_icon">🌙</span>
+        <span class="small" id="theme_text" data-i18n="theme.dark">Dark</span>
+      </button>
     </div>
-    <div class="header-actions">
-      <button id="theme_toggle" class="theme-toggle" type="button">🌙 Theme</button>
+
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tab="dca" data-i18n="tab.dca">DCA</button>
+      <button class="tab" data-tab="rr" data-i18n="tab.rr">R/R</button>
+      <button class="tab" data-tab="cap" data-i18n="tab.cap">Capital</button>
+      <button class="tab" data-tab="ind" data-i18n="tab.ind">Indicators</button>
     </div>
   </header>
 
@@ -120,17 +187,33 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
       <!-- DCA -->
       <section id="dca" class="screen active">
         <div class="card">
-          <div class="field"><label data-i18n="dca.p1">Цена 1</label><input id="dca_p1" type="number" inputmode="decimal" step="any" placeholder="0.00"></div>
-          <div class="field"><label data-i18n="dca.v1">Объём 1</label><input id="dca_v1" type="number" inputmode="decimal" step="any" min="0" placeholder="0"></div>
-          <div class="field"><label data-i18n="dca.p2">Цена 2</label><input id="dca_p2" type="number" inputmode="decimal" step="any" placeholder="0.00"></div>
-          <div class="field"><label data-i18n="dca.v2">Объём 2</label><input id="dca_v2" type="number" inputmode="decimal" step="any" min="0" placeholder="0"></div>
-
-          <div class="result" id="dca_result">
-            <span class="res-label" data-i18n="dca.result.label">Средняя цена</span>
-            <span class="res-value muted" id="dca_value">—</span>
+          <div class="note" data-i18n="dca.tip">
+            Совет: добавляй несколько входов — калькулятор посчитает среднюю цену, общий объём и сумму.
           </div>
 
-          <div class="small" id="dca_hint"></div>
+          <div style="height:10px"></div>
+
+          <div id="dca_rows"></div>
+
+          <div class="controls">
+            <button class="btn" id="dca_add" data-i18n="dca.add">+ Добавить вход</button>
+            <button class="btn ghost" id="dca_clear" data-i18n="common.clear">Очистить</button>
+          </div>
+
+          <div class="result">
+            <div class="res-left">
+              <span class="res-label" data-i18n="dca.avg">Средняя цена</span>
+              <span class="res-value muted" id="dca_avg">—</span>
+            </div>
+            <button class="btn small ghost" id="dca_copy" data-i18n="common.copy">Copy</button>
+          </div>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+            <span class="chip"><span data-i18n="dca.totalVol">Общий объём</span>: <b id="dca_totalVol">—</b></span>
+            <span class="chip"><span data-i18n="dca.totalCost">Сумма</span>: <b id="dca_totalCost">—</b></span>
+          </div>
+
+          <div class="small" id="dca_hint" style="margin-top:8px"></div>
         </div>
       </section>
 
@@ -139,14 +222,98 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
         <div class="card">
           <div class="field"><label data-i18n="rr.entry">Entry</label><input id="rr_entry" type="number" inputmode="decimal" step="any" placeholder="0.00"></div>
           <div class="field"><label data-i18n="rr.sl">Stop Loss</label><input id="rr_sl" type="number" inputmode="decimal" step="any" placeholder="0.00"></div>
-@@ -184,60 +207,70 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
+          <div class="field"><label data-i18n="rr.tp">Take Profit</label><input id="rr_tp" type="number" inputmode="decimal" step="any" placeholder="0.00"></div>
 
-    <!-- right: history -->
+          <div class="controls">
+            <button class="btn ghost" id="rr_clear" data-i18n="common.clear">Clear</button>
+          </div>
+
+          <div class="result">
+            <div class="res-left">
+              <span class="res-label" data-i18n="rr.result.label">R/R</span>
+              <span class="res-value muted" id="rr_value">—</span>
+            </div>
+            <button class="btn small ghost" id="rr_copy" data-i18n="common.copy">Copy</button>
+          </div>
+
+          <div class="small" id="rr_hint" style="margin-top:8px"></div>
+        </div>
+      </section>
+
+      <!-- Capital -->
+      <section id="cap" class="screen">
+        <div class="card">
+          <div class="field"><label data-i18n="cap.dep">Депозит</label><input id="cap_dep" type="number" inputmode="decimal" step="any" min="0" placeholder="0"></div>
+          <div class="field"><label data-i18n="cap.risk">Риск %</label><input id="cap_risk" type="number" inputmode="decimal" step="any" min="0" max="100" placeholder="1"></div>
+          <div class="field"><label data-i18n="cap.entry">Entry</label><input id="cap_entry" type="number" inputmode="decimal" step="any" placeholder="0.00"></div>
+          <div class="field"><label data-i18n="cap.sl">Stop Loss</label><input id="cap_sl" type="number" inputmode="decimal" step="any" placeholder="0.00"></div>
+
+          <div class="controls">
+            <button class="btn ghost" id="cap_clear" data-i18n="common.clear">Clear</button>
+          </div>
+
+          <div class="result">
+            <div class="res-left">
+              <span class="res-label" data-i18n="cap.result.label">Объём</span>
+              <span class="res-value muted" id="cap_value">—</span>
+            </div>
+            <button class="btn small ghost" id="cap_copy" data-i18n="common.copy">Copy</button>
+          </div>
+
+          <div class="small" id="cap_hint" style="margin-top:8px"></div>
+        </div>
+      </section>
+
+      <!-- Indicators -->
+      <section id="ind" class="screen">
+        <div class="card">
+          <h3 style="margin:0 0 10px 0" data-i18n="ind.title">Indicators</h3>
+
+          <div class="field">
+            <label data-i18n="ind.fg.label">Fear &amp; Greed</label>
+            <div class="result">
+              <div class="res-left">
+                <span class="res-label" data-i18n="ind.fg.valueLabel">Value</span>
+                <span class="res-value muted" id="fg_value">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label data-i18n="ind.tcap.label">Total Market Cap (USD)</label>
+            <div class="result">
+              <div class="res-left">
+                <span class="res-label" data-i18n="ind.tcap.valueLabel">USD</span>
+                <span class="res-value muted" id="tcap">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label data-i18n="ind.alt.label">Alt dominance (proxy Altseason)</label>
+            <div class="result">
+              <div class="res-left">
+                <span class="res-label" data-i18n="ind.alt.valueLabel">Alt %</span>
+                <span class="res-value muted" id="alt_dom">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="controls" style="margin-top:8px">
+            <button class="btn" id="refresh_ind" data-i18n="ind.refresh">Refresh</button>
+          </div>
+
+          <div class="note" id="ind_note"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- History -->
     <aside class="history" aria-live="polite">
       <h4 data-i18n="hist.title">History</h4>
       <div class="history-list" id="history_list"></div>
 
-      <div style="display:flex;gap:8px;margin-top:8px">
+      <div class="controls" style="margin-top:8px">
         <button class="btn ghost" id="clear_history" data-i18n="hist.clear">Clear</button>
         <button class="btn" id="export_history" data-i18n="hist.export">Export</button>
       </div>
@@ -165,52 +332,95 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
 </div>
 
 <script>
-/* Telegram init + theme */
+/* Telegram init */
 const tg = window.Telegram?.WebApp || null;
-const THEME_KEY = 'trader_theme_preference';
-
-function getStoredTheme(){
-  try{
-    const val = localStorage.getItem(THEME_KEY);
-    return (val === 'light' || val === 'dark') ? val : null;
-  }catch(e){ return null; }
-}
-
 try{ tg?.expand?.(); }catch(e){}
 
-(function applyTelegramTheme(){
-  if(getStoredTheme()) return; // user preference wins
-  try{
-    const p = tg?.themeParams;
-    if(!p) return;
-    // Telegram may provide colors like "#ffffff"
-    if (p.bg_color) document.documentElement.style.setProperty('--bg', p.bg_color);
-    if (p.text_color) document.documentElement.style.setProperty('--text', p.text_color);
-    if (p.hint_color) document.documentElement.style.setProperty('--muted', p.hint_color);
-    if (p.secondary_bg_color) document.documentElement.style.setProperty('--panel', p.secondary_bg_color);
-    // Accent: keep your neon by default
-  }catch(e){}
-})();
-
-/* locales */
+/* i18n */
 const locales = {
   ru:{
     "tab.dca":"DCA","tab.rr":"R/R","tab.cap":"Capital","tab.ind":"Indicators",
 
-    "dca.p1":"Цена 1","dca.v1":"Объём 1","dca.p2":"Цена 2","dca.v2":"Объём 2",
-    "dca.result.label":"Средняя цена",
+    "theme.dark":"Тёмная","theme.light":"Светлая",
+    "common.clear":"Очистить","common.copy":"Копировать",
+    "common.copied":"Скопировано",
+
+    "dca.tip":"Совет: добавляй несколько входов — калькулятор посчитает среднюю цену, общий объём и сумму.",
+    "dca.add":"+ Добавить вход",
+    "dca.row.price":"Цена","dca.row.vol":"Объём",
+    "dca.avg":"Средняя цена","dca.totalVol":"Общий объём","dca.totalCost":"Сумма",
+    "dca.hint.empty":"Добавь хотя бы один валидный вход (цена + объём > 0).",
+    "dca.hint.partial":"Часть строк не учтена (проверь цену/объём).",
 
     "rr.entry":"Entry","rr.sl":"Stop Loss","rr.tp":"Take Profit",
     "rr.result.label":"R/R",
+    "rr.hint.fill":"Заполни поля",
+    "rr.hint.entryEqSl":"Entry и SL не должны совпадать",
 
     "cap.dep":"Депозит","cap.risk":"Риск %","cap.entry":"Entry","cap.sl":"Stop Loss",
     "cap.result.label":"Объём",
+    "cap.hint.fill":"Заполни поля",
+    "cap.hint.invalid":"Проверь значения",
+    "cap.hint.riskRange":"Риск должен быть 0–100%",
+    "cap.hint.entryEqSl":"Entry и SL не должны совпадать",
 
     "ind.title":"Индикаторы",
     "ind.fg.label":"Fear & Greed","ind.fg.valueLabel":"Значение",
     "ind.tcap.label":"Общая капитализация (USD)","ind.tcap.valueLabel":"USD",
-    "ind.alt.label":"Доминация альтов (proxy)","ind.alt.valueLabel":"Alt %",
-@@ -293,106 +326,135 @@ let lang = 'en';
+    "ind.alt.label":"Доминация альтов (proxy Altseason)","ind.alt.valueLabel":"Alt %",
+    "ind.refresh":"Обновить",
+    "ind.loading":"Обновляю…",
+    "ind.cached":"Показаны данные из кеша",
+    "ind.rate":"Лимит/ошибка API — попробуй позже",
+
+    "hist.title":"История","hist.clear":"Очистить","hist.export":"Экспорт",
+    "hist.note":"Сохранено локально в браузере",
+
+    "footer.tags":"АИРДРОП · НОВОСТИ · ТРЕЙДИНГ"
+  },
+  en:{
+    "tab.dca":"DCA","tab.rr":"R/R","tab.cap":"Capital","tab.ind":"Indicators",
+
+    "theme.dark":"Dark","theme.light":"Light",
+    "common.clear":"Clear","common.copy":"Copy",
+    "common.copied":"Copied",
+
+    "dca.tip":"Tip: add multiple entries — it will calculate average price, total size and total cost.",
+    "dca.add":"+ Add entry",
+    "dca.row.price":"Price","dca.row.vol":"Volume",
+    "dca.avg":"Average price","dca.totalVol":"Total volume","dca.totalCost":"Total cost",
+    "dca.hint.empty":"Add at least one valid entry (price + volume > 0).",
+    "dca.hint.partial":"Some rows were ignored (check price/volume).",
+
+    "rr.entry":"Entry","rr.sl":"Stop Loss","rr.tp":"Take Profit",
+    "rr.result.label":"R/R",
+    "rr.hint.fill":"Fill the fields",
+    "rr.hint.entryEqSl":"Entry and SL must differ",
+
+    "cap.dep":"Deposit","cap.risk":"Risk %","cap.entry":"Entry","cap.sl":"Stop Loss",
+    "cap.result.label":"Position size",
+    "cap.hint.fill":"Fill the fields",
+    "cap.hint.invalid":"Check values",
+    "cap.hint.riskRange":"Risk must be 0–100%",
+    "cap.hint.entryEqSl":"Entry and SL must differ",
+
+    "ind.title":"Indicators",
+    "ind.fg.label":"Fear & Greed","ind.fg.valueLabel":"Value",
+    "ind.tcap.label":"Total Market Cap (USD)","ind.tcap.valueLabel":"USD",
+    "ind.alt.label":"Alt dominance (proxy Altseason)","ind.alt.valueLabel":"Alt %",
+    "ind.refresh":"Refresh",
+    "ind.loading":"Refreshing…",
+    "ind.cached":"Showing cached data",
+    "ind.rate":"API limit/error — try later",
+
+    "hist.title":"History","hist.clear":"Clear","hist.export":"Export",
+    "hist.note":"Saved locally in your browser",
+
+    "footer.tags":"AIRDROP · NEWS · TRADING"
+  }
+};
+
+let lang = 'en';
 try{
   const tgl = tg?.initDataUnsafe?.user?.language_code;
   if (tgl) lang = /^ru|uk|be/i.test(tgl) ? 'ru' : 'en';
@@ -223,76 +433,131 @@ function translateAll(){
     const k = el.getAttribute('data-i18n');
     if(locales[lang] && locales[lang][k] !== undefined) el.textContent = locales[lang][k];
   });
+  updateThemeUI();
 }
 
-/* Tabs */
+/* theme toggle */
+const THEME_KEY = 'tc_theme_v1';
+
+function getInitialTheme(){
+  const saved = localStorage.getItem(THEME_KEY);
+  if(saved === 'dark' || saved === 'light') return saved;
+
+  // try Telegram scheme first
+  const tgScheme = (tg?.colorScheme || '').toLowerCase();
+  if(tgScheme === 'dark' || tgScheme === 'light') return tgScheme;
+
+  // fallback: OS preference
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+}
+
+function setTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem(THEME_KEY, theme);
+  updateThemeUI();
+}
+
+function updateThemeUI(){
+  const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+  const icon = document.getElementById('theme_icon');
+  const text = document.getElementById('theme_text');
+  const btn = document.getElementById('theme_toggle');
+
+  if(theme === 'light'){
+    icon.textContent = '☀️';
+    text.textContent = t('theme.light');
+    btn.classList.add('active');
+    btn.title = `${t('theme.light')}`;
+    btn.setAttribute('aria-label', `Theme: ${t('theme.light')}`);
+  }else{
+    icon.textContent = '🌙';
+    text.textContent = t('theme.dark');
+    btn.classList.remove('active');
+    btn.title = `${t('theme.dark')}`;
+    btn.setAttribute('aria-label', `Theme: ${t('theme.dark')}`);
+  }
+}
+
+document.getElementById('theme_toggle').addEventListener('click', ()=>{
+  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  setTheme(cur === 'dark' ? 'light' : 'dark');
+  haptic('impact','light');
+});
+
+/* header tabs */
 document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click', ()=>{
   document.querySelectorAll('.tab').forEach(tn=>tn.classList.remove('active'));
   btn.classList.add('active');
   const target = btn.dataset.tab;
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(target).classList.add('active');
+
+  // little UX: if user opens indicators tab, refresh if empty
+  if(target === 'ind' && document.getElementById('tcap').textContent.trim() === '—') fetchIndicators();
+
   translateAll();
 }));
 
-/* Language buttons */
+/* language */
 const btn_ru = document.getElementById('btn_ru');
 const btn_en = document.getElementById('btn_en');
-btn_ru.addEventListener('click', ()=>{ lang='ru'; btn_ru.classList.add('active'); btn_en.classList.remove('active'); translateAll(); renderHistory(); refreshHints(); applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark'); });
-btn_en.addEventListener('click', ()=>{ lang='en'; btn_en.classList.add('active'); btn_ru.classList.remove('active'); translateAll(); renderHistory(); refreshHints(); applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark'); });
 
-/* Theme toggle */
-const themeToggle = document.getElementById('theme_toggle');
-function applyTheme(mode){
-  const root = document.documentElement;
-  if(mode === 'light') root.setAttribute('data-theme','light');
-  else { root.removeAttribute('data-theme'); mode='dark'; }
-  const label = mode === 'light'
-    ? (lang === 'ru' ? '☀️ Светлая' : '☀️ Light')
-    : (lang === 'ru' ? '🌙 Тёмная' : '🌙 Dark');
-  themeToggle.textContent = label;
-  themeToggle.setAttribute('aria-pressed', mode === 'light');
-}
-function setTheme(mode){
-  applyTheme(mode);
-  try{ localStorage.setItem(THEME_KEY, mode); }catch(e){}
-}
-function detectPreferredTheme(){
-  const stored = getStoredTheme();
-  if(stored) return stored;
-  if(tg?.colorScheme === 'light' || tg?.colorScheme === 'dark') return tg.colorScheme;
-  if(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) return 'light';
-  return 'dark';
-}
-applyTheme(detectPreferredTheme());
-themeToggle.addEventListener('click', ()=>{
-  const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-  setTheme(next);
+btn_ru.addEventListener('click', ()=>{
+  lang='ru'; btn_ru.classList.add('active'); btn_en.classList.remove('active');
+  translateAll(); renderHistory(); refreshHints();
+});
+btn_en.addEventListener('click', ()=>{
+  lang='en'; btn_en.classList.add('active'); btn_ru.classList.remove('active');
+  translateAll(); renderHistory(); refreshHints();
 });
 
-translateAll();
-
-/* Utils */
+/* utils */
 function safeNum(v){
   const x = parseFloat(v);
   return Number.isFinite(x) ? x : NaN;
 }
-function setValue(el, value, kind){
+function fmt(n, maxFrac=8){
+  if(!Number.isFinite(n)) return '—';
+  return n.toLocaleString(undefined, { maximumFractionDigits:maxFrac });
+}
+function fmtMoney(n){
+  if(!Number.isFinite(n)) return '—';
+  return '$' + n.toLocaleString(undefined, { maximumFractionDigits:0 });
+}
+function setText(el, txt, kind){
   el.classList.remove('muted','danger');
-  if(kind === 'danger') el.classList.add('danger');
   if(kind === 'muted') el.classList.add('muted');
-  el.textContent = value;
+  if(kind === 'danger') el.classList.add('danger');
+  el.textContent = txt;
 }
 function haptic(kind='impact', style='light'){
   try{
     if(!tg?.HapticFeedback) return;
     if(kind==='impact') tg.HapticFeedback.impactOccurred(style);
-    if(kind==='notify') tg.HapticFeedback.notificationOccurred(style); // 'success'|'warning'|'error'
+    if(kind==='notify') tg.HapticFeedback.notificationOccurred(style);
   }catch(e){}
 }
+async function copyText(text){
+  try{
+    if(!text || text === '—') return false;
+    await navigator.clipboard.writeText(text);
+    return true;
+  }catch(e){
+    // fallback
+    try{
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      return true;
+    }catch(err){ return false; }
+  }
+}
 
-/* History (localStorage) */
-const HISTORY_KEY = 'trader_calc_history_v2';
+/* History */
+const HISTORY_KEY = 'trader_calc_history_v3';
 function loadHistory(){ try{ return JSON.parse(localStorage.getItem(HISTORY_KEY))||[] }catch(e){ return [] } }
 function saveHistory(arr){ localStorage.setItem(HISTORY_KEY, JSON.stringify(arr)); renderHistory(); }
 function pushHistory(item){
@@ -314,35 +579,411 @@ function renderHistory(){
   }
   arr.forEach(it=>{
     const node = document.createElement('div');
-    node.style.display='flex';
-    node.style.justifyContent='space-between';
-    node.style.alignItems='flex-start';
-    node.style.padding='8px';
+    node.style.padding='10px';
     node.style.border='1px solid var(--border)';
-    node.style.borderRadius='8px';
-    node.style.background='var(--input)';
-
-    const left = document.createElement('div');
-    left.innerHTML = `
-      <div style="font-weight:700">${it.type}</div>
+    node.style.borderRadius='12px';
+    node.style.background='color-mix(in oklab, var(--panel) 75%, var(--bg))';
+    node.innerHTML = `
+      <div style="font-weight:800">${it.type}</div>
       <div class="note">${it.summary || ''}</div>
       <div class="small">${new Date(it.t).toLocaleString()}</div>
     `;
-    node.appendChild(left);
-
     list.appendChild(node);
   });
 }
-
 document.getElementById('clear_history').addEventListener('click', ()=>{
   localStorage.removeItem(HISTORY_KEY);
   renderHistory();
   haptic('notify','success');
 });
-
 document.getElementById('export_history').addEventListener('click', ()=>{
   const data = JSON.stringify(loadHistory(), null, 2);
   const blob = new Blob([data], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
+  a.download = 'history.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  haptic('impact','light');
+});
+
+/* auto-save debounce */
+const state = { lastSaved:{ DCA:null, RR:null, CAP:null }, timers:{} };
+function scheduleSave(type, summary, value){
+  if(!value || value === '—') return;
+  clearTimeout(state.timers[type]);
+  state.timers[type] = setTimeout(()=>{
+    if(state.lastSaved[type] === value) return;
+    state.lastSaved[type] = value;
+    pushHistory({ type, summary, t: Date.now() });
+  }, 650);
+}
+
+/* DCA (multi-entry) */
+const dcaRowsEl = document.getElementById('dca_rows');
+const dcaAvgEl = document.getElementById('dca_avg');
+const dcaTotalVolEl = document.getElementById('dca_totalVol');
+const dcaTotalCostEl = document.getElementById('dca_totalCost');
+const dcaHintEl = document.getElementById('dca_hint');
+const dcaCopyBtn = document.getElementById('dca_copy');
+
+function dcaRowTemplate(price='', vol=''){
+  const wrap = document.createElement('div');
+  wrap.className = 'row';
+  wrap.innerHTML = `
+    <div class="col">
+      <label data-i18n="dca.row.price">${t('dca.row.price')}</label>
+      <input class="dca_price" type="number" inputmode="decimal" step="any" placeholder="0.00" value="${price}">
+    </div>
+    <div class="col">
+      <label data-i18n="dca.row.vol">${t('dca.row.vol')}</label>
+      <input class="dca_vol" type="number" inputmode="decimal" step="any" min="0" placeholder="0" value="${vol}">
+    </div>
+    <button class="mini dca_remove" title="Remove" aria-label="Remove">✕</button>
+  `;
+  return wrap;
+}
+
+function ensureAtLeastOneRow(){
+  if(dcaRowsEl.children.length === 0){
+    dcaRowsEl.appendChild(dcaRowTemplate());
+    dcaRowsEl.appendChild(dcaRowTemplate());
+  }
+}
+
+function getDcaLegs(){
+  const rows = Array.from(dcaRowsEl.querySelectorAll('.row'));
+  let valid = [];
+  let ignored = 0;
+
+  rows.forEach(r=>{
+    const p = safeNum(r.querySelector('.dca_price')?.value);
+    const v = safeNum(r.querySelector('.dca_vol')?.value);
+
+    if(Number.isFinite(p) && Number.isFinite(v) && v > 0){
+      valid.push({ p, v });
+    }else{
+      // ignore empty row; count only if one of fields filled but invalid
+      const pv = r.querySelector('.dca_price')?.value?.trim();
+      const vv = r.querySelector('.dca_vol')?.value?.trim();
+      if((pv && !Number.isFinite(p)) || (vv && !Number.isFinite(v)) || (pv && vv && !(v>0))) ignored++;
+    }
+  });
+
+  return { valid, ignored };
+}
+
+function calcDCA(){
+  const { valid, ignored } = getDcaLegs();
+
+  if(valid.length === 0){
+    setText(dcaAvgEl, '—', 'muted');
+    dcaTotalVolEl.textContent = '—';
+    dcaTotalCostEl.textContent = '—';
+    dcaHintEl.textContent = t('dca.hint.empty');
+    dcaCopyBtn.disabled = true;
+    return;
+  }
+
+  let totalVol = 0;
+  let totalCost = 0;
+  for(const leg of valid){
+    totalVol += leg.v;
+    totalCost += leg.p * leg.v;
+  }
+
+  const avg = totalCost / totalVol;
+  const avgText = fmt(avg, 8);
+
+  setText(dcaAvgEl, avgText, '');
+  dcaTotalVolEl.textContent = fmt(totalVol, 8);
+  dcaTotalCostEl.textContent = fmtMoney(totalCost);
+
+  dcaHintEl.textContent = ignored > 0 ? t('dca.hint.partial') : '';
+  dcaCopyBtn.disabled = false;
+
+  scheduleSave('DCA', `AVG ${avgText} · vol ${fmt(totalVol, 8)} · cost ${fmtMoney(totalCost)}`, avgText);
+}
+
+document.getElementById('dca_add').addEventListener('click', ()=>{
+  dcaRowsEl.appendChild(dcaRowTemplate());
+  translateAll();
+  calcDCA();
+  haptic('impact','light');
+});
+
+document.getElementById('dca_clear').addEventListener('click', ()=>{
+  dcaRowsEl.innerHTML = '';
+  ensureAtLeastOneRow();
+  translateAll();
+  calcDCA();
+  haptic('notify','success');
+});
+
+dcaRowsEl.addEventListener('input', (e)=>{
+  if(e.target.classList.contains('dca_price') || e.target.classList.contains('dca_vol')){
+    calcDCA();
+  }
+});
+
+dcaRowsEl.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.dca_remove');
+  if(!btn) return;
+  const row = btn.closest('.row');
+  if(!row) return;
+
+  if(dcaRowsEl.children.length <= 1){
+    // keep at least one row
+    row.querySelector('.dca_price').value = '';
+    row.querySelector('.dca_vol').value = '';
+  }else{
+    row.remove();
+  }
+  calcDCA();
+  haptic('impact','light');
+});
+
+dcaCopyBtn.addEventListener('click', async ()=>{
+  const val = dcaAvgEl.textContent.trim();
+  const ok = await copyText(val);
+  if(ok){
+    dcaCopyBtn.textContent = t('common.copied');
+    setTimeout(()=>dcaCopyBtn.textContent = t('common.copy'), 900);
+    haptic('notify','success');
+  }
+});
+
+/* R/R */
+const rr_entry=document.getElementById('rr_entry');
+const rr_sl=document.getElementById('rr_sl');
+const rr_tp=document.getElementById('rr_tp');
+const rr_value=document.getElementById('rr_value');
+const rr_hint=document.getElementById('rr_hint');
+const rr_copy=document.getElementById('rr_copy');
+
+function calcRR(){
+  const e=safeNum(rr_entry.value), sl=safeNum(rr_sl.value), tp=safeNum(rr_tp.value);
+
+  if([e,sl,tp].some(x=>Number.isNaN(x))){
+    setText(rr_value,'—','muted');
+    rr_hint.textContent = t('rr.hint.fill');
+    rr_copy.disabled = true;
+    return;
+  }
+  if(e === sl){
+    setText(rr_value,'—','muted');
+    rr_hint.textContent = t('rr.hint.entryEqSl');
+    rr_copy.disabled = true;
+    return;
+  }
+
+  const risk = Math.abs(e - sl);
+  const reward = Math.abs(tp - e);
+
+  if(!Number.isFinite(risk) || risk <= 0){
+    setText(rr_value,'—','muted');
+    rr_hint.textContent = '';
+    rr_copy.disabled = true;
+    return;
+  }
+
+  const ratio = (reward / risk).toFixed(2);
+  const out = `1:${ratio}`;
+  setText(rr_value, out, '');
+  rr_hint.textContent = '';
+  rr_copy.disabled = false;
+
+  scheduleSave('RR', `R/R ${out} (entry ${e}, sl ${sl}, tp ${tp})`, out);
+}
+
+[rr_entry,rr_sl,rr_tp].forEach(i=>i.addEventListener('input', calcRR));
+
+document.getElementById('rr_clear').addEventListener('click', ()=>{
+  rr_entry.value=''; rr_sl.value=''; rr_tp.value='';
+  calcRR();
+  haptic('notify','success');
+});
+
+rr_copy.addEventListener('click', async ()=>{
+  const val = rr_value.textContent.trim();
+  const ok = await copyText(val);
+  if(ok){
+    rr_copy.textContent = t('common.copied');
+    setTimeout(()=>rr_copy.textContent = t('common.copy'), 900);
+    haptic('notify','success');
+  }
+});
+
+/* Capital */
+const cap_dep=document.getElementById('cap_dep');
+const cap_risk=document.getElementById('cap_risk');
+const cap_entry=document.getElementById('cap_entry');
+const cap_sl=document.getElementById('cap_sl');
+const cap_value=document.getElementById('cap_value');
+const cap_hint=document.getElementById('cap_hint');
+const cap_copy=document.getElementById('cap_copy');
+
+function calcCap(){
+  const dep=safeNum(cap_dep.value);
+  const rp=safeNum(cap_risk.value);
+  const e=safeNum(cap_entry.value);
+  const sl=safeNum(cap_sl.value);
+
+  if([dep,rp,e,sl].some(x=>Number.isNaN(x))){
+    setText(cap_value,'—','muted');
+    cap_hint.textContent = t('cap.hint.fill');
+    cap_copy.disabled = true;
+    return;
+  }
+  if(dep <= 0){
+    setText(cap_value,'—','muted');
+    cap_hint.textContent = t('cap.hint.invalid');
+    cap_copy.disabled = true;
+    return;
+  }
+  if(rp <= 0 || rp > 100){
+    setText(cap_value,'—','muted');
+    cap_hint.textContent = t('cap.hint.riskRange');
+    cap_copy.disabled = true;
+    return;
+  }
+  if(e === sl){
+    setText(cap_value,'—','muted');
+    cap_hint.textContent = t('cap.hint.entryEqSl');
+    cap_copy.disabled = true;
+    return;
+  }
+
+  const riskUsd = dep * (rp/100);
+  const perUnit = Math.abs(e - sl);
+  const size = riskUsd / perUnit;
+
+  if(!Number.isFinite(size) || size <= 0){
+    setText(cap_value,'—','muted');
+    cap_hint.textContent = t('cap.hint.invalid');
+    cap_copy.disabled = true;
+    return;
+  }
+
+  const out = size.toFixed(8);
+  setText(cap_value, out, '');
+  cap_hint.textContent = '';
+  cap_copy.disabled = false;
+
+  scheduleSave('CAP', `Size ${out} (risk $${riskUsd.toFixed(2)})`, out);
+}
+
+[cap_dep,cap_risk,cap_entry,cap_sl].forEach(i=>i.addEventListener('input', calcCap));
+
+document.getElementById('cap_clear').addEventListener('click', ()=>{
+  cap_dep.value=''; cap_risk.value=''; cap_entry.value=''; cap_sl.value='';
+  calcCap();
+  haptic('notify','success');
+});
+
+cap_copy.addEventListener('click', async ()=>{
+  const val = cap_value.textContent.trim();
+  const ok = await copyText(val);
+  if(ok){
+    cap_copy.textContent = t('common.copied');
+    setTimeout(()=>cap_copy.textContent = t('common.copy'), 900);
+    haptic('notify','success');
+  }
+});
+
+function refreshHints(){
+  calcDCA(); calcRR(); calcCap();
+}
+
+/* Indicators with cache */
+const fgEl = document.getElementById('fg_value');
+const tcapEl = document.getElementById('tcap');
+const altDomEl = document.getElementById('alt_dom');
+const indNote = document.getElementById('ind_note');
+const IND_CACHE_KEY = 'trader_ind_cache_v2';
+const IND_CACHE_TTL_MS = 60_000;
+let indInFlight = false;
+
+function getIndCache(){ try{ return JSON.parse(localStorage.getItem(IND_CACHE_KEY)) }catch(e){ return null } }
+function setIndCache(data){ localStorage.setItem(IND_CACHE_KEY, JSON.stringify({ t: Date.now(), data })); }
+
+function applyIndicators(data){
+  if(!data) return;
+
+  setText(fgEl, data.fg ? data.fg : '—', data.fg ? '' : 'muted');
+  setText(tcapEl, data.totalMc ? fmtMoney(Number(data.totalMc)) : '—', data.totalMc ? '' : 'muted');
+
+  if(typeof data.btcDom === 'number'){
+    const alt = 100 - data.btcDom;
+    setText(altDomEl, alt.toFixed(2) + '%', '');
+  }else{
+    setText(altDomEl, '—', 'muted');
+  }
+}
+
+async function fetchIndicators(){
+  if(indInFlight) return;
+  indInFlight = true;
+  indNote.textContent = t('ind.loading');
+
+  const cache = getIndCache();
+  if(cache && (Date.now() - cache.t) < IND_CACHE_TTL_MS){
+    applyIndicators(cache.data);
+    indNote.textContent = t('ind.cached');
+    indInFlight = false;
+    return;
+  }
+
+  const out = { fg:null, totalMc:null, btcDom:null };
+  let hadErr = false;
+
+  try{
+    const res = await fetch('https://api.alternative.me/fng/?limit=1&format=json', { cache:'no-store' });
+    if(!res.ok) throw new Error('FNG failed');
+    const j = await res.json();
+    const d = j?.data?.[0];
+    if(d?.value && d?.value_classification) out.fg = `${d.value} · ${d.value_classification}`;
+  }catch(e){ hadErr = true; }
+
+  try{
+    const res2 = await fetch('https://api.coingecko.com/api/v3/global', { cache:'no-store' });
+    if(!res2.ok) throw new Error('CG global failed');
+    const j2 = await res2.json();
+    out.totalMc = j2?.data?.total_market_cap?.usd ?? null;
+    out.btcDom = (typeof j2?.data?.market_cap_percentage?.btc === 'number') ? j2.data.market_cap_percentage.btc : null;
+  }catch(e){ hadErr = true; }
+
+  applyIndicators(out);
+  setIndCache(out);
+  indNote.textContent = hadErr ? t('ind.rate') : '';
+  indInFlight = false;
+}
+
+document.getElementById('refresh_ind').addEventListener('click', ()=>{
+  try{ localStorage.removeItem(IND_CACHE_KEY); }catch(e){}
+  fetchIndicators();
+  haptic('impact','light');
+});
+
+/* links */
+function openUrl(url){
+  try{
+    if(tg?.openTelegramLink && url.startsWith('https://t.me/')) return tg.openTelegramLink(url);
+    if(tg?.openLink) return tg.openLink(url);
+  }catch(e){}
+  window.open(url,'_blank','noopener');
+}
+document.getElementById('link_telegram').addEventListener('click', e=>{ e.preventDefault(); openUrl('https://t.me/InvestTraderTrade'); });
+document.getElementById('link_youtube').addEventListener('click', e=>{ e.preventDefault(); openUrl('https://www.youtube.com/@TRADER_TRADE'); });
+
+/* init */
+setTheme(getInitialTheme());
+translateAll();
+ensureAtLeastOneRow();
+renderHistory();
+calcDCA(); calcRR(); calcCap();
+fetchIndicators();
+</script>
+</body>
+</html>
