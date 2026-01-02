@@ -1,662 +1,418 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Trader Calculator + Indicators</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<style>
-:root{
-  --bg:#000;
-  --panel:#0b0b0b;
-  --border:#151515;
-  --text:#fff;
-  --muted:#9a9a9a;
-  --accent:#7CFC00;
-  --danger:#ff4d4f;
-}
-
-*{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Inter,Arial,Helvetica,sans-serif}
-body{padding-bottom:env(safe-area-inset-bottom); padding-top:env(safe-area-inset-top)}
-#app{min-height:100vh;display:flex;flex-direction:column}
-
-header{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);gap:10px}
-.tabs{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.tab{background:none;border:none;color:var(--muted);font-size:13px;padding:6px 10px;cursor:pointer;border-radius:4px}
-.tab.active{color:var(--accent);border-bottom:2px solid var(--accent)}
-.lang{display:flex;gap:6px;align-items:center;flex:0 0 auto}
-.lang button{background:none;border:1px solid var(--border);color:var(--muted);padding:4px 8px;cursor:pointer;border-radius:4px}
-.lang button.active{color:var(--accent);border-color:var(--accent)}
-
-main{flex:1;padding:14px;display:flex;gap:16px;flex-direction:column}
-.panels{display:flex;gap:16px;flex-wrap:wrap}
-.screen{display:none;width:100%}
-.screen.active{display:block}
-
-.card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;max-width:760px}
-.field{margin-bottom:10px}
-label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
-input{
-  width:100%;padding:10px;background:#070707;border:1px solid var(--border);
-  color:var(--text);border-radius:6px;font-size:14px;outline:none
-}
-input:focus{border-color:#2a2a2a}
-
-.result{
-  margin-top:8px;padding:10px;border-radius:6px;background:#060606;border:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;gap:10px
-}
-.res-label{color:var(--muted);font-size:12px}
-.res-value{font-weight:700;font-size:14px}
-.res-value.muted{color:var(--muted);font-weight:600}
-.res-value.danger{color:var(--danger)}
-
-.controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-.btn{background:transparent;color:var(--accent);border:1px solid #2b2b2b;padding:8px 10px;border-radius:6px;cursor:pointer;font-weight:600}
-.btn:active{transform:translateY(1px)}
-.btn.ghost{color:var(--muted);border-color:var(--border)}
-
-.history{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px;max-width:420px}
-.history-list{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow:auto}
-.note{font-size:12px;color:var(--muted)}
-.small{font-size:11px;color:var(--muted)}
-
-footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px}
-.tags{font-size:12px;color:var(--muted);letter-spacing:1px}
-.links{display:flex;gap:18px;margin-top:2px}
-.rainbow{
-  display:inline-block;font-weight:700;text-decoration:none;
-  background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet);
-  background-size:400% 400%;
-  -webkit-background-clip:text;color:transparent;
-  animation:rain 3.5s linear infinite
-}
-@keyframes rain{0%{background-position:0% 50%}100%{background-position:100% 50%}}
-@media(min-width:900px){main{flex-direction:row}}
-</style>
-</head>
-
-<body>
-<div id="app">
-  <header>
-    <div class="tabs" role="tablist">
-      <button class="tab active" data-tab="dca" data-i18n="tab.dca">DCA</button>
-      <button class="tab" data-tab="rr" data-i18n="tab.rr">R/R</button>
-      <button class="tab" data-tab="cap" data-i18n="tab.cap">Capital</button>
-      <button class="tab" data-tab="ind" data-i18n="tab.ind">Indicators</button>
-    </div>
-    <div class="lang">
-      <button id="btn_ru" class="active">RU</button>
-      <button id="btn_en">EN</button>
-    </div>
-  </header>
-
-  <main>
-    <div class="panels" style="flex:1">
-      <!-- DCA -->
-      <section id="dca" class="screen active">
-        <div class="card">
-          <div class="field"><label data-i18n="dca.p1">Цена 1</label><input id="dca_p1" type="number" inputmode="decimal" step="any" placeholder="0.00"></div>
-          <div class="field"><label data-i18n="dca.v1">Объём 1</label><input id="dca_v1" type="number" inputmode="decimal" step="any" min="0" placeholder="0"></div>
-          <div class="field"><label data-i18n="dca.p2">Цена 2</label><input id="dca_p2" type="number" inputmode="decimal" step="any" placeholder="0.00"></div>
-          <div class="field"><label data-i18n="dca.v2">Объём 2</label><input id="dca_v2" type="number" inputmode="decimal" step="any" min="0" placeholder="0"></div>
-
-          <div class="result" id="dca_result">
-            <span class="res-label" data-i18n="dca.result.label">Средняя цена</span>
-            <span class="res-value muted" id="dca_value">—</span>
-          </div>
-
-          <div class="small" id="dca_hint"></div>
-        </div>
-      </section>
-
-      <!-- R/R -->
-      <section id="rr" class="screen">
-        <div class="card">
-          <div class="field"><label data-i18n="rr.entry">Entry</label><input id="rr_entry" type="number" inputmode="decimal" step="any" placeholder="0.00"></div>
-          <div class="field"><label data-i18n="rr.sl">Stop Loss</label><input id="rr_sl" type="number" inputmode="decimal" step="any" placeholder="0.00"></div>
-          <div class="field"><label data-i18n="rr.tp">Take Profit</label><input id="rr_tp" type="number" inputmode="decimal" step="any" placeholder="0.00"></div>
-
-          <div class="result" id="rr_result">
-            <span class="res-label" data-i18n="rr.result.label">R/R</span>
-            <span class="res-value muted" id="rr_value">—</span>
-          </div>
-
-          <div class="small" id="rr_hint"></div>
-        </div>
-      </section>
-
-      <!-- Capital -->
-      <section id="cap" class="screen">
-        <div class="card">
-          <div class="field"><label data-i18n="cap.dep">Депозит</label><input id="cap_dep" type="number" inputmode="decimal" step="any" min="0" placeholder="0"></div>
-          <div class="field"><label data-i18n="cap.risk">Риск %</label><input id="cap_risk" type="number" inputmode="decimal" step="any" min="0" max="100" placeholder="1"></div>
-          <div class="field"><label data-i18n="cap.entry">Entry</label><input id="cap_entry" type="number" inputmode="decimal" step="any" placeholder="0.00"></div>
-          <div class="field"><label data-i18n="cap.sl">Stop Loss</label><input id="cap_sl" type="number" inputmode="decimal" step="any" placeholder="0.00"></div>
-
-          <div class="result" id="cap_result">
-            <span class="res-label" data-i18n="cap.result.label">Объём</span>
-            <span class="res-value muted" id="cap_value">—</span>
-          </div>
-
-          <div class="small" id="cap_hint"></div>
-        </div>
-      </section>
-
-      <!-- Indicators -->
-      <section id="ind" class="screen">
-        <div class="card">
-          <h3 style="margin:0 0 10px 0" data-i18n="ind.title">Indicators</h3>
-
-          <div class="field">
-            <label data-i18n="ind.fg.label">Fear &amp; Greed</label>
-            <div class="result">
-              <span class="res-label" data-i18n="ind.fg.valueLabel">Value</span>
-              <span class="res-value muted" id="fg_value">—</span>
-            </div>
-          </div>
-
-          <div class="field">
-            <label data-i18n="ind.tcap.label">Total Market Cap (USD)</label>
-            <div class="result">
-              <span class="res-label" data-i18n="ind.tcap.valueLabel">USD</span>
-              <span class="res-value muted" id="tcap">—</span>
-            </div>
-          </div>
-
-          <div class="field">
-            <label data-i18n="ind.alt.label">Alt dominance (proxy Altseason)</label>
-            <div class="result">
-              <span class="res-label" data-i18n="ind.alt.valueLabel">Alt %</span>
-              <span class="res-value muted" id="alt_dom">—</span>
-            </div>
-          </div>
-
-          <div class="controls" style="margin-top:8px">
-            <button class="btn" id="refresh_ind" data-i18n="ind.refresh">Refresh</button>
-          </div>
-
-          <div class="note" id="ind_note"></div>
-        </div>
-      </section>
-    </div>
-
-    <!-- right: history -->
-    <aside class="history" aria-live="polite">
-      <h4 data-i18n="hist.title">History</h4>
-      <div class="history-list" id="history_list"></div>
-
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="btn ghost" id="clear_history" data-i18n="hist.clear">Clear</button>
-        <button class="btn" id="export_history" data-i18n="hist.export">Export</button>
-      </div>
-
-      <div class="note" data-i18n="hist.note">Saved locally in your browser</div>
-    </aside>
-  </main>
-
-  <footer>
-    <div class="tags" data-i18n="footer.tags">АИРДРОП · НОВОСТИ · ТРЕЙДИНГ</div>
-    <div class="links">
-      <a id="link_telegram" class="rainbow" href="https://t.me/InvestTraderTrade" target="_blank" rel="noopener">TELEGRAM</a>
-      <a id="link_youtube" class="rainbow" href="https://www.youtube.com/@TRADER_TRADE" target="_blank" rel="noopener">YOUTUBE</a>
-    </div>
-  </footer>
-</div>
-
-<script>
-/* Telegram init + theme */
-const tg = window.Telegram?.WebApp || null;
-try{ tg?.expand?.(); }catch(e){}
-
-(function applyTelegramTheme(){
-  try{
-    const p = tg?.themeParams;
-    if(!p) return;
-    // Telegram may provide colors like "#ffffff"
-    if (p.bg_color) document.documentElement.style.setProperty('--bg', p.bg_color);
-    if (p.text_color) document.documentElement.style.setProperty('--text', p.text_color);
-    if (p.hint_color) document.documentElement.style.setProperty('--muted', p.hint_color);
-    if (p.secondary_bg_color) document.documentElement.style.setProperty('--panel', p.secondary_bg_color);
-    // Accent: keep your neon by default
-  }catch(e){}
-})();
-
-/* locales */
-const locales = {
-  ru:{
-    "tab.dca":"DCA","tab.rr":"R/R","tab.cap":"Capital","tab.ind":"Indicators",
-
-    "dca.p1":"Цена 1","dca.v1":"Объём 1","dca.p2":"Цена 2","dca.v2":"Объём 2",
-    "dca.result.label":"Средняя цена",
-
-    "rr.entry":"Entry","rr.sl":"Stop Loss","rr.tp":"Take Profit",
-    "rr.result.label":"R/R",
-
-    "cap.dep":"Депозит","cap.risk":"Риск %","cap.entry":"Entry","cap.sl":"Stop Loss",
-    "cap.result.label":"Объём",
-
-    "ind.title":"Индикаторы",
-    "ind.fg.label":"Fear & Greed","ind.fg.valueLabel":"Значение",
-    "ind.tcap.label":"Общая капитализация (USD)","ind.tcap.valueLabel":"USD",
-    "ind.alt.label":"Доминация альтов (proxy)","ind.alt.valueLabel":"Alt %",
-    "ind.refresh":"Обновить",
-
-    "hist.title":"История","hist.clear":"Очистить","hist.export":"Экспорт",
-    "hist.note":"Сохранено локально в браузере",
-    "footer.tags":"АИРДРОП · НОВОСТИ · ТРЕЙДИНГ",
-
-    // helper texts
-    "hint.fill":"Заполни поля",
-    "hint.invalid":"Проверь значения",
-    "hint.riskRange":"Риск должен быть 0–100%",
-    "hint.entryEqSl":"Entry и SL не должны совпадать",
-    "ind.loading":"Обновляю…",
-    "ind.cached":"Показаны данные из кеша",
-    "ind.rate":"Лимит/ошибка API — попробуй позже"
-  },
-  en:{
-    "tab.dca":"DCA","tab.rr":"R/R","tab.cap":"Capital","tab.ind":"Indicators",
-
-    "dca.p1":"Price 1","dca.v1":"Volume 1","dca.p2":"Price 2","dca.v2":"Volume 2",
-    "dca.result.label":"Average price",
-
-    "rr.entry":"Entry","rr.sl":"Stop Loss","rr.tp":"Take Profit",
-    "rr.result.label":"R/R",
-
-    "cap.dep":"Deposit","cap.risk":"Risk %","cap.entry":"Entry","cap.sl":"Stop Loss",
-    "cap.result.label":"Position size",
-
-    "ind.title":"Indicators",
-    "ind.fg.label":"Fear & Greed","ind.fg.valueLabel":"Value",
-    "ind.tcap.label":"Total Market Cap (USD)","ind.tcap.valueLabel":"USD",
-    "ind.alt.label":"Alt dominance (proxy Altseason)","ind.alt.valueLabel":"Alt %",
-    "ind.refresh":"Refresh",
-
-    "hist.title":"History","hist.clear":"Clear","hist.export":"Export",
-    "hist.note":"Saved locally in your browser",
-    "footer.tags":"AIRDROP · NEWS · TRADING",
-
-    // helper texts
-    "hint.fill":"Fill the fields",
-    "hint.invalid":"Check values",
-    "hint.riskRange":"Risk must be 0–100%",
-    "hint.entryEqSl":"Entry and SL must differ",
-    "ind.loading":"Refreshing…",
-    "ind.cached":"Showing cached data",
-    "ind.rate":"API limit/error — try later"
-  }
-};
-
-let lang = 'en';
-try{
-  const tgl = tg?.initDataUnsafe?.user?.language_code;
-  if (tgl) lang = /^ru|uk|be/i.test(tgl) ? 'ru' : 'en';
-  else lang = /^ru|uk|be/i.test(navigator.language) ? 'ru' : 'en';
-}catch(e){ lang='en'; }
-
-function t(key){ return (locales[lang] && locales[lang][key] !== undefined) ? locales[lang][key] : key; }
-function translateAll(){
-  document.querySelectorAll('[data-i18n]').forEach(el=>{
-    const k = el.getAttribute('data-i18n');
-    if(locales[lang] && locales[lang][k] !== undefined) el.textContent = locales[lang][k];
-  });
-}
-
-/* Tabs */
-document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click', ()=>{
-  document.querySelectorAll('.tab').forEach(tn=>tn.classList.remove('active'));
-  btn.classList.add('active');
-  const target = btn.dataset.tab;
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(target).classList.add('active');
-  translateAll();
-}));
-
-/* Language buttons */
-const btn_ru = document.getElementById('btn_ru');
-const btn_en = document.getElementById('btn_en');
-btn_ru.addEventListener('click', ()=>{ lang='ru'; btn_ru.classList.add('active'); btn_en.classList.remove('active'); translateAll(); renderHistory(); refreshHints(); });
-btn_en.addEventListener('click', ()=>{ lang='en'; btn_en.classList.add('active'); btn_ru.classList.remove('active'); translateAll(); renderHistory(); refreshHints(); });
-
-translateAll();
-
-/* Utils */
-function safeNum(v){
-  const x = parseFloat(v);
-  return Number.isFinite(x) ? x : NaN;
-}
-function setValue(el, value, kind){
-  el.classList.remove('muted','danger');
-  if(kind === 'danger') el.classList.add('danger');
-  if(kind === 'muted') el.classList.add('muted');
-  el.textContent = value;
-}
-function haptic(kind='impact', style='light'){
-  try{
-    if(!tg?.HapticFeedback) return;
-    if(kind==='impact') tg.HapticFeedback.impactOccurred(style);
-    if(kind==='notify') tg.HapticFeedback.notificationOccurred(style); // 'success'|'warning'|'error'
-  }catch(e){}
-}
-
-/* History (localStorage) */
-const HISTORY_KEY = 'trader_calc_history_v2';
-function loadHistory(){ try{ return JSON.parse(localStorage.getItem(HISTORY_KEY))||[] }catch(e){ return [] } }
-function saveHistory(arr){ localStorage.setItem(HISTORY_KEY, JSON.stringify(arr)); renderHistory(); }
-function pushHistory(item){
-  const arr = loadHistory();
-  arr.unshift(item);
-  if(arr.length > 80) arr.pop();
-  saveHistory(arr);
-}
-function renderHistory(){
-  const list = document.getElementById('history_list');
-  list.innerHTML = '';
-  const arr = loadHistory();
-  if(!arr.length){
-    const el = document.createElement('div');
-    el.className = 'note';
-    el.textContent = t('hist.note');
-    list.appendChild(el);
-    return;
-  }
-  arr.forEach(it=>{
-    const node = document.createElement('div');
-    node.style.display='flex';
-    node.style.justifyContent='space-between';
-    node.style.alignItems='flex-start';
-    node.style.padding='8px';
-    node.style.border='1px solid var(--border)';
-    node.style.borderRadius='8px';
-    node.style.background='#070707';
-
-    const left = document.createElement('div');
-    left.innerHTML = `
-      <div style="font-weight:700">${it.type}</div>
-      <div class="note">${it.summary || ''}</div>
-      <div class="small">${new Date(it.t).toLocaleString()}</div>
-    `;
-    node.appendChild(left);
-
-    list.appendChild(node);
-  });
-}
-
-document.getElementById('clear_history').addEventListener('click', ()=>{
-  localStorage.removeItem(HISTORY_KEY);
-  renderHistory();
-  haptic('notify','success');
-});
-
-document.getElementById('export_history').addEventListener('click', ()=>{
-  const data = JSON.stringify(loadHistory(), null, 2);
-  const blob = new Blob([data], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'history.json';
-  a.click();
-  URL.revokeObjectURL(url);
-  haptic('impact','light');
-});
-
-/* Auto-save with debounce (prevents spam) */
-const state = {
-  lastSaved: { DCA:null, RR:null, CAP:null },
-  saveTimers: {}
-};
-function scheduleSave(type, summary, value){
-  if(!value) return;
-  clearTimeout(state.saveTimers[type]);
-  state.saveTimers[type] = setTimeout(()=>{
-    if(state.lastSaved[type] === value) return;
-    state.lastSaved[type] = value;
-    pushHistory({ type, summary, t: Date.now() });
-    haptic('impact','light');
-  }, 650);
-}
-
-/* DCA */
-const dca_p1=document.getElementById('dca_p1'),
-      dca_v1=document.getElementById('dca_v1'),
-      dca_p2=document.getElementById('dca_p2'),
-      dca_v2=document.getElementById('dca_v2'),
-      dca_value=document.getElementById('dca_value'),
-      dca_hint=document.getElementById('dca_hint');
-
-function calcDCA(){
-  const p1=safeNum(dca_p1.value), v1=safeNum(dca_v1.value),
-        p2=safeNum(dca_p2.value), v2=safeNum(dca_v2.value);
-
-  if([p1,v1,p2,v2].some(x=>Number.isNaN(x))){
-    setValue(dca_value, '—', 'muted');
-    dca_hint.textContent = t('hint.fill');
-    return;
-  }
-  if(v1 < 0 || v2 < 0){
-    setValue(dca_value, '—', 'muted');
-    dca_hint.textContent = t('hint.invalid');
-    return;
-  }
-  const vol = v1 + v2;
-  if(vol <= 0){
-    setValue(dca_value, '—', 'muted');
-    dca_hint.textContent = t('hint.invalid');
-    return;
-  }
-
-  const avg = ((p1*v1)+(p2*v2))/vol;
-  const out = avg.toFixed(8);
-  setValue(dca_value, out, '');
-  dca_hint.textContent = '';
-
-  scheduleSave('DCA', `AVG ${out} (v=${vol})`, out);
-}
-[dca_p1,dca_v1,dca_p2,dca_v2].forEach(i=>i.addEventListener('input', calcDCA));
-
-/* R/R */
-const rr_entry=document.getElementById('rr_entry'),
-      rr_sl=document.getElementById('rr_sl'),
-      rr_tp=document.getElementById('rr_tp'),
-      rr_value=document.getElementById('rr_value'),
-      rr_hint=document.getElementById('rr_hint');
-
-function calcRR(){
-  const e=safeNum(rr_entry.value), sl=safeNum(rr_sl.value), tp=safeNum(rr_tp.value);
-
-  if([e,sl,tp].some(x=>Number.isNaN(x))){
-    setValue(rr_value,'—','muted');
-    rr_hint.textContent = t('hint.fill');
-    return;
-  }
-  if(e === sl){
-    setValue(rr_value,'—','muted');
-    rr_hint.textContent = t('hint.entryEqSl');
-    return;
-  }
-
-  const risk = Math.abs(e - sl);
-  const reward = Math.abs(tp - e);
-
-  if(risk <= 0 || reward < 0){
-    setValue(rr_value,'—','muted');
-    rr_hint.textContent = t('hint.invalid');
-    return;
-  }
-
-  const ratio = (reward / risk).toFixed(2);
-  const out = `1:${ratio}`;
-  setValue(rr_value, out, '');
-  rr_hint.textContent = '';
-
-  scheduleSave('RR', `R/R ${out} (entry ${e}, sl ${sl}, tp ${tp})`, out);
-}
-[rr_entry,rr_sl,rr_tp].forEach(i=>i.addEventListener('input', calcRR));
-
-/* Capital */
-const cap_dep=document.getElementById('cap_dep'),
-      cap_risk=document.getElementById('cap_risk'),
-      cap_entry=document.getElementById('cap_entry'),
-      cap_sl=document.getElementById('cap_sl'),
-      cap_value=document.getElementById('cap_value'),
-      cap_hint=document.getElementById('cap_hint');
-
-function calcCap(){
-  const dep=safeNum(cap_dep.value),
-        rp=safeNum(cap_risk.value),
-        e=safeNum(cap_entry.value),
-        sl=safeNum(cap_sl.value);
-
-  if([dep,rp,e,sl].some(x=>Number.isNaN(x))){
-    setValue(cap_value,'—','muted');
-    cap_hint.textContent = t('hint.fill');
-    return;
-  }
-  if(dep <= 0){
-    setValue(cap_value,'—','muted');
-    cap_hint.textContent = t('hint.invalid');
-    return;
-  }
-  if(rp <= 0 || rp > 100){
-    setValue(cap_value,'—','muted');
-    cap_hint.textContent = t('hint.riskRange');
-    return;
-  }
-  if(e === sl){
-    setValue(cap_value,'—','muted');
-    cap_hint.textContent = t('hint.entryEqSl');
-    return;
-  }
-
-  const riskUsd = dep * (rp/100);
-  const perUnit = Math.abs(e - sl);
-  const size = riskUsd / perUnit;
-
-  if(!Number.isFinite(size) || size <= 0){
-    setValue(cap_value,'—','muted');
-    cap_hint.textContent = t('hint.invalid');
-    return;
-  }
-
-  const out = size.toFixed(8);
-  setValue(cap_value, out, '');
-  cap_hint.textContent = '';
-
-  scheduleSave('CAP', `Size ${out} (risk $${riskUsd.toFixed(2)})`, out);
-}
-[cap_dep,cap_risk,cap_entry,cap_sl].forEach(i=>i.addEventListener('input', calcCap));
-
-function refreshHints(){
-  // re-run to refresh hints in current language
-  calcDCA(); calcRR(); calcCap();
-}
-
-/* Indicators with cache + better errors */
-const fgEl = document.getElementById('fg_value');
-const tcapEl = document.getElementById('tcap');
-const altDomEl = document.getElementById('alt_dom');
-const indNote = document.getElementById('ind_note');
-const IND_CACHE_KEY = 'trader_ind_cache_v1';
-const IND_CACHE_TTL_MS = 60_000;
-let indInFlight = false;
-
-function getIndCache(){
-  try{ return JSON.parse(localStorage.getItem(IND_CACHE_KEY)) }catch(e){ return null }
-}
-function setIndCache(data){
-  localStorage.setItem(IND_CACHE_KEY, JSON.stringify({ t: Date.now(), data }));
-}
-function applyIndicators(data){
-  if(!data) return;
-
-  if(data.fg){
-    setValue(fgEl, data.fg, '');
-  }else{
-    setValue(fgEl, '—', 'muted');
-  }
-
-  if(data.totalMc){
-    setValue(tcapEl, '$' + Number(data.totalMc).toLocaleString(undefined, {maximumFractionDigits:0}), '');
-  }else{
-    setValue(tcapEl, '—', 'muted');
-  }
-
-  if(typeof data.btcDom === 'number'){
-    const altDom = (100 - data.btcDom);
-    setValue(altDomEl, altDom.toFixed(2) + '%', '');
-  }else{
-    setValue(altDomEl, '—', 'muted');
-  }
-}
-
-async function fetchIndicators(){
-  if(indInFlight) return;
-  indInFlight = true;
-
-  indNote.textContent = t('ind.loading');
-
-  const cache = getIndCache();
-  if(cache && (Date.now() - cache.t) < IND_CACHE_TTL_MS){
-    applyIndicators(cache.data);
-    indNote.textContent = t('ind.cached');
-    indInFlight = false;
-    return;
-  }
-
-  const out = { fg:null, totalMc:null, btcDom:null };
-  let hadErr = false;
-
-  try{
-    const res = await fetch('https://api.alternative.me/fng/?limit=1&format=json', { cache:'no-store' });
-    if(!res.ok) throw new Error('FNG failed');
-    const j = await res.json();
-    const d = j?.data?.[0];
-    if(d?.value && d?.value_classification){
-      out.fg = `${d.value} · ${d.value_classification}`;
-    }
-  }catch(e){ hadErr = true; }
-
-  try{
-    const res2 = await fetch('https://api.coingecko.com/api/v3/global', { cache:'no-store' });
-    if(!res2.ok) throw new Error('CG global failed');
-    const j2 = await res2.json();
-    out.totalMc = j2?.data?.total_market_cap?.usd ?? null;
-    out.btcDom = (typeof j2?.data?.market_cap_percentage?.btc === 'number') ? j2.data.market_cap_percentage.btc : null;
-  }catch(e){ hadErr = true; }
-
-  applyIndicators(out);
-
-  // cache even partial results to reduce hammering APIs
-  setIndCache(out);
-
-  indNote.textContent = hadErr ? t('ind.rate') : '';
-  indInFlight = false;
-}
-
-document.getElementById('refresh_ind').addEventListener('click', ()=>{
-  // force refresh: bypass cache
-  try{ localStorage.removeItem(IND_CACHE_KEY); }catch(e){}
-  fetchIndicators();
-  haptic('impact','light');
-});
-
-/* links */
-function openUrl(url){
-  try{
-    if(tg?.openTelegramLink && url.startsWith('https://t.me/')) return tg.openTelegramLink(url);
-    if(tg?.openLink) return tg.openLink(url);
-  }catch(e){}
-  window.open(url,'_blank','noopener');
-}
-document.getElementById('link_telegram').addEventListener('click', e=>{ e.preventDefault(); openUrl('https://t.me/InvestTraderTrade'); });
-document.getElementById('link_youtube').addEventListener('click', e=>{ e.preventDefault(); openUrl('https://www.youtube.com/@TRADER_TRADE'); });
-
-/* initial */
-renderHistory();
-calcDCA(); calcRR(); calcCap();
-fetchIndicators();
-</script>
-</body>
-</html>
+diff --git a/index.html b/index.html
+index d119897b15096f67c3322c367a50fcb728d182cb..58cd1a944bed425aba9c971f057a5eeea0c9ebdb 100644
+--- a/index.html
++++ b/index.html
+@@ -1,118 +1,141 @@
+ <!DOCTYPE html>
+ <html lang="ru">
+ <head>
+ <meta charset="utf-8" />
+ <meta name="viewport" content="width=device-width,initial-scale=1" />
+ <title>Trader Calculator + Indicators</title>
+ <script src="https://telegram.org/js/telegram-web-app.js"></script>
+ <style>
+-:root{
+-  --bg:#000;
+-  --panel:#0b0b0b;
+-  --border:#151515;
+-  --text:#fff;
+-  --muted:#9a9a9a;
+-  --accent:#7CFC00;
+-  --danger:#ff4d4f;
+-}
++:root{
++  --bg:#000;
++  --panel:#0b0b0b;
++  --border:#151515;
++  --input:#070707;
++  --result:#060606;
++  --text:#fff;
++  --muted:#9a9a9a;
++  --accent:#7CFC00;
++  --danger:#ff4d4f;
++}
++
++:root[data-theme="light"]{
++  --bg:#f7f7f8;
++  --panel:#ffffff;
++  --border:#dcdcdc;
++  --input:#f1f3f6;
++  --result:#eef1f5;
++  --text:#0c0c0d;
++  --muted:#4c4f54;
++  --accent:#1677ff;
++  --danger:#d9363e;
++}
+ 
+ *{box-sizing:border-box}
+-html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Inter,Arial,Helvetica,sans-serif}
+-body{padding-bottom:env(safe-area-inset-bottom); padding-top:env(safe-area-inset-top)}
+-#app{min-height:100vh;display:flex;flex-direction:column}
+-
+-header{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);gap:10px}
+-.tabs{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+-.tab{background:none;border:none;color:var(--muted);font-size:13px;padding:6px 10px;cursor:pointer;border-radius:4px}
+-.tab.active{color:var(--accent);border-bottom:2px solid var(--accent)}
+-.lang{display:flex;gap:6px;align-items:center;flex:0 0 auto}
+-.lang button{background:none;border:1px solid var(--border);color:var(--muted);padding:4px 8px;cursor:pointer;border-radius:4px}
+-.lang button.active{color:var(--accent);border-color:var(--accent)}
+-
+-main{flex:1;padding:14px;display:flex;gap:16px;flex-direction:column}
+-.panels{display:flex;gap:16px;flex-wrap:wrap}
+-.screen{display:none;width:100%}
++html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Inter,Arial,Helvetica,sans-serif}
++body{padding-bottom:env(safe-area-inset-bottom); padding-top:env(safe-area-inset-top)}
++#app{min-height:100vh;display:flex;flex-direction:column}
++
++header{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 12px;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap}
++.header-left{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap}
++.tabs{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
++.tab{background:none;border:none;color:var(--muted);font-size:13px;padding:6px 10px;cursor:pointer;border-radius:4px}
++.tab.active{color:var(--accent);border-bottom:2px solid var(--accent)}
++.lang{display:flex;gap:6px;align-items:center;flex:0 0 auto}
++.lang button{background:none;border:1px solid var(--border);color:var(--muted);padding:4px 8px;cursor:pointer;border-radius:4px}
++.lang button.active{color:var(--accent);border-color:var(--accent)}
++.header-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}
++.theme-toggle{background:transparent;border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;cursor:pointer;font-weight:600}
++.theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
++
++main{flex:1;padding:14px;display:flex;gap:16px;flex-direction:column}
++.panels{display:flex;gap:16px;flex-wrap:wrap}
++.screen{display:none;width:100%}
+ .screen.active{display:block}
+ 
+ .card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;max-width:760px}
+ .field{margin-bottom:10px}
+-label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+-input{
+-  width:100%;padding:10px;background:#070707;border:1px solid var(--border);
+-  color:var(--text);border-radius:6px;font-size:14px;outline:none
+-}
+-input:focus{border-color:#2a2a2a}
+-
+-.result{
+-  margin-top:8px;padding:10px;border-radius:6px;background:#060606;border:1px solid var(--border);
+-  display:flex;align-items:center;justify-content:space-between;gap:10px
+-}
++label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
++input{
++  width:100%;padding:10px;background:var(--input);border:1px solid var(--border);
++  color:var(--text);border-radius:6px;font-size:14px;outline:none
++}
++input:focus{border-color:#2a2a2a}
++
++.result{
++  margin-top:8px;padding:10px;border-radius:6px;background:var(--result);border:1px solid var(--border);
++  display:flex;align-items:center;justify-content:space-between;gap:10px
++}
+ .res-label{color:var(--muted);font-size:12px}
+ .res-value{font-weight:700;font-size:14px}
+ .res-value.muted{color:var(--muted);font-weight:600}
+ .res-value.danger{color:var(--danger)}
+ 
+ .controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+-.btn{background:transparent;color:var(--accent);border:1px solid #2b2b2b;padding:8px 10px;border-radius:6px;cursor:pointer;font-weight:600}
++.btn{background:transparent;color:var(--accent);border:1px solid var(--border);padding:8px 10px;border-radius:6px;cursor:pointer;font-weight:600}
+ .btn:active{transform:translateY(1px)}
+ .btn.ghost{color:var(--muted);border-color:var(--border)}
+ 
+ .history{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px;max-width:420px}
+ .history-list{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow:auto}
+ .note{font-size:12px;color:var(--muted)}
+ .small{font-size:11px;color:var(--muted)}
+ 
+ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px}
+ .tags{font-size:12px;color:var(--muted);letter-spacing:1px}
+ .links{display:flex;gap:18px;margin-top:2px}
+ .rainbow{
+   display:inline-block;font-weight:700;text-decoration:none;
+   background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet);
+   background-size:400% 400%;
+   -webkit-background-clip:text;color:transparent;
+   animation:rain 3.5s linear infinite
+ }
+ @keyframes rain{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+ @media(min-width:900px){main{flex-direction:row}}
+ </style>
+ </head>
+ 
+ <body>
+ <div id="app">
+-  <header>
+-    <div class="tabs" role="tablist">
+-      <button class="tab active" data-tab="dca" data-i18n="tab.dca">DCA</button>
+-      <button class="tab" data-tab="rr" data-i18n="tab.rr">R/R</button>
+-      <button class="tab" data-tab="cap" data-i18n="tab.cap">Capital</button>
+-      <button class="tab" data-tab="ind" data-i18n="tab.ind">Indicators</button>
+-    </div>
+-    <div class="lang">
+-      <button id="btn_ru" class="active">RU</button>
+-      <button id="btn_en">EN</button>
+-    </div>
+-  </header>
++  <header>
++    <div class="header-left">
++      <div class="lang">
++        <button id="btn_ru" class="active">RU</button>
++        <button id="btn_en">EN</button>
++      </div>
++      <div class="tabs" role="tablist">
++        <button class="tab active" data-tab="dca" data-i18n="tab.dca">DCA</button>
++        <button class="tab" data-tab="rr" data-i18n="tab.rr">R/R</button>
++        <button class="tab" data-tab="cap" data-i18n="tab.cap">Capital</button>
++        <button class="tab" data-tab="ind" data-i18n="tab.ind">Indicators</button>
++      </div>
++    </div>
++    <div class="header-actions">
++      <button id="theme_toggle" class="theme-toggle" type="button">🌙 Theme</button>
++    </div>
++  </header>
+ 
+   <main>
+     <div class="panels" style="flex:1">
+       <!-- DCA -->
+       <section id="dca" class="screen active">
+         <div class="card">
+           <div class="field"><label data-i18n="dca.p1">Цена 1</label><input id="dca_p1" type="number" inputmode="decimal" step="any" placeholder="0.00"></div>
+           <div class="field"><label data-i18n="dca.v1">Объём 1</label><input id="dca_v1" type="number" inputmode="decimal" step="any" min="0" placeholder="0"></div>
+           <div class="field"><label data-i18n="dca.p2">Цена 2</label><input id="dca_p2" type="number" inputmode="decimal" step="any" placeholder="0.00"></div>
+           <div class="field"><label data-i18n="dca.v2">Объём 2</label><input id="dca_v2" type="number" inputmode="decimal" step="any" min="0" placeholder="0"></div>
+ 
+           <div class="result" id="dca_result">
+             <span class="res-label" data-i18n="dca.result.label">Средняя цена</span>
+             <span class="res-value muted" id="dca_value">—</span>
+           </div>
+ 
+           <div class="small" id="dca_hint"></div>
+         </div>
+       </section>
+ 
+       <!-- R/R -->
+       <section id="rr" class="screen">
+         <div class="card">
+           <div class="field"><label data-i18n="rr.entry">Entry</label><input id="rr_entry" type="number" inputmode="decimal" step="any" placeholder="0.00"></div>
+           <div class="field"><label data-i18n="rr.sl">Stop Loss</label><input id="rr_sl" type="number" inputmode="decimal" step="any" placeholder="0.00"></div>
+@@ -184,60 +207,70 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
+ 
+     <!-- right: history -->
+     <aside class="history" aria-live="polite">
+       <h4 data-i18n="hist.title">History</h4>
+       <div class="history-list" id="history_list"></div>
+ 
+       <div style="display:flex;gap:8px;margin-top:8px">
+         <button class="btn ghost" id="clear_history" data-i18n="hist.clear">Clear</button>
+         <button class="btn" id="export_history" data-i18n="hist.export">Export</button>
+       </div>
+ 
+       <div class="note" data-i18n="hist.note">Saved locally in your browser</div>
+     </aside>
+   </main>
+ 
+   <footer>
+     <div class="tags" data-i18n="footer.tags">АИРДРОП · НОВОСТИ · ТРЕЙДИНГ</div>
+     <div class="links">
+       <a id="link_telegram" class="rainbow" href="https://t.me/InvestTraderTrade" target="_blank" rel="noopener">TELEGRAM</a>
+       <a id="link_youtube" class="rainbow" href="https://www.youtube.com/@TRADER_TRADE" target="_blank" rel="noopener">YOUTUBE</a>
+     </div>
+   </footer>
+ </div>
+ 
+ <script>
+-/* Telegram init + theme */
+-const tg = window.Telegram?.WebApp || null;
+-try{ tg?.expand?.(); }catch(e){}
+-
+-(function applyTelegramTheme(){
+-  try{
+-    const p = tg?.themeParams;
+-    if(!p) return;
+-    // Telegram may provide colors like "#ffffff"
+-    if (p.bg_color) document.documentElement.style.setProperty('--bg', p.bg_color);
++/* Telegram init + theme */
++const tg = window.Telegram?.WebApp || null;
++const THEME_KEY = 'trader_theme_preference';
++
++function getStoredTheme(){
++  try{
++    const val = localStorage.getItem(THEME_KEY);
++    return (val === 'light' || val === 'dark') ? val : null;
++  }catch(e){ return null; }
++}
++
++try{ tg?.expand?.(); }catch(e){}
++
++(function applyTelegramTheme(){
++  if(getStoredTheme()) return; // user preference wins
++  try{
++    const p = tg?.themeParams;
++    if(!p) return;
++    // Telegram may provide colors like "#ffffff"
++    if (p.bg_color) document.documentElement.style.setProperty('--bg', p.bg_color);
+     if (p.text_color) document.documentElement.style.setProperty('--text', p.text_color);
+     if (p.hint_color) document.documentElement.style.setProperty('--muted', p.hint_color);
+     if (p.secondary_bg_color) document.documentElement.style.setProperty('--panel', p.secondary_bg_color);
+     // Accent: keep your neon by default
+   }catch(e){}
+ })();
+ 
+ /* locales */
+ const locales = {
+   ru:{
+     "tab.dca":"DCA","tab.rr":"R/R","tab.cap":"Capital","tab.ind":"Indicators",
+ 
+     "dca.p1":"Цена 1","dca.v1":"Объём 1","dca.p2":"Цена 2","dca.v2":"Объём 2",
+     "dca.result.label":"Средняя цена",
+ 
+     "rr.entry":"Entry","rr.sl":"Stop Loss","rr.tp":"Take Profit",
+     "rr.result.label":"R/R",
+ 
+     "cap.dep":"Депозит","cap.risk":"Риск %","cap.entry":"Entry","cap.sl":"Stop Loss",
+     "cap.result.label":"Объём",
+ 
+     "ind.title":"Индикаторы",
+     "ind.fg.label":"Fear & Greed","ind.fg.valueLabel":"Значение",
+     "ind.tcap.label":"Общая капитализация (USD)","ind.tcap.valueLabel":"USD",
+     "ind.alt.label":"Доминация альтов (proxy)","ind.alt.valueLabel":"Alt %",
+@@ -293,106 +326,135 @@ let lang = 'en';
+ try{
+   const tgl = tg?.initDataUnsafe?.user?.language_code;
+   if (tgl) lang = /^ru|uk|be/i.test(tgl) ? 'ru' : 'en';
+   else lang = /^ru|uk|be/i.test(navigator.language) ? 'ru' : 'en';
+ }catch(e){ lang='en'; }
+ 
+ function t(key){ return (locales[lang] && locales[lang][key] !== undefined) ? locales[lang][key] : key; }
+ function translateAll(){
+   document.querySelectorAll('[data-i18n]').forEach(el=>{
+     const k = el.getAttribute('data-i18n');
+     if(locales[lang] && locales[lang][k] !== undefined) el.textContent = locales[lang][k];
+   });
+ }
+ 
+ /* Tabs */
+ document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click', ()=>{
+   document.querySelectorAll('.tab').forEach(tn=>tn.classList.remove('active'));
+   btn.classList.add('active');
+   const target = btn.dataset.tab;
+   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+   document.getElementById(target).classList.add('active');
+   translateAll();
+ }));
+ 
+ /* Language buttons */
+-const btn_ru = document.getElementById('btn_ru');
+-const btn_en = document.getElementById('btn_en');
+-btn_ru.addEventListener('click', ()=>{ lang='ru'; btn_ru.classList.add('active'); btn_en.classList.remove('active'); translateAll(); renderHistory(); refreshHints(); });
+-btn_en.addEventListener('click', ()=>{ lang='en'; btn_en.classList.add('active'); btn_ru.classList.remove('active'); translateAll(); renderHistory(); refreshHints(); });
+-
+-translateAll();
++const btn_ru = document.getElementById('btn_ru');
++const btn_en = document.getElementById('btn_en');
++btn_ru.addEventListener('click', ()=>{ lang='ru'; btn_ru.classList.add('active'); btn_en.classList.remove('active'); translateAll(); renderHistory(); refreshHints(); applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark'); });
++btn_en.addEventListener('click', ()=>{ lang='en'; btn_en.classList.add('active'); btn_ru.classList.remove('active'); translateAll(); renderHistory(); refreshHints(); applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark'); });
++
++/* Theme toggle */
++const themeToggle = document.getElementById('theme_toggle');
++function applyTheme(mode){
++  const root = document.documentElement;
++  if(mode === 'light') root.setAttribute('data-theme','light');
++  else { root.removeAttribute('data-theme'); mode='dark'; }
++  const label = mode === 'light'
++    ? (lang === 'ru' ? '☀️ Светлая' : '☀️ Light')
++    : (lang === 'ru' ? '🌙 Тёмная' : '🌙 Dark');
++  themeToggle.textContent = label;
++  themeToggle.setAttribute('aria-pressed', mode === 'light');
++}
++function setTheme(mode){
++  applyTheme(mode);
++  try{ localStorage.setItem(THEME_KEY, mode); }catch(e){}
++}
++function detectPreferredTheme(){
++  const stored = getStoredTheme();
++  if(stored) return stored;
++  if(tg?.colorScheme === 'light' || tg?.colorScheme === 'dark') return tg.colorScheme;
++  if(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) return 'light';
++  return 'dark';
++}
++applyTheme(detectPreferredTheme());
++themeToggle.addEventListener('click', ()=>{
++  const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
++  setTheme(next);
++});
++
++translateAll();
+ 
+ /* Utils */
+ function safeNum(v){
+   const x = parseFloat(v);
+   return Number.isFinite(x) ? x : NaN;
+ }
+ function setValue(el, value, kind){
+   el.classList.remove('muted','danger');
+   if(kind === 'danger') el.classList.add('danger');
+   if(kind === 'muted') el.classList.add('muted');
+   el.textContent = value;
+ }
+ function haptic(kind='impact', style='light'){
+   try{
+     if(!tg?.HapticFeedback) return;
+     if(kind==='impact') tg.HapticFeedback.impactOccurred(style);
+     if(kind==='notify') tg.HapticFeedback.notificationOccurred(style); // 'success'|'warning'|'error'
+   }catch(e){}
+ }
+ 
+ /* History (localStorage) */
+ const HISTORY_KEY = 'trader_calc_history_v2';
+ function loadHistory(){ try{ return JSON.parse(localStorage.getItem(HISTORY_KEY))||[] }catch(e){ return [] } }
+ function saveHistory(arr){ localStorage.setItem(HISTORY_KEY, JSON.stringify(arr)); renderHistory(); }
+ function pushHistory(item){
+   const arr = loadHistory();
+   arr.unshift(item);
+   if(arr.length > 80) arr.pop();
+   saveHistory(arr);
+ }
+ function renderHistory(){
+   const list = document.getElementById('history_list');
+   list.innerHTML = '';
+   const arr = loadHistory();
+   if(!arr.length){
+     const el = document.createElement('div');
+     el.className = 'note';
+     el.textContent = t('hist.note');
+     list.appendChild(el);
+     return;
+   }
+   arr.forEach(it=>{
+     const node = document.createElement('div');
+     node.style.display='flex';
+     node.style.justifyContent='space-between';
+     node.style.alignItems='flex-start';
+     node.style.padding='8px';
+     node.style.border='1px solid var(--border)';
+     node.style.borderRadius='8px';
+-    node.style.background='#070707';
++    node.style.background='var(--input)';
+ 
+     const left = document.createElement('div');
+     left.innerHTML = `
+       <div style="font-weight:700">${it.type}</div>
+       <div class="note">${it.summary || ''}</div>
+       <div class="small">${new Date(it.t).toLocaleString()}</div>
+     `;
+     node.appendChild(left);
+ 
+     list.appendChild(node);
+   });
+ }
+ 
+ document.getElementById('clear_history').addEventListener('click', ()=>{
+   localStorage.removeItem(HISTORY_KEY);
+   renderHistory();
+   haptic('notify','success');
+ });
+ 
+ document.getElementById('export_history').addEventListener('click', ()=>{
+   const data = JSON.stringify(loadHistory(), null, 2);
+   const blob = new Blob([data], {type:'application/json'});
+   const url = URL.createObjectURL(blob);
+   const a = document.createElement('a');
+   a.href = url;
