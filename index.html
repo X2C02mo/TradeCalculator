@@ -19,6 +19,8 @@
   --input-bg:#070707;
   --result-bg:#060606;
   --chip-bg:#0a0a0a;
+
+  --shadow: 0 12px 40px rgba(0,0,0,.45);
 }
 :root[data-theme="light"]{
   --bg:#ffffff;
@@ -32,6 +34,8 @@
   --input-bg:#ffffff;
   --result-bg:#ffffff;
   --chip-bg:#f1f1f1;
+
+  --shadow: 0 12px 40px rgba(0,0,0,.12);
 }
 
 *{box-sizing:border-box}
@@ -51,13 +55,13 @@ header{
 .lang{display:flex;gap:6px;align-items:center}
 .lang button{
   background:none;border:1px solid var(--border);color:var(--muted);
-  padding:4px 8px;cursor:pointer;border-radius:8px
+  padding:4px 8px;cursor:pointer;border-radius:10px
 }
 .lang button.active{color:var(--accent);border-color:var(--accent)}
 
 .iconbtn{
   background:none;border:1px solid var(--border);color:var(--muted);
-  padding:6px 10px;cursor:pointer;border-radius:10px;
+  padding:6px 10px;cursor:pointer;border-radius:12px;
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
 }
 .iconbtn:active{transform:translateY(1px)}
@@ -70,7 +74,7 @@ header{
 }
 .tab{
   background:none;border:none;color:var(--muted);
-  font-size:13px;padding:6px 10px;cursor:pointer;border-radius:8px
+  font-size:13px;padding:6px 10px;cursor:pointer;border-radius:10px
 }
 .tab.active{color:var(--accent);border-bottom:2px solid var(--accent)}
 
@@ -81,33 +85,33 @@ main{flex:1;padding:14px;display:flex;gap:16px;flex-direction:column}
 
 .card{
   background:var(--panel);border:1px solid var(--border);
-  border-radius:12px;padding:12px;max-width:820px
+  border-radius:14px;padding:12px;max-width:820px
 }
 .field{margin-bottom:10px}
 label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
 input{
   width:100%;padding:10px;background:var(--input-bg);
   border:1px solid var(--border);color:var(--text);
-  border-radius:10px;font-size:14px;outline:none
+  border-radius:12px;font-size:14px;outline:none
 }
 input:focus{border-color:color-mix(in oklab, var(--accent) 45%, var(--border))}
 
 .row{
   display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;
-  padding:10px; border:1px solid var(--border); border-radius:12px;
+  padding:10px; border:1px solid var(--border); border-radius:14px;
   background:color-mix(in oklab, var(--panel) 75%, var(--bg));
 }
 .row .col{flex:1; min-width:130px}
 .row .mini{
   width:40px; height:40px; display:flex; align-items:center; justify-content:center;
-  border-radius:12px; border:1px solid var(--border);
+  border-radius:14px; border:1px solid var(--border);
   background:var(--chip-bg); cursor:pointer; color:var(--muted);
 }
 .row .mini:hover{border-color:color-mix(in oklab, var(--accent) 25%, var(--border))}
 .row .mini:active{transform:translateY(1px)}
 
 .result{
-  margin-top:8px;padding:10px;border-radius:12px;
+  margin-top:8px;padding:10px;border-radius:14px;
   background:var(--result-bg);border:1px solid var(--border);
   display:flex;align-items:center;justify-content:space-between;gap:10px
 }
@@ -120,13 +124,14 @@ input:focus{border-color:color-mix(in oklab, var(--accent) 45%, var(--border))}
 .controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .btn{
   background:transparent;color:var(--accent);
-  border:1px solid #2b2b2b;padding:8px 10px;border-radius:12px;
+  border:1px solid #2b2b2b;padding:8px 10px;border-radius:14px;
   cursor:pointer;font-weight:800
 }
 :root[data-theme="light"] .btn{border-color:var(--border)}
 .btn:active{transform:translateY(1px)}
 .btn.ghost{color:var(--muted);border-color:var(--border)}
 .btn.small{padding:6px 10px;border-radius:999px;font-weight:900}
+.btn:disabled{opacity:.45; cursor:not-allowed}
 
 .note{font-size:12px;color:var(--muted);line-height:1.35}
 .small{font-size:11px;color:var(--muted)}
@@ -140,8 +145,22 @@ input:focus{border-color:color-mix(in oklab, var(--accent) 45%, var(--border))}
 }
 .hr{height:1px;background:var(--border);margin:12px 0}
 
+/* Indicator visuals */
+.viz-grid{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+.viz{
+  flex:1; min-width:240px;
+  background:color-mix(in oklab, var(--panel) 60%, var(--bg));
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:10px;
+}
+.viz-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.viz-title b{font-size:12px}
+.viz-title span{font-size:11px;color:var(--muted)}
+.viz canvas{width:100%;height:140px;display:block;border-radius:12px;background:var(--result-bg);border:1px solid var(--border)}
+
 /* right panel */
-.history{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:10px;max-width:420px}
+.history{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:10px;max-width:420px}
 .history-list{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow:auto}
 
 /* footer */
@@ -157,6 +176,75 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
 }
 @keyframes rain{0%{background-position:0% 50%}100%{background-position:100% 50%}}
 @media(min-width:900px){main{flex-direction:row}}
+
+/* Toast */
+#toast{
+  position:fixed; left:50%; bottom:18px;
+  transform:translateX(-50%);
+  background:color-mix(in oklab, var(--panel) 85%, var(--bg));
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:10px 12px;
+  border-radius:999px;
+  box-shadow:var(--shadow);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .18s ease, transform .18s ease;
+  z-index:9999;
+  font-weight:900;
+  font-size:13px;
+}
+#toast.show{opacity:1; transform:translateX(-50%) translateY(-4px)}
+
+/* Modal */
+#modalOverlay{
+  position:fixed; inset:0; z-index:9998;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:14px;
+}
+#modalOverlay.show{display:flex}
+#modal{
+  width:min(920px, 100%);
+  background:color-mix(in oklab, var(--panel) 90%, var(--bg));
+  border:1px solid var(--border);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+#modalHeader{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px;
+  border-bottom:1px solid var(--border);
+}
+#modalHeader b{font-size:14px}
+#modalBody{padding:12px}
+#modalFooter{
+  padding:12px;
+  border-top:1px solid var(--border);
+  display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;
+}
+#modalImg{
+  width:100%;
+  max-height:70vh;
+  object-fit:contain;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:var(--result-bg);
+}
+#modalText{
+  width:100%;
+  min-height:260px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:var(--input-bg);
+  color:var(--text);
+  padding:10px;
+  font-size:13px;
+  resize:vertical;
+}
 </style>
 </head>
 
@@ -213,7 +301,7 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
               <span class="res-label" data-i18n="dca.avg">Средняя цена</span>
               <span class="res-value muted" id="dca_avg">—</span>
             </div>
-            <button class="btn small ghost" id="dca_copy" data-i18n="common.copy">Copy</button>
+            <button class="btn small ghost" id="dca_copy" data-i18n="common.copy">Копировать</button>
           </div>
 
           <div class="chips">
@@ -284,7 +372,7 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
           </div>
 
           <div class="controls">
-            <button class="btn ghost" id="rr_clear" data-i18n="common.clear">Clear</button>
+            <button class="btn ghost" id="rr_clear" data-i18n="common.clear">Очистить</button>
           </div>
 
           <div class="chips">
@@ -339,7 +427,7 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
           </div>
 
           <div class="controls">
-            <button class="btn ghost" id="cap_clear" data-i18n="common.clear">Clear</button>
+            <button class="btn ghost" id="cap_clear" data-i18n="common.clear">Очистить</button>
           </div>
 
           <div class="chips">
@@ -397,7 +485,32 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
             </div>
           </div>
 
-          <div class="controls" style="margin-top:8px">
+          <!-- visual images -->
+          <div class="viz-grid">
+            <div class="viz">
+              <div class="viz-title">
+                <b data-i18n="ind.viz.fg">F&G Gauge</b>
+                <span id="fg_viz_text">—</span>
+              </div>
+              <canvas id="fg_canvas"></canvas>
+            </div>
+            <div class="viz">
+              <div class="viz-title">
+                <b data-i18n="ind.viz.cap">Market Cap</b>
+                <span id="cap_viz_text">—</span>
+              </div>
+              <canvas id="cap_canvas"></canvas>
+            </div>
+            <div class="viz">
+              <div class="viz-title">
+                <b data-i18n="ind.viz.alt">Alt Dom</b>
+                <span id="alt_viz_text">—</span>
+              </div>
+              <canvas id="alt_canvas"></canvas>
+            </div>
+          </div>
+
+          <div class="controls" style="margin-top:12px">
             <button class="btn" id="refresh_ind" data-i18n="ind.refresh">Refresh</button>
           </div>
 
@@ -429,20 +542,54 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
   </footer>
 </div>
 
+<!-- Toast -->
+<div id="toast">—</div>
+
+<!-- Modal -->
+<div id="modalOverlay" role="dialog" aria-modal="true">
+  <div id="modal">
+    <div id="modalHeader">
+      <b id="modalTitle">—</b>
+      <button class="btn small ghost" id="modalClose">✕</button>
+    </div>
+    <div id="modalBody">
+      <img id="modalImg" alt="preview" style="display:none" />
+      <textarea id="modalText" style="display:none" readonly></textarea>
+      <div class="note" id="modalHint" style="margin-top:10px"></div>
+    </div>
+    <div id="modalFooter">
+      <button class="btn ghost" id="modalCopy" style="display:none" data-i18n="modal.copy">Copy</button>
+      <button class="btn ghost" id="modalOpen" style="display:none" data-i18n="modal.open">Open</button>
+      <button class="btn" id="modalShare" style="display:none" data-i18n="modal.share">Share</button>
+      <button class="btn ghost" id="modalDownload" style="display:none" data-i18n="modal.download">Download</button>
+      <button class="btn" id="modalOk" data-i18n="modal.ok">OK</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* Telegram init */
 const tg = window.Telegram?.WebApp || null;
 try{ tg?.expand?.(); }catch(e){}
+
+/* UA helpers */
+const UA = navigator.userAgent || '';
+const IS_IOS = /iPad|iPhone|iPod/i.test(UA) || (UA.includes('Mac') && 'ontouchend' in document);
+const IS_ANDROID = /Android/i.test(UA);
+const IN_TG = !!tg;
 
 /* i18n */
 const locales = {
   ru:{
     "tab.dca":"DCA","tab.rr":"R/R","tab.cap":"Capital","tab.ind":"Indicators",
     "theme.dark":"Тёмная","theme.light":"Светлая",
-
-    "share":"Поделиться",          /* FIXED */
+    "share":"Поделиться",
     "cardpng":"Карточка PNG",
-    "common.clear":"Очистить","common.copy":"Копировать","common.copied":"Скопировано",
+
+    "common.clear":"Очистить",
+    "common.copy":"Копировать",
+    "common.copiedToast":"Скопировано!",
+    "common.opened":"Открыто",
 
     "dca.tip":"Совет: добавляй несколько входов — калькулятор посчитает среднюю цену, общий объём и сумму.",
     "dca.add":"+ Добавить вход",
@@ -494,6 +641,9 @@ const locales = {
     "ind.loading":"Обновляю…",
     "ind.cached":"Показаны данные из кеша",
     "ind.rate":"Лимит/ошибка API — попробуй позже",
+    "ind.viz.fg":"F&G Gauge",
+    "ind.viz.cap":"Market Cap",
+    "ind.viz.alt":"Alt Dom",
 
     "hist.title":"История",
     "hist.clear":"Очистить",
@@ -502,15 +652,25 @@ const locales = {
 
     "footer.tags":"АИРДРОП · НОВОСТИ · ТРЕЙДИНГ",
 
-    "card.saved":"Готово. Открыл «Поделиться» / предпросмотр.",
-    "card.nodata":"Нет данных для карточки"
+    "modal.ok":"OK",
+    "modal.copy":"Копировать",
+    "modal.open":"Открыть",
+    "modal.share":"Поделиться",
+    "modal.download":"Скачать",
+
+    "file.hint.image":"Если не появилось меню «Поделиться», зажми картинку и выбери «Сохранить/Поделиться».",
+    "file.hint.text":"Если скачивание недоступно, нажми «Открыть» или просто «Копировать»."
   },
   en:{
     "tab.dca":"DCA","tab.rr":"R/R","tab.cap":"Capital","tab.ind":"Indicators",
     "theme.dark":"Dark","theme.light":"Light",
     "share":"Share",
     "cardpng":"Card PNG",
-    "common.clear":"Clear","common.copy":"Copy","common.copied":"Copied",
+
+    "common.clear":"Clear",
+    "common.copy":"Copy",
+    "common.copiedToast":"Copied!",
+    "common.opened":"Opened",
 
     "dca.tip":"Tip: add multiple entries — it will calculate average price, total size and total cost.",
     "dca.add":"+ Add entry",
@@ -562,6 +722,9 @@ const locales = {
     "ind.loading":"Refreshing…",
     "ind.cached":"Showing cached data",
     "ind.rate":"API limit/error — try later",
+    "ind.viz.fg":"F&G Gauge",
+    "ind.viz.cap":"Market Cap",
+    "ind.viz.alt":"Alt Dom",
 
     "hist.title":"History",
     "hist.clear":"Clear",
@@ -570,8 +733,14 @@ const locales = {
 
     "footer.tags":"AIRDROP · NEWS · TRADING",
 
-    "card.saved":"Done. Opened Share/preview.",
-    "card.nodata":"No data for card"
+    "modal.ok":"OK",
+    "modal.copy":"Copy",
+    "modal.open":"Open",
+    "modal.share":"Share",
+    "modal.download":"Download",
+
+    "file.hint.image":"If Share menu doesn’t appear, long-press the image to Save/Share.",
+    "file.hint.text":"If download is unavailable, tap Open or just Copy."
   }
 };
 
@@ -591,8 +760,97 @@ function translateAll(){
   updateThemeUI();
 }
 
+/* Toast */
+let toastTimer = null;
+function showToast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 1200);
+}
+
+/* Modal */
+const modalOverlay = document.getElementById('modalOverlay');
+const modalTitle = document.getElementById('modalTitle');
+const modalImg = document.getElementById('modalImg');
+const modalText = document.getElementById('modalText');
+const modalHint = document.getElementById('modalHint');
+const modalClose = document.getElementById('modalClose');
+const modalOk = document.getElementById('modalOk');
+const modalCopy = document.getElementById('modalCopy');
+const modalOpen = document.getElementById('modalOpen');
+const modalShare = document.getElementById('modalShare');
+const modalDownload = document.getElementById('modalDownload');
+
+let modalState = { kind:null, url:null, blob:null, filename:null, mime:null, text:null };
+
+function closeModal(){
+  modalOverlay.classList.remove('show');
+  // do not revoke immediately - user may still open/share
+}
+modalClose.addEventListener('click', closeModal);
+modalOk.addEventListener('click', closeModal);
+modalOverlay.addEventListener('click', (e)=>{ if(e.target === modalOverlay) closeModal(); });
+
+function openModal({title, kind, url, blob, filename, mime, text, hint}){
+  modalState = { kind, url, blob, filename, mime, text };
+
+  modalTitle.textContent = title || '—';
+  modalHint.textContent = hint || '';
+
+  modalImg.style.display = 'none';
+  modalText.style.display = 'none';
+
+  modalCopy.style.display = 'none';
+  modalOpen.style.display = 'none';
+  modalShare.style.display = 'none';
+  modalDownload.style.display = 'none';
+
+  if(kind === 'image'){
+    modalImg.src = url;
+    modalImg.style.display = 'block';
+    modalOpen.style.display = 'inline-flex';
+    modalShare.style.display = canShareFiles(blob, filename, mime) ? 'inline-flex' : 'none';
+    modalDownload.style.display = (!IN_TG && !IS_IOS) ? 'inline-flex' : 'none';
+  }
+  if(kind === 'text'){
+    modalText.value = text || '';
+    modalText.style.display = 'block';
+    modalCopy.style.display = 'inline-flex';
+    modalOpen.style.display = 'inline-flex';
+    modalShare.style.display = canShareFiles(blob, filename, mime) ? 'inline-flex' : 'none';
+    modalDownload.style.display = (!IN_TG && !IS_IOS) ? 'inline-flex' : 'none';
+  }
+
+  modalOverlay.classList.add('show');
+}
+
+modalOpen.addEventListener('click', ()=>{
+  if(!modalState.url) return;
+  try{
+    const w = window.open(modalState.url, "_blank", "noopener");
+    if(!w) window.location.href = modalState.url;
+  }catch(e){
+    try{ window.location.href = modalState.url; }catch(_){}
+  }
+  showToast(t('common.opened'));
+});
+modalCopy.addEventListener('click', async ()=>{
+  const ok = await copyText(modalState.text || '');
+  if(ok) showToast(t('common.copiedToast'));
+});
+modalShare.addEventListener('click', async ()=>{
+  if(!modalState.blob) return;
+  await shareFile(modalState.blob, modalState.filename, modalState.mime, modalTitle.textContent);
+});
+modalDownload.addEventListener('click', ()=>{
+  if(!modalState.url || !modalState.filename) return;
+  downloadByLink(modalState.url, modalState.filename);
+});
+
 /* theme toggle */
-const THEME_KEY = 'tc_theme_v3';
+const THEME_KEY = 'tc_theme_v4';
 function getInitialTheme(){
   const saved = localStorage.getItem(THEME_KEY);
   if(saved === 'dark' || saved === 'light') return saved;
@@ -604,6 +862,8 @@ function setTheme(theme){
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem(THEME_KEY, theme);
   updateThemeUI();
+  // redraw indicator canvases with new colors
+  drawAllIndicatorVisuals(lastIndicators);
 }
 function updateThemeUI(){
   const theme = document.documentElement.getAttribute('data-theme') || 'dark';
@@ -666,6 +926,9 @@ function fmtMoney(n){
   if(!Number.isFinite(n)) return '—';
   return '$' + n.toLocaleString(undefined, { maximumFractionDigits:0 });
 }
+function cssVar(name){
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
 function haptic(kind='impact', style='light'){
   try{
     if(!tg?.HapticFeedback) return;
@@ -673,61 +936,107 @@ function haptic(kind='impact', style='light'){
     if(kind==='notify') tg.HapticFeedback.notificationOccurred(style);
   }catch(e){}
 }
+
+/* COPY: one tap, stable */
 async function copyText(text){
+  if(!text || text === '—') return false;
+
+  // 1) try modern clipboard
   try{
-    if(!text || text === '—') return false;
-    await navigator.clipboard.writeText(text);
-    return true;
-  }catch(e){
-    try{
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(text);
       return true;
-    }catch(err){ return false; }
+    }
+  }catch(e){ /* continue */ }
+
+  // 2) fallback execCommand
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly','');
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    ta.style.top = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return !!ok;
+  }catch(err){
+    return false;
   }
 }
 
-/* MOBILE-SAFE FILE SHARE / OPEN */
-async function shareOrOpenBlob(blob, filename, mime, title){
-  // 1) Native share (best on phones)
+/* Files: share / download / preview (works across devices) */
+function canShareFiles(blob, filename, mime){
   try{
     const file = new File([blob], filename, { type: mime });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: title || filename });
+    return !!(navigator.canShare && navigator.canShare({ files:[file] }) && navigator.share);
+  }catch(e){ return false; }
+}
+async function shareFile(blob, filename, mime, title){
+  try{
+    const file = new File([blob], filename, { type: mime });
+    if(navigator.canShare && navigator.canShare({ files:[file] }) && navigator.share){
+      await navigator.share({ files:[file], title: title || filename });
+      haptic('notify','success');
       return true;
     }
-  }catch(e){ /* ignore */ }
-
-  // 2) Fallback: open blob (user can Save/Share from viewer)
-  const url = URL.createObjectURL(blob);
+  }catch(e){}
+  return false;
+}
+function downloadByLink(url, filename){
   try{
-    // Telegram openLink may reject blob:, so try window.open first
-    const w = window.open(url, "_blank", "noopener");
-    if(!w) window.location.href = url;
-  }catch(e){
-    try{ window.location.href = url; }catch(_) {}
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    return true;
+  }catch(e){ return false; }
+}
+
+async function saveBlobSmart({blob, filename, mime, title, kind, textForPreview}){
+  // 1) best: share files (phones)
+  if(canShareFiles(blob, filename, mime)){
+    const ok = await shareFile(blob, filename, mime, title);
+    if(ok) return true;
   }
 
-  const msg = (mime.startsWith("image/"))
-    ? (lang === "ru"
-        ? "Картинка открыта. На телефоне зажми на ней → «Сохранить изображение» или «Поделиться»."
-        : "Image opened. Long-press → Save image / Share.")
-    : (lang === "ru"
-        ? "Файл открыт. Нажми «Поделиться» и выбери «Сохранить…/Файлы»."
-        : "File opened. Use Share → Save/Files.");
+  // 2) desktop browser: download attribute is fine
+  const url = URL.createObjectURL(blob);
 
-  try{ tg?.showAlert?.(msg); } catch(_) { try{ alert(msg); }catch(__){} }
+  if(!IN_TG && !IS_IOS){
+    const ok = downloadByLink(url, filename);
+    if(ok){
+      showToast('OK');
+      setTimeout(()=>URL.revokeObjectURL(url), 60_000);
+      return true;
+    }
+  }
 
-  setTimeout(()=>URL.revokeObjectURL(url), 60_000);
+  // 3) fallback: preview modal + open/share if possible
+  const hint = kind === 'image' ? t('file.hint.image') : t('file.hint.text');
+  openModal({
+    title: title || filename,
+    kind: kind,
+    url,
+    blob,
+    filename,
+    mime,
+    text: textForPreview || '',
+    hint
+  });
+
+  setTimeout(()=>URL.revokeObjectURL(url), 120_000);
   return false;
 }
 
 /* History */
-const HISTORY_KEY = 'trader_calc_history_v5';
+const HISTORY_KEY = 'trader_calc_history_v6';
 function loadHistory(){ try{ return JSON.parse(localStorage.getItem(HISTORY_KEY))||[] }catch(e){ return [] } }
 function saveHistory(arr){ localStorage.setItem(HISTORY_KEY, JSON.stringify(arr)); renderHistory(); }
 function pushHistory(item){
@@ -751,7 +1060,7 @@ function renderHistory(){
     const node = document.createElement('div');
     node.style.padding='10px';
     node.style.border='1px solid var(--border)';
-    node.style.borderRadius='14px';
+    node.style.borderRadius='16px';
     node.style.background='color-mix(in oklab, var(--panel) 75%, var(--bg))';
     node.innerHTML = `
       <div style="font-weight:900">${it.type}</div>
@@ -776,8 +1085,16 @@ document.getElementById('export_history').addEventListener('click', async ()=>{
   });
   const txt = lines.join('\n') || '';
   const blob = new Blob([txt], { type:'text/plain;charset=utf-8' });
+
   haptic('impact','light');
-  await shareOrOpenBlob(blob, 'history.txt', 'text/plain', 'Trader Calculator History');
+  await saveBlobSmart({
+    blob,
+    filename:'history.txt',
+    mime:'text/plain',
+    title:'Trader Calculator — History',
+    kind:'text',
+    textForPreview: txt
+  });
 });
 
 /* auto-save debounce */
@@ -956,8 +1273,7 @@ dcaCopyBtn.addEventListener('click', async ()=>{
   const val = dcaAvgEl.textContent.trim();
   const ok = await copyText(val);
   if(ok){
-    dcaCopyBtn.textContent = t('common.copied');
-    setTimeout(()=>dcaCopyBtn.textContent = t('common.copy'), 900);
+    showToast(t('common.copiedToast'));
     haptic('notify','success');
   }
 });
@@ -1064,18 +1380,24 @@ document.querySelectorAll('.cap_preset').forEach(b=>b.addEventListener('click', 
   cap_risk.value = b.dataset.v;
   calcCap();
   haptic('impact','light');
-}));
+});
 
-/* Indicators with cache + mood */
+/* Indicators with cache + visuals */
 const fgEl = document.getElementById('fg_value');
 const tcapEl = document.getElementById('tcap');
 const altDomEl = document.getElementById('alt_dom');
 const moodEl = document.getElementById('mood_value');
 const indNote = document.getElementById('ind_note');
 
-const IND_CACHE_KEY = 'trader_ind_cache_v4';
+const fgVizText = document.getElementById('fg_viz_text');
+const capVizText = document.getElementById('cap_viz_text');
+const altVizText = document.getElementById('alt_viz_text');
+
+const IND_CACHE_KEY = 'trader_ind_cache_v5';
 const IND_CACHE_TTL_MS = 60_000;
 let indInFlight = false;
+
+let lastIndicators = null;
 
 function getIndCache(){ try{ return JSON.parse(localStorage.getItem(IND_CACHE_KEY)) }catch(e){ return null } }
 function setIndCache(data){ localStorage.setItem(IND_CACHE_KEY, JSON.stringify({ t: Date.now(), data })); }
@@ -1091,7 +1413,15 @@ function applyIndicators(data){
   tcapEl.textContent = data.totalMc ? fmtMoney(Number(data.totalMc)) : '—';
   altDomEl.textContent = (typeof data.altDom === 'number') ? (data.altDom.toFixed(2) + '%') : '—';
   moodEl.textContent = computeMood(data.fngValue, data.altDom);
+
+  fgVizText.textContent = Number.isFinite(data.fngValue) ? String(data.fngValue) : '—';
+  capVizText.textContent = data.totalMc ? fmtMoney(Number(data.totalMc)) : '—';
+  altVizText.textContent = (typeof data.altDom === 'number') ? (data.altDom.toFixed(2) + '%') : '—';
+
+  lastIndicators = data;
+  drawAllIndicatorVisuals(data);
 }
+
 async function fetchIndicators(){
   if(indInFlight) return;
   indInFlight = true;
@@ -1139,7 +1469,252 @@ document.getElementById('refresh_ind').addEventListener('click', ()=>{
   haptic('impact','light');
 });
 
-/* Share button: try native share text on phones, else copy */
+/* Indicator canvas drawing */
+function setupCanvas(canvas){
+  const dpr = window.devicePixelRatio || 1;
+  const w = Math.max(10, canvas.clientWidth);
+  const h = Math.max(10, canvas.clientHeight);
+  canvas.width = Math.floor(w * dpr);
+  canvas.height = Math.floor(h * dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return { ctx, w, h };
+}
+function drawFGGauge(value){
+  const canvas = document.getElementById('fg_canvas');
+  const { ctx, w, h } = setupCanvas(canvas);
+
+  const bg = cssVar('--result-bg');
+  const border = cssVar('--border');
+  const muted = cssVar('--muted');
+  const text = cssVar('--text');
+  const accent = cssVar('--accent');
+  const danger = cssVar('--danger');
+
+  // background
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,w,h);
+
+  // frame
+  ctx.strokeStyle = border;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(1,1,w-2,h-2);
+
+  const cx = w/2;
+  const cy = h*0.86;
+  const r = Math.min(w*0.38, h*0.8);
+
+  // base arc
+  ctx.beginPath();
+  ctx.strokeStyle = colorMix(muted, border, 0.55);
+  ctx.lineWidth = 12;
+  ctx.lineCap = 'round';
+  ctx.arc(cx, cy, r, Math.PI, 0, false);
+  ctx.stroke();
+
+  if(Number.isFinite(value)){
+    const v = Math.max(0, Math.min(100, value));
+    const end = Math.PI - (Math.PI * (v/100));
+    ctx.beginPath();
+    ctx.strokeStyle = v < 35 ? danger : (v > 65 ? accent : colorMix(accent, muted, 0.55));
+    ctx.lineWidth = 12;
+    ctx.lineCap = 'round';
+    ctx.arc(cx, cy, r, Math.PI, end, false);
+    ctx.stroke();
+
+    // needle
+    const ang = Math.PI - (Math.PI * (v/100));
+    const nx = cx + Math.cos(ang) * (r - 8);
+    const ny = cy + Math.sin(ang) * (r - 8);
+
+    ctx.beginPath();
+    ctx.strokeStyle = text;
+    ctx.lineWidth = 3;
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(nx, ny);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.fillStyle = text;
+    ctx.arc(cx, cy, 5, 0, Math.PI*2);
+    ctx.fill();
+
+    // label
+    ctx.fillStyle = text;
+    ctx.font = '900 16px Inter, Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`F&G: ${v}`, cx, 26);
+
+    ctx.fillStyle = muted;
+    ctx.font = '700 12px Inter, Arial, sans-serif';
+    ctx.fillText(v <= 25 ? 'Extreme Fear' : v <= 45 ? 'Fear' : v <= 55 ? 'Neutral' : v <= 75 ? 'Greed' : 'Extreme Greed', cx, 46);
+  }else{
+    ctx.fillStyle = muted;
+    ctx.font = '900 16px Inter, Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('—', cx, 30);
+  }
+}
+function drawMarketCap(totalMc){
+  const canvas = document.getElementById('cap_canvas');
+  const { ctx, w, h } = setupCanvas(canvas);
+
+  const bg = cssVar('--result-bg');
+  const border = cssVar('--border');
+  const muted = cssVar('--muted');
+  const text = cssVar('--text');
+  const accent = cssVar('--accent');
+
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle = border;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(1,1,w-2,h-2);
+
+  const pad = 14;
+  const barX = pad, barY = h/2 - 10, barW = w - pad*2, barH = 20;
+
+  // bar bg
+  ctx.fillStyle = colorMix(muted, border, 0.75);
+  roundRectCanvas(ctx, barX, barY, barW, barH, 10);
+  ctx.fill();
+
+  if(Number.isFinite(totalMc) && totalMc > 0){
+    // normalize with log scale up to 10T for stability
+    const max = 10_000_000_000_000; // 10T
+    const norm = Math.min(1, Math.log10(totalMc) / Math.log10(max));
+    const fillW = Math.max(8, barW * norm);
+
+    ctx.fillStyle = accent;
+    roundRectCanvas(ctx, barX, barY, fillW, barH, 10);
+    ctx.fill();
+
+    ctx.fillStyle = text;
+    ctx.font = '900 16px Inter, Arial, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('Total Cap', barX, 28);
+
+    ctx.fillStyle = muted;
+    ctx.font = '700 12px Inter, Arial, sans-serif';
+    ctx.fillText('log scale (0..10T)', barX, 46);
+  }else{
+    ctx.fillStyle = muted;
+    ctx.font = '900 16px Inter, Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('—', w/2, h/2 + 6);
+  }
+}
+function drawAltDonut(altDom){
+  const canvas = document.getElementById('alt_canvas');
+  const { ctx, w, h } = setupCanvas(canvas);
+
+  const bg = cssVar('--result-bg');
+  const border = cssVar('--border');
+  const muted = cssVar('--muted');
+  const text = cssVar('--text');
+  const accent = cssVar('--accent');
+
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle = border;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(1,1,w-2,h-2);
+
+  const cx = w/2;
+  const cy = h/2 + 6;
+  const r = Math.min(w,h) * 0.28;
+
+  // base circle
+  ctx.beginPath();
+  ctx.strokeStyle = colorMix(muted, border, 0.65);
+  ctx.lineWidth = 16;
+  ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.stroke();
+
+  if(Number.isFinite(altDom)){
+    const v = Math.max(0, Math.min(100, altDom));
+    const start = -Math.PI/2;
+    const end = start + (Math.PI*2) * (v/100);
+
+    ctx.beginPath();
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 16;
+    ctx.lineCap = 'round';
+    ctx.arc(cx, cy, r, start, end);
+    ctx.stroke();
+
+    ctx.fillStyle = text;
+    ctx.font = '900 18px Inter, Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${v.toFixed(2)}%`, cx, 28);
+
+    ctx.fillStyle = muted;
+    ctx.font = '700 12px Inter, Arial, sans-serif';
+    ctx.fillText('Alt dominance', cx, 46);
+
+    // legend
+    ctx.textAlign = 'left';
+    ctx.fillStyle = accent;
+    ctx.fillRect(14, h-28, 10, 10);
+    ctx.fillStyle = muted;
+    ctx.fillText('Alt', 30, h-19);
+
+    ctx.fillStyle = colorMix(muted, border, 0.65);
+    ctx.fillRect(80, h-28, 10, 10);
+    ctx.fillStyle = muted;
+    ctx.fillText('BTC', 96, h-19);
+  }else{
+    ctx.fillStyle = muted;
+    ctx.font = '900 16px Inter, Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('—', cx, cy+6);
+  }
+}
+function drawAllIndicatorVisuals(data){
+  if(!data){
+    drawFGGauge(NaN);
+    drawMarketCap(NaN);
+    drawAltDonut(NaN);
+    return;
+  }
+  drawFGGauge(data.fngValue);
+  drawMarketCap(Number(data.totalMc));
+  drawAltDonut(data.altDom);
+}
+
+/* small helpers for canvas */
+function roundRectCanvas(ctx, x, y, w, h, r){
+  const rr = Math.min(r, w/2, h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+rr, y);
+  ctx.arcTo(x+w, y, x+w, y+h, rr);
+  ctx.arcTo(x+w, y+h, x, y+h, rr);
+  ctx.arcTo(x, y+h, x, y, rr);
+  ctx.arcTo(x, y, x+w, y, rr);
+  ctx.closePath();
+}
+function colorMix(a, b, t){
+  // very simple mix for hex/rgb strings: fall back to computed by drawing
+  // We'll use canvas to mix if needed; simplest: return b when unknown.
+  try{
+    const c = document.createElement('canvas');
+    c.width = c.height = 1;
+    const x = c.getContext('2d');
+    x.fillStyle = a; x.fillRect(0,0,1,1);
+    const A = x.getImageData(0,0,1,1).data;
+    x.clearRect(0,0,1,1);
+    x.fillStyle = b; x.fillRect(0,0,1,1);
+    const B = x.getImageData(0,0,1,1).data;
+    const r = Math.round(A[0] + (B[0]-A[0]) * t);
+    const g = Math.round(A[1] + (B[1]-A[1]) * t);
+    const bl = Math.round(A[2] + (B[2]-A[2]) * t);
+    return `rgb(${r},${g},${bl})`;
+  }catch(e){
+    return b;
+  }
+}
+
+/* Share button: native share text on phones, else copy text */
 document.getElementById('share_btn').addEventListener('click', async ()=>{
   const activeTab = document.querySelector('.tab.active')?.dataset?.tab || 'dca';
   let text = '📊 Trader Calculator\n';
@@ -1154,7 +1729,6 @@ document.getElementById('share_btn').addEventListener('click', async ()=>{
   if(activeTab === 'cap'){ text += `Size: ${cap_value.textContent}\nRisk: ${cap_riskUsd.textContent}\nMargin: ${cap_margin.textContent}\n`; }
   if(activeTab === 'ind'){ text += `F&G: ${fgEl.textContent}\nAlt dom: ${altDomEl.textContent}\nMood: ${moodEl.textContent}\n`; }
 
-  // native share first
   try{
     if(navigator.share){
       await navigator.share({ text, title:'Trader Calculator' });
@@ -1163,14 +1737,15 @@ document.getElementById('share_btn').addEventListener('click', async ()=>{
     }
   }catch(e){ /* ignore */ }
 
-  // fallback copy
   const ok = await copyText(text);
-  if(ok) haptic('notify','success');
+  if(ok){
+    showToast(t('common.copiedToast'));
+    haptic('notify','success');
+  }
 });
 
 /* Trade Card PNG */
-function cssVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
-function roundRect(ctx, x, y, w, h, r){
+function roundRectPath(ctx, x, y, w, h, r){
   const rr = Math.min(r, w/2, h/2);
   ctx.beginPath();
   ctx.moveTo(x+rr, y);
@@ -1201,6 +1776,7 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines=10){
   return y + lineHeight;
 }
 function activeTabId(){ return document.querySelector('.tab.active')?.dataset?.tab || 'dca'; }
+
 function getCardPayload(){
   const tab = activeTabId();
   const dt = new Date().toLocaleString();
@@ -1258,10 +1834,12 @@ function getCardPayload(){
 async function exportCardPNG(){
   const payload = getCardPayload();
   if(!payload){
-    try{ tg?.showAlert?.(t('card.nodata')); }catch(e){}
+    showToast('—');
+    try{ tg?.showAlert?.(lang==='ru' ? 'Нет данных для карточки' : 'No data for card'); }catch(e){}
     return;
   }
 
+  // square 1080
   const W = 1080, H = 1080;
   const scale = 2;
   const canvas = document.createElement('canvas');
@@ -1284,7 +1862,7 @@ async function exportCardPNG(){
   const cardX = pad, cardY = pad, cardW = W - pad*2, cardH = H - pad*2;
 
   ctx.fillStyle = panel;
-  roundRect(ctx, cardX, cardY, cardW, cardH, 36);
+  roundRectPath(ctx, cardX, cardY, cardW, cardH, 36);
   ctx.fill();
 
   ctx.strokeStyle = border;
@@ -1292,7 +1870,7 @@ async function exportCardPNG(){
   ctx.stroke();
 
   ctx.fillStyle = accent;
-  roundRect(ctx, cardX+28, cardY+28, 10, cardH-56, 10);
+  roundRectPath(ctx, cardX+28, cardY+28, 10, cardH-56, 10);
   ctx.fill();
 
   ctx.fillStyle = text;
@@ -1341,16 +1919,22 @@ async function exportCardPNG(){
   ctx.textAlign = 'right';
   ctx.fillText(payload.brand, cardX+cardW-60, cardY+cardH-60);
 
-  // IMPORTANT: mobile-safe export (share/open), not a.download
-  return new Promise((resolve)=>{
-    canvas.toBlob(async (blob)=>{
-      if(!blob) return resolve(false);
-      const filename = `trade_card_${payload.tab}_${Date.now()}.png`;
-      await shareOrOpenBlob(blob, filename, 'image/png', 'Trade Card');
-      haptic('notify','success');
-      try{ tg?.showAlert?.(t('card.saved')); }catch(e){}
-      resolve(true);
-    }, 'image/png');
+  // export via smart saver
+  const filename = `trade_card_${payload.tab}_${Date.now()}.png`;
+
+  const blob = await new Promise((resolve)=>canvas.toBlob(resolve, 'image/png'));
+  if(!blob){
+    try{ tg?.showAlert?.('PNG error'); }catch(e){}
+    return;
+  }
+
+  await saveBlobSmart({
+    blob,
+    filename,
+    mime:'image/png',
+    title:'Trade Card PNG',
+    kind:'image',
+    textForPreview:''
   });
 }
 document.getElementById('card_btn').addEventListener('click', ()=>{ exportCardPNG(); });
@@ -1378,6 +1962,16 @@ renderHistory();
 
 calcDCA(); calcRR(); calcCap();
 fetchIndicators();
+
+// draw empty indicator canvases immediately
+drawAllIndicatorVisuals(null);
+
+// redraw canvases on resize
+let resizeTimer = null;
+window.addEventListener('resize', ()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(()=>drawAllIndicatorVisuals(lastIndicators), 150);
+});
 </script>
 </body>
 </html>
