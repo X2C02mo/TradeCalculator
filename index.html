@@ -511,6 +511,7 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
       if(kind === 'image'){
         if(modalImg){ modalImg.src = url; modalImg.style.display='block'; }
         if(modalOpen) modalOpen.style.display = 'inline-flex';
+        if(modalCopy) modalCopy.style.display = 'inline-flex';
         if(modalShare) modalShare.style.display = canShareFiles(blob, filename, mime) ? 'inline-flex' : 'none';
         if(modalDownload) modalDownload.style.display = (!IN_TG && !IS_IOS) ? 'inline-flex' : 'none';
       }else if(kind === 'text'){
@@ -548,6 +549,34 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
       }catch(_){ return false; }
     }
 
+    // Copy PNG to clipboard where supported (desktop Chromium). Fallback is handled by caller.
+    async function copyImageToClipboard(blob){
+      try{
+        if(!blob) return false;
+        if(!navigator.clipboard || !window.ClipboardItem) return false;
+        const mime = blob.type || 'image/png';
+        const item = new ClipboardItem({ [mime]: blob });
+        await navigator.clipboard.write([item]);
+        return true;
+      }catch(_){
+        return false;
+      }
+    }
+
+    function blobToDataUrl(blob){
+      return new Promise((resolve, reject)=>{
+        try{
+          const fr = new FileReader();
+          fr.onload = ()=>resolve(fr.result);
+          fr.onerror = ()=>reject(fr.error);
+          fr.readAsDataURL(blob);
+        }catch(e){
+          reject(e);
+        }
+      });
+    }
+
+
     async function saveBlobSmart(opts){
       const { blob, filename, mime, title, kind, previewText } = opts || {};
       if(!blob) return false;
@@ -583,19 +612,71 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
       return false;
     }
 
-    if(modalOpen) modalOpen.addEventListener('click', ()=>{
+    if(modalOpen) modalOpen.addEventListener('click', async ()=>{
       if(!modalState.url) return;
+      const url = modalState.url;
+      let opened = false;
+
+      // Try new tab/window
       try{
-        const w = window.open(modalState.url, '_blank', 'noopener');
-        if(!w) window.location.href = modalState.url;
-      }catch(_){
-        try{ window.location.href = modalState.url; }catch(__){}
+        const w = window.open(url, '_blank', 'noopener');
+        opened = !!w;
+      }catch(_){}
+
+      // Try anchor click (some WebViews block window.open)
+      if(!opened){
+        try{
+          const a = document.createElement('a');
+          a.href = url;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          opened = true;
+        }catch(_){}
       }
-      showToast(tr('common.opened'));
+
+      // Fallback: navigate (and for blob URLs, try data URL)
+      if(!opened){
+        if(url.startsWith('blob:') && modalState.blob){
+          try{
+            const dataUrl = await blobToDataUrl(modalState.blob);
+            window.location.href = dataUrl;
+            opened = true;
+          }catch(_){}
+        }
+      }
+      if(!opened){
+        try{ window.location.href = url; opened = true; }catch(_){}
+      }
+
+      if(opened) showToast(tr('common.opened'));
     });
     if(modalCopy) modalCopy.addEventListener('click', async ()=>{
+      // If this is an image modal, try copying the PNG first
+      if(modalState.kind === 'image' && modalState.blob){
+        const okImg = await copyImageToClipboard(modalState.blob);
+        if(okImg){
+          showToast(tr('common.copiedToast'));
+          try{ tg?.HapticFeedback?.notificationOccurred?.('success'); }catch(_){}
+          return;
+        }
+        // fallback to copying text summary (if available)
+        const okText = await copyText(modalState.text || modalState.filename || '');
+        if(okText){
+          showToast(tr('common.copiedToast'));
+          try{ tg?.HapticFeedback?.notificationOccurred?.('success'); }catch(_){}
+        }
+        return;
+      }
+
+      // Text modal
       const ok = await copyText(modalState.text || '');
-      if(ok) showToast(tr('common.copiedToast'));
+      if(ok){
+        showToast(tr('common.copiedToast'));
+        try{ tg?.HapticFeedback?.notificationOccurred?.('success'); }catch(_){}
+      }
     });
     if(modalShare) modalShare.addEventListener('click', async ()=>{
       if(!modalState.blob) return;
@@ -1458,7 +1539,9 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
         return;
       }
       const filename = 'trade_card_' + payload.tab + '_' + Date.now() + '.png';
-      await saveBlobSmart({ blob, filename, mime:'image/png', title:'Trade Card PNG', kind:'image' });
+      const NL = String.fromCharCode(10);
+      const previewText = (payload.subtitle ? payload.subtitle + NL : '') + payload.lines.map(r=>`${r.k}: ${r.v}`).join(NL);
+      await saveBlobSmart({ blob, filename, mime:'image/png', title:'Trade Card PNG', kind:'image', previewText });
     }
     const cardBtn = $('card_btn');
     if(cardBtn) cardBtn.addEventListener('click', ()=>exportCardPNG());
