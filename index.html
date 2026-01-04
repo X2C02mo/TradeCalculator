@@ -246,8 +246,7 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
       <div class="history-list" id="history_list"></div>
       <div class="controls" style="margin-top:8px">
         <button class="btn ghost" id="clear_history" data-i18n="hist.clear">Clear</button>
-        <button class="btn" id="export_history" data-i18n="hist.export">Export .txt</button>
-      </div>
+        </div>
       <div class="note" data-i18n="hist.note">Saved locally</div>
     </aside>
   </main>
@@ -328,7 +327,7 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
 
   // --- i18n ---
   const locales = {
-    ru:{
+  ru:{
       "tab.dca":"DCA","tab.rr":"R/R","tab.cap":"Capital","tab.ind":"Indicators",
       "theme.dark":"Тёмная","theme.light":"Светлая",
       "share":"Поделиться","cardpng":"Карточка PNG",
@@ -365,13 +364,15 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
       "ind.viz.fg":"F&G Gauge","ind.viz.cap":"Market Cap","ind.viz.alt":"Alt Dom",
 
       "hist.title":"История","hist.clear":"Очистить","hist.export":"Экспорт .txt","hist.note":"Сохранено локально в браузере",
+    "hist.nocard":"Нет данных для карточки",
+    "hist.card":"Карточка",
       "footer.tags":"АИРДРОП · НОВОСТИ · ТРЕЙДИНГ",
 
       "modal.ok":"OK","modal.copy":"Копировать","modal.open":"Открыть","modal.share":"Поделиться","modal.download":"Скачать",
       "file.hint.image":"Если меню «Поделиться» не появилось — зажми картинку и выбери «Сохранить/Поделиться».",
       "file.hint.text":"Если скачивание недоступно — нажми «Открыть» или «Копировать»."
     },
-    en:{
+  en:{
       "tab.dca":"DCA","tab.rr":"R/R","tab.cap":"Capital","tab.ind":"Indicators",
       "theme.dark":"Dark","theme.light":"Light",
       "share":"Share","cardpng":"Card PNG",
@@ -408,13 +409,15 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
       "ind.viz.fg":"F&G Gauge","ind.viz.cap":"Market Cap","ind.viz.alt":"Alt Dom",
 
       "hist.title":"History","hist.clear":"Clear","hist.export":"Export .txt","hist.note":"Saved locally in your browser",
+    "hist.nocard":"No card data",
+    "hist.card":"Card",
       "footer.tags":"AIRDROP · NEWS · TRADING",
 
       "modal.ok":"OK","modal.copy":"Copy","modal.open":"Open","modal.share":"Share","modal.download":"Download",
       "file.hint.image":"If Share menu doesn’t appear, long-press the image to Save/Share.",
       "file.hint.text":"If download is unavailable, tap Open or just Copy."
     }
-  };
+};
 
   let lang = 'en';
   try{
@@ -510,14 +513,14 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
 
       if(kind === 'image'){
         if(modalImg){ modalImg.src = url; modalImg.style.display='block'; }
-        if(modalOpen) modalOpen.style.display = 'inline-flex';
+        /* open disabled for images */
         if(modalCopy) modalCopy.style.display = 'inline-flex';
         if(modalShare) modalShare.style.display = canShareFiles(blob, filename, mime) ? 'inline-flex' : 'none';
         if(modalDownload) modalDownload.style.display = (!IN_TG && !IS_IOS) ? 'inline-flex' : 'none';
       }else if(kind === 'text'){
         if(modalText){ modalText.value = text || ''; modalText.style.display='block'; }
         if(modalCopy) modalCopy.style.display = 'inline-flex';
-        if(modalOpen) modalOpen.style.display = 'inline-flex';
+        /* open disabled for images */
         if(modalShare) modalShare.style.display = canShareFiles(blob, filename, mime) ? 'inline-flex' : 'none';
         if(modalDownload) modalDownload.style.display = (!IN_TG && !IS_IOS) ? 'inline-flex' : 'none';
       }
@@ -780,15 +783,24 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
         historyList.appendChild(el);
         return;
       }
-      arr.forEach(it=>{
+      arr.forEach((it, idx)=>{
         const node = document.createElement('div');
         node.style.padding='10px';
         node.style.border='1px solid var(--border)';
         node.style.borderRadius='16px';
         node.style.background='var(--panel)';
-        node.innerHTML = '<div style="font-weight:900">'+escapeHtml(it.type||'')+'</div>'
-          + '<div class="note">'+escapeHtml(it.summary||'')+'</div>'
-          + '<div class="small">'+new Date(it.t).toLocaleString()+'</div>';
+        const hasCard = !!it.card;
+        node.innerHTML =
+          '<div style="display:flex;gap:10px;justify-content:space-between;align-items:flex-start">' +
+            '<div style="flex:1;min-width:0">' +
+              '<div style="font-weight:900">'+escapeHtml(it.type||'')+'</div>' +
+              '<div class="note">'+escapeHtml(it.summary||'')+'</div>' +
+              '<div class="small">'+new Date(it.t).toLocaleString()+'</div>' +
+            '</div>' +
+            '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">' +
+              '<button class="btn small ghost hist_card" data-idx="'+idx+'" ' + (hasCard ? '' : 'disabled') + '>' + escapeHtml(tr('hist.card')) + '</button>' +
+            '</div>' +
+          '</div>';
         historyList.appendChild(node);
       });
     }
@@ -797,34 +809,72 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
     }
 
     const clearHistBtn = $('clear_history');
-    const exportHistBtn = $('export_history');
-    if(clearHistBtn) clearHistBtn.addEventListener('click', ()=>{
-      localStorage.removeItem(HISTORY_KEY);
-      renderHistory();
-      haptic('notify','success');
-    });
-    if(exportHistBtn) exportHistBtn.addEventListener('click', async ()=>{
-      const arr = loadHistory();
-      const lines = arr.map(it=>{
-        const ts = new Date(it.t).toLocaleString();
-        const type = String(it.type||'').trim();
-        const sum = String(it.summary||'').replace(/\s+/g,' ').trim();
-        return ts + ' | ' + type + ' | ' + sum;
-      });
-      const txt = lines.join('\n');
-      const blob = new Blob([txt], { type:'text/plain;charset=utf-8' });
-      await saveBlobSmart({ blob, filename:'history.txt', mime:'text/plain', title:'Trader Calculator — History', kind:'text', previewText: txt });
-    });
-
     // --- auto-save debounce ---
     const saveState = { last:{}, timers:{} };
+    function buildHistoryCard(type, when){
+      const dt = new Date(when).toLocaleString();
+      const title = 'Trader Calculator';
+      const subtitle = type + ' · ' + dt;
+      const brand = 'InvestTraderTrade';
+      const tgLink = '@InvestTraderTrade';
+      let lines = [];
+
+      // snapshot from current UI values
+      if(type === 'DCA' || type === 'DCA_GOAL'){
+        const avg = (dcaAvgEl?.textContent || '—').trim();
+        const vol = (dcaTotalVolEl?.textContent || '—').trim();
+        const cost = (dcaTotalCostEl?.textContent || '—').trim();
+        lines.push({k:'AVG', v:avg});
+
+    // Open history item as Trade Card PNG (preview)
+    if(historyList) historyList.addEventListener('click', async (e)=>{
+      const btn = e.target && e.target.closest ? e.target.closest('.hist_card') : null;
+      if(!btn) return;
+      const idx = parseInt(btn.getAttribute('data-idx') || 'NaN', 10);
+      if(!isFinite(idx)) return;
+      const arr = loadHistory();
+      const item = arr[idx];
+      if(!item || !item.card){
+        showToast(tr('hist.nocard'));
+        haptic('notify','warning');
+        return;
+      }
+      await previewCardPNG(item.card, { title: 'Trade Card PNG' });
+    });
+
+        lines.push({k:'VOL', v:vol});
+        lines.push({k:'COST', v:cost});
+        const need = (dcaNeedVol?.textContent || '—').trim();
+        if(need && need !== '—'){
+          lines.push({k:'GOAL NEED', v:need});
+          lines.push({k:'GOAL COST', v:(dcaNeedCost?.textContent || '—').trim()});
+          lines.push({k:'STATUS', v:(dcaGoalStatus?.textContent || '—').trim()});
+        }
+      }else if(type === 'RR'){
+        lines.push({k:'GROSS', v:(rr_value?.textContent || '—').trim()});
+        lines.push({k:'NET', v:(rr_net?.textContent || '—').trim()});
+      }else if(type === 'CAP'){
+        lines.push({k:'SIZE', v:(cap_value?.textContent || '—').trim()});
+        lines.push({k:'RISK', v:(cap_riskUsd?.textContent || '—').trim()});
+        lines.push({k:'MARGIN', v:(cap_margin?.textContent || '—').trim()});
+      }else if(type === 'IND'){
+        lines.push({k:'F&G', v:(fgEl?.textContent || '—').trim()});
+        lines.push({k:'ALT DOM', v:(altDomEl?.textContent || '—').trim()});
+        lines.push({k:'MOOD', v:(moodEl?.textContent || '—').trim()});
+      }
+
+      return { title, subtitle, lines, brand, tgLink, type };
+    }
+
     function scheduleSave(type, summary, signature){
       if(!signature || signature === '—') return;
       clearTimeout(saveState.timers[type]);
       saveState.timers[type] = setTimeout(()=>{
         if(saveState.last[type] === signature) return;
         saveState.last[type] = signature;
-        pushHistory({ type, summary, t: Date.now() });
+        const now = Date.now();
+        const card = buildHistoryCard(type, now);
+        pushHistory({ type, summary, t: now, card });
       }, 650);
     }
 
@@ -1461,14 +1511,7 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
       };
     }
 
-    async function exportCardPNG(){
-      const payload = getCardPayload();
-      if(!payload){
-        showToast('—');
-        try{ tg && tg.showAlert ? tg.showAlert(lang==='ru'?'Нет данных для карточки':'No data for card') : null; }catch(_){}
-        return;
-      }
-
+    async function renderTradeCardBlob(payload){
       const W=1080, H=1080;
       const canvas = document.createElement('canvas');
       canvas.width = W;
@@ -1482,65 +1525,92 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
       const muted = getCssVar('--muted') || '#9a9a9a';
       const accent = getCssVar('--accent') || '#7CFC00';
 
-      ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+      // background
+      ctx.fillStyle = bg;
+      ctx.fillRect(0,0,W,H);
 
-      const pad=70;
-      const cardX=pad, cardY=pad, cardW=W-pad*2, cardH=H-pad*2;
+      // card panel
+      const pad = 70;
+      const cardX = pad, cardY = pad, cardW = W - pad*2, cardH = H - pad*2;
+      roundRect(ctx, cardX, cardY, cardW, cardH, 42);
+      ctx.fillStyle = panel; ctx.fill();
+      ctx.lineWidth = 4; ctx.strokeStyle = border; ctx.stroke();
 
-      ctx.fillStyle = panel;
-      roundRectPath(ctx, cardX, cardY, cardW, cardH, 36);
-      ctx.fill();
+      // accent glow strip
+      ctx.save();
+      ctx.globalAlpha = 0.85;
+      roundRect(ctx, cardX+18, cardY+18, cardW-36, 10, 10);
+      ctx.fillStyle = accent; ctx.fill();
+      ctx.restore();
 
-      ctx.strokeStyle = border; ctx.lineWidth = 3;
-      ctx.stroke();
-
-      ctx.fillStyle = accent;
-      roundRectPath(ctx, cardX+28, cardY+28, 10, cardH-56, 10);
-      ctx.fill();
-
+      // title
       ctx.fillStyle = text; ctx.font = '900 54px Inter, Arial, sans-serif';
-      ctx.textAlign='left'; ctx.fillText(payload.title, cardX+60, cardY+90);
+      ctx.textAlign='left'; ctx.fillText(payload.title || 'Trader Calculator', cardX+60, cardY+90);
 
+      // subtitle
       ctx.fillStyle = muted; ctx.font = '700 28px Inter, Arial, sans-serif';
-      ctx.fillText(payload.subtitle, cardX+60, cardY+135);
+      ctx.fillText(payload.subtitle || '', cardX+60, cardY+135);
 
+      // rows
       let y = cardY + 210;
       const left = cardX + 60;
       const right = cardX + cardW - 60;
 
       ctx.font = '800 34px Inter, Arial, sans-serif';
-      payload.lines.slice(0, 12).forEach(row=>{
-        ctx.fillStyle = muted; ctx.textAlign='left'; ctx.fillText(String(row.k), left, y);
-        ctx.fillStyle = text; ctx.textAlign='right';
-        const value = String(row.v || '');
-        const maxW = 560;
-        if(ctx.measureText(value).width <= maxW){
-          ctx.fillText(value, right, y);
-          y += 70;
-        }else{
-          ctx.textAlign='left';
-          const startX = right - maxW;
-          ctx.font = '800 28px Inter, Arial, sans-serif';
-          y = wrapText(ctx, value, startX, y-6, maxW, 36, 3);
-          ctx.font = '800 34px Inter, Arial, sans-serif';
-          y += 18;
-        }
+      (payload.lines || []).slice(0, 12).forEach(row=>{
+        ctx.fillStyle = muted; ctx.textAlign='left'; ctx.fillText(String(row.k||''), left, y);
+        ctx.fillStyle = text; ctx.textAlign='right'; ctx.fillText(String(row.v||''), right, y);
+        y += 58;
       });
 
+      // footer
+      ctx.fillStyle = muted; ctx.font = '700 26px Inter, Arial, sans-serif';
       ctx.textAlign='left';
-      ctx.fillStyle = muted; ctx.font='700 26px Inter, Arial, sans-serif';
-      ctx.fillText(payload.tgLink, cardX+60, cardY+cardH-60);
+      ctx.fillText(payload.tgLink || '@InvestTraderTrade', cardX+60, cardY+cardH-60);
       ctx.textAlign='right';
-      ctx.fillText(payload.brand, cardX+cardW-60, cardY+cardH-60);
+      ctx.fillText(payload.brand || 'InvestTraderTrade', cardX+cardW-60, cardY+cardH-60);
 
       const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
       if(!blob){
         reportErr('PNG', 'toBlob failed');
+        return null;
+      }
+      const NL = String.fromCharCode(10);
+      const previewText = (payload.subtitle ? payload.subtitle + NL : '') + (payload.lines||[]).map(r=>`${r.k}: ${r.v}`).join(NL);
+      return { blob, previewText };
+    }
+
+    async function previewCardPNG(payload, opts){
+      const out = await renderTradeCardBlob(payload);
+      if(!out) return;
+      const { blob, previewText } = out;
+      const type = (payload.type || payload.tab || 'calc').toString().toLowerCase();
+      const filename = (opts && opts.filename) ? opts.filename : ('trade_card_' + type + '_' + Date.now() + '.png');
+      const url = URL.createObjectURL(blob);
+      openModal({
+        title: (opts && opts.title) ? opts.title : 'Trade Card PNG',
+        kind:'image',
+        url,
+        blob,
+        filename,
+        mime:'image/png',
+        text: previewText,
+        hint: tr('file.hint.image')
+      });
+      setTimeout(()=>URL.revokeObjectURL(url), 60000);
+    }
+
+    async function exportCardPNG(){
+      const payload = getCardPayload();
+      if(!payload){
+        showToast('—');
+        try{ tg && tg.showAlert ? tg.showAlert(lang==='ru'?'Нет данных для карточки':'No data for card') : null; }catch(_){}
         return;
       }
-      const filename = 'trade_card_' + payload.tab + '_' + Date.now() + '.png';
-      const NL = String.fromCharCode(10);
-      const previewText = (payload.subtitle ? payload.subtitle + NL : '') + payload.lines.map(r=>`${r.k}: ${r.v}`).join(NL);
+      const out = await renderTradeCardBlob(payload);
+      if(!out) return;
+      const { blob, previewText } = out;
+      const filename = 'trade_card_' + (payload.tab || payload.type || 'calc') + '_' + Date.now() + '.png';
       await saveBlobSmart({ blob, filename, mime:'image/png', title:'Trade Card PNG', kind:'image', previewText });
     }
     const cardBtn = $('card_btn');
