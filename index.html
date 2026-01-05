@@ -32,11 +32,11 @@
   --chip-bg:#f1f1f1;
   --shadow:0 12px 40px rgba(0,0,0,.12);
 }
-*{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Inter,Arial,Helvetica,sans-serif}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;height:100%;width:100%;background:var(--bg);color:var(--text);font-family:Inter,Arial,Helvetica,sans-serif;overflow:hidden}
 body{padding-bottom:env(safe-area-inset-bottom);padding-top:env(safe-area-inset-top)}
-#app{min-height:100vh;display:flex;flex-direction:column}
-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--border);background:var(--bg)}
+#app{height:100vh;min-height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--border);background:var(--bg);overflow-x:hidden}
 .leftbar{display:flex;gap:8px;align-items:center}
 .lang{display:flex;gap:6px;align-items:center}
 .lang button{background:none;border:1px solid var(--border);color:var(--muted);padding:4px 8px;cursor:pointer;border-radius:10px}
@@ -48,7 +48,10 @@ header{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:10px
 .tabs{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-left:auto}
 .tab{background:none;border:none;color:var(--muted);font-size:13px;padding:6px 10px;cursor:pointer;border-radius:10px}
 .tab.active{color:var(--accent);border-bottom:2px solid var(--accent)}
-main{flex:1;padding:14px;display:flex;gap:16px;flex-direction:column}
+main{flex:1;padding:14px;display:flex;gap:16px;flex-direction:column;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+/* Hide scrollbars but keep scrolling */
+main,.history-list{scrollbar-width:none;-ms-overflow-style:none}
+main::-webkit-scrollbar,.history-list::-webkit-scrollbar{width:0;height:0}
 .panels{display:flex;gap:16px;flex-wrap:wrap}
 .screen{display:none;width:100%}
 .screen.active{display:block}
@@ -287,6 +290,7 @@ footer{border-top:1px solid var(--border);padding:12px;display:flex;flex-directi
 (function(){
   const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
   try{ tg && tg.expand && tg.expand(); }catch(e){}
+  try{ tg && tg.disableVerticalSwipes && tg.disableVerticalSwipes(); }catch(e){}
 
   // --- Global error reporting (helps when TG webview hides console) ---
   function reportErr(prefix, err){
