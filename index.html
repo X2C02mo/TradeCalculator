@@ -1,354 +1,392 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Trader Calculator</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Trader Calculator</title>
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Optional: favicon for web + TON Connect icon file will be /icon-512.png -->
+  <link rel="icon" type="image/png" href="/icon-512.png" />
+  <link rel="apple-touch-icon" href="/icon-512.png" />
 
-<script>
-  function initAnalytics() {
-    try{
-      if(!window.telegramAnalytics) return;
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
 
-      
-      const token='eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=';
+  <!-- Analytics (loaded ONLY after user consent) -->
+  <script>
+    const TG_ANALYTICS_TOKEN = "eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0="; 
+    const TG_ANALYTICS_APP_NAME = "trader_calculator"; 
 
-      const appName='trader_calculator';
+    function initAnalytics() {
+      try {
+        if (!window.telegramAnalytics) return;
+        if (!TG_ANALYTICS_TOKEN || !TG_ANALYTICS_APP_NAME) return;
 
-      if(token.startsWith('REPLACE_') || appName.startsWith('REPLACE_')) return;
-      window.telegramAnalytics.init({ token, appName });
-    }catch(e){}
-  }
-</script>
-<script async src="https://tganalytics.xyz/index.js" onload="initAnalytics()" type="text/javascript"></script>
+        // Если токен не задан — просто не включаем аналитику
+        if (String(TG_ANALYTICS_TOKEN).includes("eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=")) return;
 
-<script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
+        window.telegramAnalytics.init({
+          token: TG_ANALYTICS_TOKEN,
+          appName: TG_ANALYTICS_APP_NAME
+        });
+      } catch (e) {}
+    }
 
-<style>
-:root{
-  --bg:#000;
-  --panel:#0b0b0b;
-  --border:#151515;
-  --text:#fff;
-  --muted:#9a9a9a;
-  --accent:#7CFC00;
+    function loadAnalyticsSdkOnce() {
+      try {
+        if (window.__tgAnalyticsLoaded) return;
+        window.__tgAnalyticsLoaded = true;
 
-  --chip:#111;
-  --chip2:#0f0f0f;
-  --danger:#ff4d4d;
+        const s = document.createElement("script");
+        s.async = true;
+        s.src = "https://tganalytics.xyz/index.js";
+        s.onload = initAnalytics;
+        document.head.appendChild(s);
+      } catch (e) {}
+    }
+  </script>
 
-  --radius:14px;
-  --shadow:0 12px 30px rgba(0,0,0,.55);
+  <style>
+    :root{
+      --bg:#000;
+      --panel:#0b0b0b;
+      --border:#151515;
+      --text:#fff;
+      --muted:#9a9a9a;
+      --accent:#7CFC00;
 
-  --input-bg:#070707;
-  --result-bg:#060606;
-  --chip-bg:#0a0a0a;
-}
+      --chip:#111;
+      --chip2:#0f0f0f;
+      --danger:#ff4d4d;
 
-html[data-theme="light"]{
-  --bg:#f6f7fb;
-  --panel:#ffffff;
-  --border:#e6e8ee;
-  --text:#0b0b0b;
-  --muted:#5f6675;
-  --accent:#2d8cff;
+      --radius:14px;
+      --shadow:0 12px 30px rgba(0,0,0,.55);
 
-  --chip:#f0f2f8;
-  --chip2:#eef1f7;
-  --danger:#d90429;
+      --input-bg:#070707;
+      --result-bg:#060606;
+      --chip-bg:#0a0a0a;
+    }
 
-  --shadow:0 12px 30px rgba(10,20,40,.10);
+    html[data-theme="light"]{
+      --bg:#f6f7fb;
+      --panel:#ffffff;
+      --border:#e6e8ee;
+      --text:#0b0b0b;
+      --muted:#5f6675;
+      --accent:#2d8cff;
 
-  --input-bg:#fbfcff;
-  --result-bg:#f7f9ff;
-  --chip-bg:#f1f4fb;
-}
+      --chip:#f0f2f8;
+      --chip2:#eef1f7;
+      --danger:#d90429;
 
-*{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-#app{min-height:100vh;display:flex;flex-direction:column}
+      --shadow:0 12px 30px rgba(10,20,40,.10);
 
-/* --- header --- */
-header{
-  position:sticky;top:0;z-index:10;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  padding:10px 10px;
-  border-bottom:1px solid var(--border);
-  background:rgba(0,0,0,.35);
-  backdrop-filter: blur(8px);
-}
-html[data-theme="light"] header{background:rgba(255,255,255,.7)}
+      --input-bg:#fbfcff;
+      --result-bg:#f7f9ff;
+      --chip-bg:#f1f4fb;
+    }
 
-.leftbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    #app{min-height:100vh;display:flex;flex-direction:column}
 
-.lang{display:flex;gap:6px;align-items:center}
-.lang button{
-  background:transparent;border:1px solid var(--border);
-  color:var(--muted);padding:5px 9px;cursor:pointer;border-radius:12px;
-  font-weight:800;font-size:12px;letter-spacing:.4px;
-}
-.lang button.active{border-color:var(--accent);color:var(--accent)}
+    header{
+      position:sticky;top:0;z-index:10;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:10px 10px;
+      border-bottom:1px solid var(--border);
+      background:rgba(0,0,0,.35);
+      backdrop-filter: blur(8px);
+    }
+    html[data-theme="light"] header{background:rgba(255,255,255,.7)}
 
-.iconbtn{
-  border:1px solid var(--border);
-  background:transparent;
-  color:var(--muted);
-  padding:6px 10px;
-  border-radius:12px;
-  cursor:pointer;
-  font-weight:900;
-  line-height:1.1;
-  min-height:34px;
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-}
-.iconbtn:hover{border-color:color-mix(in srgb, var(--accent) 50%, var(--border))}
-.iconbtn .ico{font-size:15px}
-.iconbtn .lbl{font-size:12px;font-weight:800;white-space:nowrap}
-.iconbtn.active{border-color:var(--accent);color:var(--accent)}
+    .leftbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 
-.tabs{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
-.tab{
-  background:none;border:none;
-  color:var(--muted);
-  font-size:13px;
-  padding:6px 10px;
-  cursor:pointer;
-  border-radius:12px;
-  font-weight:900;
-  border:1px solid transparent;
-}
-.tab:hover{border-color:var(--border)}
-.tab.active{color:var(--accent);border-color:var(--accent)}
+    .lang{display:flex;gap:6px;align-items:center}
+    .lang button{
+      background:transparent;border:1px solid var(--border);
+      color:var(--muted);padding:5px 9px;cursor:pointer;border-radius:12px;
+      font-weight:800;font-size:12px;letter-spacing:.4px;
+    }
+    .lang button.active{border-color:var(--accent);color:var(--accent)}
 
-/* --- layout --- */
-main{flex:1;padding:12px;display:flex;gap:14px;flex-direction:column}
-@media(min-width:980px){ main{flex-direction:row;align-items:flex-start} }
+    .iconbtn{
+      border:1px solid var(--border);
+      background:transparent;
+      color:var(--muted);
+      padding:6px 10px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:900;
+      line-height:1.1;
+      min-height:34px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .iconbtn:hover{border-color:color-mix(in srgb, var(--accent) 50%, var(--border))}
+    .iconbtn .ico{font-size:15px}
+    .iconbtn .lbl{font-size:12px;font-weight:800;white-space:nowrap}
+    .iconbtn.active{border-color:var(--accent);color:var(--accent)}
 
-.panels{display:flex;gap:14px;flex-wrap:wrap;flex:1}
-.screen{display:none;width:100%}
-.screen.active{display:block}
+    .tabs{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+    .tab{
+      background:none;border:none;
+      color:var(--muted);
+      font-size:13px;
+      padding:6px 10px;
+      cursor:pointer;
+      border-radius:12px;
+      font-weight:900;
+      border:1px solid transparent;
+    }
+    .tab:hover{border-color:var(--border)}
+    .tab.active{color:var(--accent);border-color:var(--accent)}
 
-.card{
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  padding:12px;
-  max-width:820px;
-  box-shadow:var(--shadow);
-}
-.card h3{margin:0 0 10px 0}
+    main{flex:1;padding:12px;display:flex;gap:14px;flex-direction:column}
+    @media(min-width:980px){ main{flex-direction:row;align-items:flex-start} }
 
-.field{margin-bottom:10px}
-label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:800}
-input, select{
-  width:100%;
-  padding:11px 10px;
-  background:var(--input-bg);
-  border:1px solid var(--border);
-  color:var(--text);
-  border-radius:12px;
-  font-size:15px;
-  outline:none;
-}
-input:focus, select:focus{border-color:color-mix(in srgb, var(--accent) 60%, var(--border))}
+    .panels{display:flex;gap:14px;flex-wrap:wrap;flex:1}
+    .screen{display:none;width:100%}
+    .screen.active{display:block}
 
-.row{display:flex;gap:10px;flex-wrap:wrap}
-.row > *{flex:1;min-width:150px}
+    .card{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:12px;
+      max-width:820px;
+      box-shadow:var(--shadow);
+    }
+    .card h3{margin:0 0 10px 0}
 
-.result{
-  margin-top:8px;
-  padding:10px;
-  border-radius:12px;
-  background:var(--result-bg);
-  border:1px solid var(--border);
-  display:flex;
-  gap:8px;
-  align-items:center;
-  justify-content:space-between;
-  font-weight:900;
-}
-.result .v{color:var(--accent)}
-.small{font-size:12px;color:var(--muted);font-weight:700}
+    .field{margin-bottom:10px}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:800}
+    input, select{
+      width:100%;
+      padding:11px 10px;
+      background:var(--input-bg);
+      border:1px solid var(--border);
+      color:var(--text);
+      border-radius:12px;
+      font-size:15px;
+      outline:none;
+    }
+    input:focus, select:focus{border-color:color-mix(in srgb, var(--accent) 60%, var(--border))}
 
-.controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-.btn{
-  background:transparent;
-  color:var(--accent);
-  border:1px solid color-mix(in srgb, var(--border) 80%, var(--accent));
-  padding:9px 12px;
-  border-radius:12px;
-  cursor:pointer;
-  font-weight:900;
-}
-.btn:hover{border-color:var(--accent)}
-.btn.ghost{color:var(--muted);border-color:var(--border)}
-.btn.danger{color:var(--danger);border-color:color-mix(in srgb, var(--danger) 40%, var(--border))}
-.btn:disabled{opacity:.45;cursor:not-allowed}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .row > *{flex:1;min-width:150px}
 
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-.chip{
-  border:1px solid var(--border);
-  background:var(--chip-bg);
-  padding:7px 10px;
-  border-radius:999px;
-  cursor:pointer;
-  color:var(--muted);
-  font-weight:900;
-  font-size:12px;
-}
-.chip:hover{border-color:color-mix(in srgb, var(--accent) 50%, var(--border))}
-.chip.active{border-color:var(--accent);color:var(--accent)}
+    .result{
+      margin-top:8px;
+      padding:10px;
+      border-radius:12px;
+      background:var(--result-bg);
+      border:1px solid var(--border);
+      display:flex;
+      gap:8px;
+      align-items:center;
+      justify-content:space-between;
+      font-weight:900;
+    }
+    .result .v{color:var(--accent)}
+    .small{font-size:12px;color:var(--muted);font-weight:700}
 
-.history{
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  padding:10px;
-  width:100%;
-  max-width:460px;
-  box-shadow:var(--shadow);
-}
-.history h4{margin:0 0 8px 0}
-.history-list{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow:auto;padding-right:4px}
-.hist-item{
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:8px;
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:10px;
-  background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
-}
-html[data-theme="light"] .hist-item{background:linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,0))}
-.hist-item b{display:block;font-size:13px}
-.hist-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.mini{
-  border:1px solid var(--border);
-  background:transparent;
-  color:var(--muted);
-  padding:6px 9px;
-  border-radius:12px;
-  cursor:pointer;
-  font-weight:900;
-  font-size:12px;
-}
-.mini:hover{border-color:color-mix(in srgb, var(--accent) 45%, var(--border)); color:var(--accent)}
-.note{font-size:12px;color:var(--muted);font-weight:700;margin-top:8px}
+    .controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+    .btn{
+      background:transparent;
+      color:var(--accent);
+      border:1px solid color-mix(in srgb, var(--border) 80%, var(--accent));
+      padding:9px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:900;
+    }
+    .btn:hover{border-color:var(--accent)}
+    .btn.ghost{color:var(--muted);border-color:var(--border)}
+    .btn.danger{color:var(--danger);border-color:color-mix(in srgb, var(--danger) 40%, var(--border))}
+    .btn:disabled{opacity:.45;cursor:not-allowed}
 
-footer{
-  border-top:1px solid var(--border);
-  padding:12px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:6px
-}
-.tags{font-size:12px;color:var(--muted);letter-spacing:1px;font-weight:900}
-.links{display:flex;gap:18px;margin-top:2px;flex-wrap:wrap;justify-content:center}
-.rainbow{
-  display:inline-block;
-  font-weight:1000;
-  text-decoration:none;
-  background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet);
-  background-size:400% 400%;
-  -webkit-background-clip:text;
-  color:transparent;
-  animation:rain 3.5s linear infinite
-}
-@keyframes rain{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .chip{
+      border:1px solid var(--border);
+      background:var(--chip-bg);
+      padding:7px 10px;
+      border-radius:999px;
+      cursor:pointer;
+      color:var(--muted);
+      font-weight:900;
+      font-size:12px;
+    }
+    .chip:hover{border-color:color-mix(in srgb, var(--accent) 50%, var(--border))}
+    .chip.active{border-color:var(--accent);color:var(--accent)}
 
-/* toast */
-#toast{
-  position:fixed;
-  left:50%;
-  transform:translateX(-50%);
-  bottom:14px;
-  padding:10px 12px;
-  border-radius:999px;
-  border:1px solid var(--border);
-  background:rgba(0,0,0,.75);
-  color:#fff;
-  font-weight:900;
-  font-size:13px;
-  opacity:0;
-  pointer-events:none;
-  transition:opacity .18s ease, transform .18s ease;
-  z-index:999;
-}
-html[data-theme="light"] #toast{background:rgba(0,0,0,.72)}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(-2px)}
+    .history{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:10px;
+      width:100%;
+      max-width:460px;
+      box-shadow:var(--shadow);
+    }
+    .history h4{margin:0 0 8px 0}
+    .history-list{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow:auto;padding-right:4px}
+    .hist-item{
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:8px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
+    }
+    html[data-theme="light"] .hist-item{background:linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,0))}
+    .hist-item b{display:block;font-size:13px}
+    .hist-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+    .mini{
+      border:1px solid var(--border);
+      background:transparent;
+      color:var(--muted);
+      padding:6px 9px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:900;
+      font-size:12px;
+    }
+    .mini:hover{border-color:color-mix(in srgb, var(--accent) 45%, var(--border)); color:var(--accent)}
+    .note{font-size:12px;color:var(--muted);font-weight:700;margin-top:8px}
 
-/* modal */
-#modal_backdrop{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.55);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:998;
-  padding:12px;
-}
-#modal{
-  width:min(680px, 100%);
-  border-radius:18px;
-  border:1px solid var(--border);
-  background:var(--panel);
-  box-shadow:var(--shadow);
-  padding:12px;
-}
-#modal_header{display:flex;justify-content:space-between;align-items:center;gap:10px}
-#modal_header b{font-size:14px}
-#modal_close{border:1px solid var(--border);background:transparent;border-radius:12px;color:var(--muted);padding:6px 10px;cursor:pointer;font-weight:1000}
-#modal_body{margin-top:10px;display:flex;gap:12px;flex-wrap:wrap}
-#modal_canvas_wrap{flex:1;min-width:280px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--result-bg)}
-#modal_right{width:240px;min-width:240px;display:flex;flex-direction:column;gap:8px}
-#modal_right .btn{width:100%}
-#modal_help{font-size:12px;color:var(--muted);font-weight:700}
+    footer{
+      border-top:1px solid var(--border);
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:6px
+    }
+    .tags{font-size:12px;color:var(--muted);letter-spacing:1px;font-weight:900}
+    .links{display:flex;gap:14px;margin-top:2px;flex-wrap:wrap;justify-content:center}
+    .link{
+      font-weight:900;
+      text-decoration:none;
+      color:var(--accent);
+      border:1px solid color-mix(in srgb, var(--border) 80%, var(--accent));
+      padding:7px 10px;border-radius:999px;
+    }
+    .link:hover{border-color:var(--accent)}
+    .footer-small{font-size:12px;color:var(--muted);font-weight:800}
 
-/* FIX: prevent PNG card canvas cropping on mobile */
-#modal_canvas_wrap{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-#card_canvas{
-  display:block;
-  width:100%;
-  height:auto;
-  max-width:100%;
-  max-height:70vh;
-}
+    #toast{
+      position:fixed;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:14px;
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.75);
+      color:#fff;
+      font-weight:900;
+      font-size:13px;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .18s ease, transform .18s ease;
+      z-index:999;
+    }
+    html[data-theme="light"] #toast{background:rgba(0,0,0,.72)}
+    #toast.show{opacity:1;transform:translateX(-50%) translateY(-2px)}
 
-/* indicators visuals */
-.vizgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
-@media(max-width:520px){ .vizgrid{grid-template-columns:1fr} }
-.viz{
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:10px;
-  background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
-}
-html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,0))}
-.viz h5{margin:0 0 8px 0;font-size:12px;color:var(--muted);font-weight:1000;letter-spacing:.3px}
-.viz canvas{width:100%;height:130px;display:block}
-.viz .big{font-size:22px;font-weight:1000}
-.viz .sub{font-size:12px;color:var(--muted);font-weight:800;margin-top:2px}
+    /* card modal */
+    #modal_backdrop{
+      position:fixed;inset:0;
+      background:rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:998;
+      padding:12px;
+    }
+    #modal{
+      width:min(680px, 100%);
+      border-radius:18px;
+      border:1px solid var(--border);
+      background:var(--panel);
+      box-shadow:var(--shadow);
+      padding:12px;
+    }
+    #modal_header{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    #modal_header b{font-size:14px}
+    #modal_close{border:1px solid var(--border);background:transparent;border-radius:12px;color:var(--muted);padding:6px 10px;cursor:pointer;font-weight:1000}
+    #modal_body{margin-top:10px;display:flex;gap:12px;flex-wrap:wrap}
+    #modal_canvas_wrap{
+      flex:1;
+      min-width:280px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      overflow:hidden;
+      background:var(--result-bg);
+      aspect-ratio: 3 / 2; /* IMPORTANT: prevents “crop/zoom” on mobile */
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    #card_canvas{
+      display:block;
+      width:100%;   /* IMPORTANT: fit into modal on mobile */
+      height:100%;  /* keep aspect ratio via wrapper */
+    }
+    #modal_right{width:240px;min-width:240px;display:flex;flex-direction:column;gap:8px}
+    #modal_right .btn{width:100%}
+    #modal_help{font-size:12px;color:var(--muted);font-weight:700}
 
-@media(max-width:420px){
-  .iconbtn .lbl{display:none}
-  .tabs{gap:6px}
-  .tab{padding:6px 8px}
-}
-</style>
+    /* consent modal (analytics) */
+    #consent_backdrop{
+      position:fixed;inset:0;
+      background:rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:997;
+      padding:12px;
+    }
+    #consent_modal{
+      width:min(620px, 100%);
+      border-radius:18px;
+      border:1px solid var(--border);
+      background:var(--panel);
+      box-shadow:var(--shadow);
+      padding:12px;
+    }
+    #consent_modal h4{margin:0 0 8px 0}
+    #consent_actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    #consent_actions .btn{flex:1;min-width:160px}
+
+    /* indicators visuals */
+    .vizgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+    @media(max-width:520px){ .vizgrid{grid-template-columns:1fr} }
+    .viz{
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:10px;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
+    }
+    html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,0))}
+    .viz h5{margin:0 0 8px 0;font-size:12px;color:var(--muted);font-weight:1000;letter-spacing:.3px}
+    .viz canvas{width:100%;height:130px;display:block}
+    .viz .big{font-size:22px;font-weight:1000}
+    .viz .sub{font-size:12px;color:var(--muted);font-weight:800;margin-top:2px}
+
+    @media(max-width:420px){
+      .iconbtn .lbl{display:none}
+      .tabs{gap:6px}
+      .tab{padding:6px 8px}
+      #modal_right{width:100%;min-width:100%}
+    }
+  </style>
 </head>
+
 <body>
 <div id="app">
   <header>
@@ -431,13 +469,15 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
             </div>
           </div>
 
-          <!-- FIX: separate DCA Goal block + extra text summary -->
+          <!-- DCA GOAL (separated block) -->
           <div style="margin-top:12px;border-top:1px dashed var(--border);padding-top:12px">
-            <div style="font-weight:1000;margin-bottom:6px;letter-spacing:.3px">
-              🎯 <span data-i18n="dca.goalBlock">DCA Goal</span>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
+              <b style="color:var(--accent);font-weight:1000" data-i18n="dca.goalHeader">DCA Goal</b>
+              <span class="small" data-i18n="dca.goalOptional">optional</span>
             </div>
 
             <div class="small" style="margin-bottom:8px" data-i18n="dca.goalTitle">Target average (optional)</div>
+
             <div class="row">
               <div class="field" style="margin:0">
                 <label data-i18n="dca.goalPrice">Target avg price</label>
@@ -448,6 +488,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
                 <input id="dca_next_price" type="number" step="any" inputmode="decimal" />
               </div>
             </div>
+
             <div class="result">
               <div>
                 <div class="small" data-i18n="dca.need">Needed volume at next price</div>
@@ -455,8 +496,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
               </div>
               <button class="btn ghost" id="dca_need_copy" type="button" data-i18n="common.copy">Copy</button>
             </div>
-
-            <div class="note" id="dca_goal_summary"></div>
           </div>
         </div>
       </section>
@@ -631,7 +670,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
               <div class="sub" id="dom_sub">—</div>
             </div>
           </div>
-
         </div>
       </section>
     </div>
@@ -649,14 +687,35 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
 
   <footer>
     <div class="tags" data-i18n="footer.tags">AIRDROP · NEWS · TRADING</div>
+
     <div class="links">
-      <a id="link_telegram" class="rainbow" href="https://t.me/InvestTraderTrade" target="_blank" rel="noopener">TELEGRAM</a>
-      <a id="link_youtube" class="rainbow" href="https://www.youtube.com/@TRADER_TRADE" target="_blank" rel="noopener">YOUTUBE</a>
+      <a class="link" id="link_telegram" href="https://t.me/InvestTraderTrade" target="_blank" rel="noopener">Telegram</a>
+      <a class="link" id="link_youtube" href="https://www.youtube.com/@TRADER_TRADE" target="_blank" rel="noopener">YouTube</a>
+      <a class="link" id="link_terms" href="/terms.html" target="_blank" rel="noopener">Terms</a>
+      <a class="link" id="link_privacy" href="/privacy.html" target="_blank" rel="noopener">Privacy</a>
+    </div>
+
+    <div class="footer-small">
+      <span data-i18n="footer.support">Support</span>: <a class="link" style="padding:4px 8px" id="link_support" href="https://t.me/popashadurov" target="_blank" rel="noopener">@popashadurov</a>
+      <span style="margin-left:10px" data-i18n="footer.age">Age</span>: 13+
     </div>
   </footer>
 </div>
 
 <div id="toast">—</div>
+
+<!-- consent modal -->
+<div id="consent_backdrop" role="dialog" aria-modal="true">
+  <div id="consent_modal">
+    <h4 data-i18n="consent.title">Analytics</h4>
+    <div class="small" id="consent_text">—</div>
+    <div class="small" style="margin-top:8px" id="consent_links">—</div>
+    <div id="consent_actions">
+      <button class="btn" id="consent_accept" type="button" data-i18n="consent.accept">Accept</button>
+      <button class="btn ghost" id="consent_decline" type="button" data-i18n="consent.decline">Decline</button>
+    </div>
+  </div>
+</div>
 
 <!-- card modal -->
 <div id="modal_backdrop" role="dialog" aria-modal="true">
@@ -667,6 +726,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     </div>
     <div id="modal_body">
       <div id="modal_canvas_wrap">
+        <!-- Keep high-res internal buffer, CSS will scale -->
         <canvas id="card_canvas" width="900" height="600"></canvas>
       </div>
       <div id="modal_right">
@@ -680,16 +740,14 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
 
 <script>
 (function(){
-  /* ---------- telegram init ---------- */
   const tg = window.Telegram?.WebApp || null;
   try{ tg?.expand?.(); }catch(e){}
   try{ tg?.disableVerticalSwipes?.(); }catch(e){}
   try{ tg?.ready?.(); }catch(e){}
 
-
+  /* CRITICAL FIX (already): exists before setTheme uses it */
   let lastIndicators = null;
 
-  /* ---------- i18n ---------- */
   const locales = {
     ru:{
       "tab.dca":"DCA","tab.rr":"R/R","tab.cap":"Capital","tab.ind":"Indicators",
@@ -699,7 +757,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
       "theme.dark":"Тёмная","theme.light":"Светлая",
       "dca.tip":"Совет: добавляй несколько входов — калькулятор посчитает среднюю цену, общий объём и сумму.",
       "dca.add":"+ Добавить вход","dca.avg":"Средняя цена","dca.vol":"Общий объём","dca.cost":"Сумма",
-      "dca.goalBlock":"DCA Цель",
+      "dca.goalHeader":"DCA Goal","dca.goalOptional":"опционально",
       "dca.goalTitle":"Цель по средней (опционально)","dca.goalPrice":"Целевая средняя цена","dca.nextPrice":"Цена следующей покупки","dca.need":"Нужный объём по next-price",
       "rr.entry":"Entry","rr.sl":"Stop Loss","rr.tp":"Take Profit",
       "rr.fee":"Комиссия % (вход+выход)","rr.feeNote":"Показывает net R/R с учётом примерной комиссии.",
@@ -721,10 +779,15 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
       "ind.viz.dom":"Split доминации",
       "hist.title":"История","hist.clear":"Очистить","hist.note":"Сохранено локально в браузере",
       "footer.tags":"АИРДРОП · НОВОСТИ · ТРЕЙДИНГ",
+      "footer.support":"Поддержка",
+      "footer.age":"Возраст",
       "card.title":"Trade Card",
       "card.download":"Скачать PNG",
       "card.copy":"Копировать",
-      "card.help":"Если копирование не работает на устройстве — используй Скачать PNG."
+      "card.help":"Если копирование не работает на устройстве — используй Скачать PNG.",
+      "consent.title":"Аналитика",
+      "consent.accept":"Разрешить",
+      "consent.decline":"Отказаться"
     },
     en:{
       "tab.dca":"DCA","tab.rr":"R/R","tab.cap":"Capital","tab.ind":"Indicators",
@@ -734,7 +797,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
       "theme.dark":"Dark","theme.light":"Light",
       "dca.tip":"Tip: add multiple entries — app will calculate avg, total volume and cost.",
       "dca.add":"+ Add entry","dca.avg":"Average price","dca.vol":"Total volume","dca.cost":"Total cost",
-      "dca.goalBlock":"DCA Goal",
+      "dca.goalHeader":"DCA Goal","dca.goalOptional":"optional",
       "dca.goalTitle":"Target average (optional)","dca.goalPrice":"Target avg price","dca.nextPrice":"Next buy price","dca.need":"Needed volume at next price",
       "rr.entry":"Entry","rr.sl":"Stop Loss","rr.tp":"Take Profit",
       "rr.fee":"Fee % (entry+exit)","rr.feeNote":"Shows net R/R: approximates entry+exit fees.",
@@ -756,10 +819,15 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
       "ind.viz.dom":"Dominance Split",
       "hist.title":"History","hist.clear":"Clear","hist.note":"Saved locally in your browser",
       "footer.tags":"AIRDROP · NEWS · TRADING",
+      "footer.support":"Support",
+      "footer.age":"Age",
       "card.title":"Trade Card",
       "card.download":"Download PNG",
       "card.copy":"Copy",
-      "card.help":"If copy doesn't work on your device, use Download PNG."
+      "card.help":"If copy doesn't work on your device, use Download PNG.",
+      "consent.title":"Analytics",
+      "consent.accept":"Accept",
+      "consent.decline":"Decline"
     }
   };
 
@@ -770,6 +838,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
   }catch(e){ lang='en'; }
 
   function t(key){ return (locales[lang] && locales[lang][key] !== undefined) ? locales[lang][key] : key; }
+
   function translateAll(){
     document.querySelectorAll('[data-i18n]').forEach(el=>{
       const k=el.getAttribute('data-i18n');
@@ -778,19 +847,21 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
       }
     });
     updateThemeUI();
+    updateConsentText();
   }
 
-  /* ---------- toast ---------- */
+  /* toast */
   let toastTimer=null;
   function showToast(msg){
     const el=document.getElementById('toast');
+    if(!el) return;
     el.textContent=msg;
     el.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer=setTimeout(()=>el.classList.remove('show'), 1200);
   }
 
-  /* ---------- theme ---------- */
+  /* theme */
   const THEME_KEY='tc_theme_v10';
   function getInitialTheme(){
     const saved=localStorage.getItem(THEME_KEY);
@@ -804,7 +875,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem(THEME_KEY, theme);
     updateThemeUI();
-    try{ drawAllIndicatorVisuals(lastIndicators); }catch(e){}
+    drawAllIndicatorVisuals(lastIndicators);
   }
   function updateThemeUI(){
     const theme=document.documentElement.getAttribute('data-theme')||'dark';
@@ -829,7 +900,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     setTheme(current==='dark'?'light':'dark');
   });
 
-  /* ---------- utils ---------- */
+  /* utils */
   function safeNum(v){ const x=parseFloat(v); return isFinite(x)?x:0; }
   function fmt(v, digits=8){
     if(v===null || v===undefined || !isFinite(v)) return '—';
@@ -847,7 +918,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     }catch(e){}
   }
 
-  /* ---------- language buttons ---------- */
+  /* language buttons */
   const btnRu=document.getElementById('btn_ru');
   const btnEn=document.getElementById('btn_en');
   function syncLangButtons(){
@@ -856,10 +927,10 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     else { btnEn.classList.add('active'); btnRu.classList.remove('active'); }
   }
   syncLangButtons();
-  btnRu?.addEventListener('click', ()=>{ lang='ru'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); (typeof updateWalletUI==='function') && updateWalletUI(); });
-  btnEn?.addEventListener('click', ()=>{ lang='en'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); (typeof updateWalletUI==='function') && updateWalletUI(); });
+  btnRu?.addEventListener('click', ()=>{ lang='ru'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); updateWalletUI(); });
+  btnEn?.addEventListener('click', ()=>{ lang='en'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); updateWalletUI(); });
 
-  /* ---------- tabs ---------- */
+  /* tabs */
   document.querySelectorAll('.tab').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       document.querySelectorAll('.tab').forEach(tn=>tn.classList.remove('active'));
@@ -875,7 +946,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     return act?.dataset?.tab || 'dca';
   }
 
-  /* ---------- DCA dynamic rows ---------- */
+  /* DCA */
   const dcaRowsEl=document.getElementById('dca_rows');
   const dcaAvgEl=document.getElementById('dca_avg');
   const dcaTotalVolEl=document.getElementById('dca_total_vol');
@@ -883,10 +954,8 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
   const dcaGoal=document.getElementById('dca_goal');
   const dcaNext=document.getElementById('dca_next_price');
   const dcaNeedVol=document.getElementById('dca_need_vol');
-  const dcaGoalSummary=document.getElementById('dca_goal_summary');
 
   let dcaRows=[];
-
   function addDcaRow(p=0,v=0){
     const rowId=String(Math.random()).slice(2);
     const wrap=document.createElement('div');
@@ -926,7 +995,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     addDcaRow();
     dcaGoal.value='';
     dcaNext.value='';
-    if(dcaGoalSummary) dcaGoalSummary.textContent='';
     calcDCA();
   }
 
@@ -947,7 +1015,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
       dcaTotalVolEl.textContent='—';
       dcaTotalCostEl.textContent='—';
       dcaNeedVol.textContent='—';
-      if(dcaGoalSummary) dcaGoalSummary.textContent='';
       return {avg:null, totalVol:0, totalCost:0};
     }
 
@@ -956,34 +1023,11 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     dcaTotalVolEl.textContent = fmt(totalVol, 8);
     dcaTotalCostEl.textContent = fmt(totalCost, 2);
 
-    // goal calc: find needed volume at next price to reach target average
     const target=safeNum(dcaGoal.value);
     const nextP=safeNum(dcaNext.value);
-
-    if(dcaGoalSummary) dcaGoalSummary.textContent = '';
-
     if(target>0 && nextP>0 && nextP!==target){
-      // (totalCost + nextP*x) / (totalVol + x) = target  => x = (target*totalVol - totalCost) / (nextP - target)
       const x=(target*totalVol - totalCost) / (nextP - target);
-      if(isFinite(x) && x>0){
-        dcaNeedVol.textContent = fmt(x, 8);
-        if(dcaGoalSummary){
-          dcaGoalSummary.textContent =
-            (lang==='ru'
-              ? `Цель: средняя ${fmt(target,10)} при следующей цене ${fmt(nextP,10)} → нужен объём ${fmt(x,8)}`
-              : `Goal: avg ${fmt(target,10)} at next price ${fmt(nextP,10)} → need volume ${fmt(x,8)}`
-            );
-        }
-      }else{
-        dcaNeedVol.textContent='—';
-        if(dcaGoalSummary){
-          dcaGoalSummary.textContent =
-            (lang==='ru'
-              ? `Цель недостижима с такой next-price (проверь значения).`
-              : `Goal can't be reached with this next price (check inputs).`
-            );
-        }
-      }
+      dcaNeedVol.textContent = (isFinite(x) && x>0) ? fmt(x, 8) : '—';
     }else{
       dcaNeedVol.textContent='—';
     }
@@ -993,10 +1037,10 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
 
   document.getElementById('dca_add')?.addEventListener('click', ()=>addDcaRow());
   document.getElementById('dca_clear')?.addEventListener('click', clearDCA);
-  dcaGoal.addEventListener('input', calcDCA);
-  dcaNext.addEventListener('input', calcDCA);
+  dcaGoal?.addEventListener('input', calcDCA);
+  dcaNext?.addEventListener('input', calcDCA);
 
-  /* ---------- copy helpers ---------- */
+  /* copy helpers */
   async function copyText(text){
     if(!text || text==='—') return false;
     try{
@@ -1018,6 +1062,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
   }
 
   function bindCopy(btn, getVal){
+    if(!btn) return;
     btn.addEventListener('click', async ()=>{
       const val=getVal();
       const ok = await copyText(val);
@@ -1027,11 +1072,10 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
       }
     });
   }
-
   bindCopy(document.getElementById('dca_copy'), ()=>dcaAvgEl.textContent);
   bindCopy(document.getElementById('dca_need_copy'), ()=>dcaNeedVol.textContent);
 
-  /* ---------- RR ---------- */
+  /* RR */
   const rrEntry=document.getElementById('rr_entry');
   const rrSl=document.getElementById('rr_sl');
   const rrTp=document.getElementById('rr_tp');
@@ -1062,11 +1106,11 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     rrNet.textContent = '1:' + net.toFixed(2);
     return {gross, net};
   }
-  [rrEntry,rrSl,rrTp,rrFee].forEach(x=>x.addEventListener('input', ()=>{ calcRR(); pushHistoryIfReady(); }));
+  [rrEntry,rrSl,rrTp,rrFee].forEach(x=>x?.addEventListener('input', ()=>{ calcRR(); pushHistoryIfReady(); }));
   bindCopy(document.getElementById('rr_copy_gross'), ()=>rrGross.textContent);
   bindCopy(document.getElementById('rr_copy_net'), ()=>rrNet.textContent);
 
-  /* ---------- Capital ---------- */
+  /* Capital */
   const capDep=document.getElementById('cap_dep');
   const capRisk=document.getElementById('cap_risk');
   const capLev=document.getElementById('cap_lev');
@@ -1113,10 +1157,10 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     capMargin.textContent = fmt(notional/lev, 2);
     return {pos};
   }
-  [capDep,capRisk,capLev,capEntry,capSl,capFee].forEach(x=>x.addEventListener('input', ()=>{ calcCap(); pushHistoryIfReady(); }));
+  [capDep,capRisk,capLev,capEntry,capSl,capFee].forEach(x=>x?.addEventListener('input', ()=>{ calcCap(); pushHistoryIfReady(); }));
   bindCopy(document.getElementById('cap_copy_pos'), ()=>capPos.textContent);
 
-  /* ---------- Indicators ---------- */
+  /* Indicators */
   const fgText=document.getElementById('fg_text');
   const tcapText=document.getElementById('tcap_text');
   const altText=document.getElementById('alt_text');
@@ -1124,7 +1168,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
   const indNote=document.getElementById('ind_note');
 
   const IND_CACHE_KEY='tc_ind_cache_v2';
-
   function saveIndicatorsCache(data){
     try{ localStorage.setItem(IND_CACHE_KEY, JSON.stringify({t:Date.now(), data})); }catch(e){}
   }
@@ -1137,7 +1180,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
       return j;
     }catch(e){ return null; }
   }
-
   function computeMood(fgValue, altDom){
     if(!isFinite(fgValue) || !isFinite(altDom)) return '—';
     if(fgValue>=70 && altDom<45) return lang==='ru'?'Риск-он (BTC фокус)':'Risk-on (BTC focus)';
@@ -1148,52 +1190,55 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
   }
 
   async function fetchIndicators(){
-    indNote.textContent = t('ind.loading');
+    if(indNote) indNote.textContent = t('ind.loading');
     let fgVal=null, fgClass='—', totalMc=null, btcDom=null;
+    let okF=false, okC=false;
 
     try{
       const res = await fetch('https://api.alternative.me/fng/?limit=1&format=json', {cache:'no-store'});
-      if(!res.ok) throw new Error('FNG');
-      const j = await res.json();
-      const d=j?.data?.[0];
-      fgVal = d ? Number(d.value) : null;
-      fgClass = d?.value_classification || '—';
+      if(res.ok){
+        const j = await res.json();
+        const d=j?.data?.[0];
+        fgVal = d ? Number(d.value) : null;
+        fgClass = d?.value_classification || '—';
+        okF = isFinite(fgVal);
+      }
     }catch(e){}
 
     try{
       const res2 = await fetch('https://api.coingecko.com/api/v3/global', {cache:'no-store'});
-      if(!res2.ok) throw new Error('CG');
-      const j2 = await res2.json();
-      totalMc = j2?.data?.total_market_cap?.usd ?? null;
-      btcDom = j2?.data?.market_cap_percentage?.btc ?? null;
+      if(res2.ok){
+        const j2 = await res2.json();
+        totalMc = j2?.data?.total_market_cap?.usd ?? null;
+        btcDom = j2?.data?.market_cap_percentage?.btc ?? null;
+        okC = isFinite(totalMc) || isFinite(btcDom);
+      }
     }catch(e){}
 
-    if(isFinite(fgVal)){
-      fgText.textContent = `${fgVal} · ${fgClass}`;
-    }else{
-      fgText.textContent = '—';
-    }
-    if(isFinite(totalMc)){
-      tcapText.textContent = '$' + Number(totalMc).toLocaleString(undefined,{maximumFractionDigits:0});
-    }else tcapText.textContent='—';
+    fgText.textContent = isFinite(fgVal) ? `${fgVal} · ${fgClass}` : '—';
+    tcapText.textContent = isFinite(totalMc) ? '$' + Number(totalMc).toLocaleString(undefined,{maximumFractionDigits:0}) : '—';
 
     let altDom=null;
     if(typeof btcDom==='number' && isFinite(btcDom)){
       altDom = 100 - btcDom;
       altText.textContent = altDom.toFixed(2) + '%';
-    }else altText.textContent='—';
+    }else{
+      altText.textContent='—';
+    }
 
     moodEl.textContent = computeMood(fgVal ?? NaN, altDom ?? NaN);
 
     lastIndicators = { fgVal, fgClass, totalMc, btcDom, altDom };
     saveIndicatorsCache(lastIndicators);
 
-    try{ drawAllIndicatorVisuals(lastIndicators); }catch(e){}
-    indNote.textContent='';
+    drawAllIndicatorVisuals(lastIndicators);
+
+    if(indNote){
+      indNote.textContent = (!okF && !okC) ? t('ind.rate') : '';
+    }
   }
   document.getElementById('refresh_ind')?.addEventListener('click', fetchIndicators);
 
-  /* visuals */
   function drawGauge(canvas, value){
     if(!canvas) return;
     const ctx=canvas.getContext('2d');
@@ -1289,10 +1334,8 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
   }
 
   function drawAllIndicatorVisuals(data){
-    const fgCanvas=document.getElementById('fg_canvas');
-    const domCanvas=document.getElementById('dom_canvas');
-    drawGauge(fgCanvas, data?.fgVal);
-    drawDonutSplit(domCanvas, data?.btcDom);
+    drawGauge(document.getElementById('fg_canvas'), data?.fgVal);
+    drawDonutSplit(document.getElementById('dom_canvas'), data?.btcDom);
 
     const fgBig=document.getElementById('fg_big');
     const fgSub=document.getElementById('fg_sub');
@@ -1308,8 +1351,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
 
     if(typeof data?.btcDom==='number' && isFinite(data.btcDom)){
       domBig.textContent = `BTC ${data.btcDom.toFixed(2)}%`;
-      const alt = (100 - data.btcDom);
-      domSub.textContent = `ALT ${alt.toFixed(2)}%`;
+      domSub.textContent = `ALT ${(100 - data.btcDom).toFixed(2)}%`;
     }else{
       domBig.textContent='—'; domSub.textContent='—';
     }
@@ -1323,10 +1365,10 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     altText.textContent = (typeof lastIndicators.btcDom==='number' && isFinite(lastIndicators.btcDom)) ? ((100-lastIndicators.btcDom).toFixed(2)+'%') : '—';
     moodEl.textContent = computeMood(lastIndicators.fgVal ?? NaN, lastIndicators.altDom ?? NaN);
     indNote.textContent = t('ind.cached');
-    try{ drawAllIndicatorVisuals(lastIndicators); }catch(e){}
+    drawAllIndicatorVisuals(lastIndicators);
   }
 
-  /* ---------- history ---------- */
+  /* history */
   const HISTORY_KEY='tc_history_v10';
   function loadHistory(){ try{ return JSON.parse(localStorage.getItem(HISTORY_KEY))||[] }catch(e){return[]} }
   function saveHistory(arr){ try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(arr)); }catch(e){} }
@@ -1340,6 +1382,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
 
   function renderHistory(){
     const list=document.getElementById('history_list');
+    if(!list) return;
     list.innerHTML='';
     const arr=loadHistory();
     if(!arr.length){
@@ -1388,7 +1431,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     renderHistory();
   });
 
-  // history push throttled
   let lastPushAt=0;
   function pushHistoryIfReady(){
     const tnow=Date.now();
@@ -1428,7 +1470,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     }
   }
 
-  /* ---------- links ---------- */
+  /* links */
   function openUrl(url){
     try{
       if(tg?.openLink) return tg.openLink(url);
@@ -1438,8 +1480,11 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
   }
   document.getElementById('link_telegram')?.addEventListener('click', e=>{ e.preventDefault(); openUrl('https://t.me/InvestTraderTrade');});
   document.getElementById('link_youtube')?.addEventListener('click', e=>{ e.preventDefault(); openUrl('https://www.youtube.com/@TRADER_TRADE');});
+  document.getElementById('link_terms')?.addEventListener('click', e=>{ e.preventDefault(); openUrl(location.origin + '/terms.html');});
+  document.getElementById('link_privacy')?.addEventListener('click', e=>{ e.preventDefault(); openUrl(location.origin + '/privacy.html');});
+  document.getElementById('link_support')?.addEventListener('click', e=>{ e.preventDefault(); openUrl('https://t.me/popashadurov');});
 
-  /* ---------- trade card PNG ---------- */
+  /* trade card PNG */
   const modalBackdrop=document.getElementById('modal_backdrop');
   const modalClose=document.getElementById('modal_close');
   const cardCanvas=document.getElementById('card_canvas');
@@ -1521,21 +1566,33 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
         ]
       };
     }
+
     const tab=activeTab();
     if(tab==='dca'){
-      return { title:'DCA', lines:[
+      const goal = safeNum(dcaGoal.value);
+      const next = safeNum(dcaNext.value);
+
+      const lines = [
         {k:'AVG', v: dcaAvgEl.textContent},
         {k:'VOL', v: dcaTotalVolEl.textContent},
         {k:'COST', v: dcaTotalCostEl.textContent},
-        {k:'GOAL NEED', v: dcaNeedVol.textContent}
-      ]};
+      ];
+
+      // Fix: show DCA Goal as separate lines (instead of “GOAL NEED”)
+      if(goal > 0) lines.push({k:'Goal AVG', v: fmt(goal, 10)});
+      if(next > 0) lines.push({k:'Next Price', v: fmt(next, 10)});
+      if(dcaNeedVol.textContent.trim() !== '—') lines.push({k:'Need VOL', v: dcaNeedVol.textContent});
+
+      return { title:'DCA', lines };
     }
+
     if(tab==='rr'){
       return { title:'R/R', lines:[
         {k:'Gross', v: rrGross.textContent},
         {k:'Net', v: rrNet.textContent}
       ]};
     }
+
     if(tab==='cap'){
       return { title:'Capital', lines:[
         {k:'POS', v: capPos.textContent},
@@ -1543,6 +1600,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
         {k:'Margin $', v: capMargin.textContent}
       ]};
     }
+
     return {title:'Trader', lines:[{k:'—',v:'—'}]};
   }
 
@@ -1594,24 +1652,21 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
 
   document.getElementById('card_btn')?.addEventListener('click', ()=>{ exportCardPNG({fromHistory:false}); });
 
-  /* ---------- TON Connect ---------- */
+  /* TON Connect */
   const TONCONNECT_MANIFEST_URL = 'https://trade-calculator-five.vercel.app/tonconnect-manifest.json';
   const TIP_ADDRESS = 'UQD04FKshVmZaQjZq9y2AtBXWklkzQfK4sEJWrsYfqbNHGGz';
   const TIP_AMOUNT_TON = 0.05;
 
   let tonConnectUI = null;
-
   function shortAddr(addr){
     if(!addr) return '';
     return addr.length > 12 ? (addr.slice(0,4) + '…' + addr.slice(-4)) : addr;
   }
-
   function toNanoStr(ton){
     const v = Number(ton);
     if(!isFinite(v) || v <= 0) return '0';
     return String(Math.floor(v * 1e9));
   }
-
   async function confirmDialog(text){
     try{
       if(tg?.showConfirm){
@@ -1648,9 +1703,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
   function initTonConnect(){
     try{
       if(!window.TON_CONNECT_UI?.TonConnectUI) return;
-      tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
-        manifestUrl: TONCONNECT_MANIFEST_URL
-      });
+      tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({ manifestUrl: TONCONNECT_MANIFEST_URL });
 
       tonConnectUI.onStatusChange(() => {
         updateWalletUI();
@@ -1712,13 +1765,13 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
 
   initTonConnect();
 
-  /* ---------- Share text ---------- */
+  /* Share text */
   document.getElementById('share_btn')?.addEventListener('click', async ()=>{
     const tab=activeTab();
     let text='📊 Trader Calculator\n';
     if(tab==='dca'){
       text += `DCA AVG: ${dcaAvgEl.textContent}\nVOL: ${dcaTotalVolEl.textContent}\nCOST: ${dcaTotalCostEl.textContent}\n`;
-      if(dcaNeedVol.textContent.trim()!=='—') text += `\n🎯 Goal\nNeed: ${dcaNeedVol.textContent}`;
+      if(dcaNeedVol.textContent.trim()!=='—') text += `\n🎯 DCA Goal\nNeed: ${dcaNeedVol.textContent}`;
     }
     if(tab==='rr'){
       text += `Gross: ${rrGross.textContent}\nNet: ${rrNet.textContent}\n`;
@@ -1738,7 +1791,58 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     if(ok){ showToast(t('toast.copied')); haptic('notify','success'); }
   });
 
-  /* ---------- init ---------- */
+  /* analytics consent (Apps Center friendly) */
+  const CONSENT_KEY = 'tc_analytics_consent_v1';
+  const consentBackdrop = document.getElementById('consent_backdrop');
+  const consentAccept = document.getElementById('consent_accept');
+  const consentDecline = document.getElementById('consent_decline');
+
+  function updateConsentText(){
+    const txt = document.getElementById('consent_text');
+    const links = document.getElementById('consent_links');
+    if(!txt || !links) return;
+
+    if(lang === 'ru'){
+      txt.textContent = 'Разрешить анонимную аналитику для улучшения приложения? (Можно отказаться — калькулятор будет работать.)';
+      links.textContent = 'Документы: Terms и Privacy доступны внизу приложения.';
+    }else{
+      txt.textContent = 'Allow anonymous analytics to improve the app? (You can decline — the calculator will still work.)';
+      links.textContent = 'Docs: Terms & Privacy are available in the footer.';
+    }
+  }
+
+  function showConsent(){
+    if(consentBackdrop) consentBackdrop.style.display = 'flex';
+  }
+  function hideConsent(){
+    if(consentBackdrop) consentBackdrop.style.display = 'none';
+  }
+
+  function ensureConsent(){
+    const v = localStorage.getItem(CONSENT_KEY);
+    if(v === 'yes'){
+      loadAnalyticsSdkOnce();
+      return;
+    }
+    if(v === 'no'){
+      return;
+    }
+    showConsent();
+  }
+
+  consentAccept?.addEventListener('click', ()=>{
+    localStorage.setItem(CONSENT_KEY, 'yes');
+    hideConsent();
+    loadAnalyticsSdkOnce();
+    showToast(t('toast.saved'));
+  });
+  consentDecline?.addEventListener('click', ()=>{
+    localStorage.setItem(CONSENT_KEY, 'no');
+    hideConsent();
+    showToast(t('toast.saved'));
+  });
+
+  /* init */
   function refreshAll(){
     dcaRows.forEach(r=>{
       const labels=r.el.querySelectorAll('label');
@@ -1748,7 +1852,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     calcDCA();
     calcRR();
     calcCap();
-    try{ drawAllIndicatorVisuals(lastIndicators); }catch(e){}
+    drawAllIndicatorVisuals(lastIndicators);
   }
 
   translateAll();
@@ -1760,18 +1864,20 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
 
   document.addEventListener('visibilitychange', ()=>{
     if(document.visibilityState==='visible'){
-      try{ drawAllIndicatorVisuals(lastIndicators); }catch(e){}
+      drawAllIndicatorVisuals(lastIndicators);
     }
   });
 
   window.refreshAll = refreshAll;
-  window.addEventListener('resize', ()=>{ try{ drawAllIndicatorVisuals(lastIndicators); }catch(e){} });
+  window.addEventListener('resize', ()=>{ drawAllIndicatorVisuals(lastIndicators); });
 
   try{
     tg?.onEvent?.('viewportChanged', ()=>{
-      setTimeout(()=>{ try{ drawAllIndicatorVisuals(lastIndicators); }catch(e){} }, 150);
+      setTimeout(()=>drawAllIndicatorVisuals(lastIndicators), 150);
     });
   }catch(e){}
+
+  ensureConsent();
 })();
 </script>
 </body>
