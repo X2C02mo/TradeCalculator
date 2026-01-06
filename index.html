@@ -12,8 +12,7 @@
     try{
       if(!window.telegramAnalytics) return;
       const token='eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=';
-      const appName='REPLACE_WITH_YOUR_ANALYTICS_IDENTIFIER';
-      const TONCONNECT_MANIFEST_URL = 'https://trade-calculator-five.vercel.app/tonconnect-manifest.json';
+      const appName='trader_calculator';
       if(token.startsWith('REPLACE_') || appName.startsWith('REPLACE_')) return;
       window.telegramAnalytics.init({ token, appName });
     }catch(e){}
@@ -1548,9 +1547,8 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
   document.getElementById('card_btn')?.addEventListener('click', ()=>{ exportCardPNG({fromHistory:false}); });
 
   /* ---------- TON Connect ---------- */
-  // Best practice: keep manifest in root: https://yourdomain/tonconnect-manifest.json
-  const TONCONNECT_MANIFEST_URL = 'https://YOUR_DOMAIN/tonconnect-manifest.json';
-  const TIP_ADDRESS = 'REPLACE_WITH_YOUR_TON_ADDRESS';
+  const TONCONNECT_MANIFEST_URL = 'https://trade-calculator-five.vercel.app/tonconnect-manifest.json';
+  const TIP_ADDRESS = 'UQD04FKshVmZaQjZq9y2AtBXWklkzQfK4sEJWrsYfqbNHGGz';
   const TIP_AMOUNT_TON = 0.05;
 
   let tonConnectUI = null;
