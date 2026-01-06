@@ -13,6 +13,7 @@
       if(!window.telegramAnalytics) return;
       const token='eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=';
       const appName='REPLACE_WITH_YOUR_ANALYTICS_IDENTIFIER';
+      const TONCONNECT_MANIFEST_URL = 'https://trade-calculator-five.vercel.app/tonconnect-manifest.json';
       if(token.startsWith('REPLACE_') || appName.startsWith('REPLACE_')) return;
       window.telegramAnalytics.init({ token, appName });
     }catch(e){}
