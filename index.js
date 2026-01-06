@@ -8,19 +8,19 @@ if (!TOKEN) {
 
 const bot = new TelegramBot(TOKEN, { polling: true });
 
-const MINI_APP_URL = 'https://trade-calculator-five.vercel.app';
-const CHANNEL_URL = 'https://t.me/InvestTraderTrade';
-const SUPPORT = '@popashadurov';
+const MINI_APP_URL = (process.env.MINI_APP_URL || 'https://trade-calculator-five.vercel.app/').replace(/\/?$/, '/');
+const CHANNEL_URL = process.env.CHANNEL_URL || 'https://t.me/InvestTraderTrade';
+const SUPPORT = process.env.SUPPORT || '@popashadurov';
 
-const START_IMAGE = 'AgACAgIAAxkBAAMaaVaWeFmSspKIZuXdEQdNMFFv-gQAAhcTaxt-6rFKr0HOjIiv95gBAAMCAAN5AAM4BA'; // file_id
+const START_IMAGE = process.env.START_IMAGE_FILE_ID || 'AgACAgIAAxkBAAMaaVaWeFmSspKIZuXdEQdNMFFv-gQAAhcTaxt-6rFKr0HOjIiv95gBAAMCAAN5AAM4BA';
 
 const TEXT = {
   ru: `📊 *Trader Calculator*
 
 Мини-приложение для трейдеров:
-• DCA калькулятор  
-• Risk / Reward  
-• Капитал и индикаторы рынка  
+• DCA калькулятор
+• Risk / Reward
+• Капитал и индикаторы рынка
 
 🚀 Открой Mini App и считай сделки быстрее.
 
@@ -28,9 +28,9 @@ const TEXT = {
   en: `📊 *Trader Calculator*
 
 Mini app for traders:
-• DCA calculator  
-• Risk / Reward  
-• Capital & indicators  
+• DCA calculator
+• Risk / Reward
+• Capital & indicators
 
 🚀 Open Mini App and calculate faster.
 
@@ -38,8 +38,8 @@ Support — ${SUPPORT}`
 };
 
 function getLang(msg) {
-  const code = msg.from.language_code;
-  return code && code.startsWith('ru') ? 'ru' : 'en';
+  const code = (msg.from && msg.from.language_code) ? String(msg.from.language_code) : '';
+  return /^ru/i.test(code) ? 'ru' : 'en';
 }
 
 bot.onText(/\/start/, async (msg) => {
@@ -69,4 +69,3 @@ bot.onText(/\/start/, async (msg) => {
 });
 
 console.log('Bot is running...');
-
