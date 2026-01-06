@@ -1,6 +1,5 @@
 const TelegramBot = require('node-telegram-bot-api');
 
-// Токен берём из переменной окружения
 const TOKEN = process.env.TELEGRAM_TOKEN;
 if (!TOKEN) {
   console.error('TELEGRAM_TOKEN is not set');
@@ -70,3 +69,4 @@ bot.onText(/\/start/, async (msg) => {
 });
 
 console.log('Bot is running...');
+
