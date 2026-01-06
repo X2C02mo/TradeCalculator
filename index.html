@@ -1,10 +1,28 @@
 <!DOCTYPE html>
-<html lang="ru" data-theme="dark">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Trader Calculator</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<!-- Telegram Mini Apps Analytics SDK -->
+<script>
+  // Get token + appName (analytics identifier) on TON Builders → Analytics.
+  // Required for Telegram Apps Center listing.
+  function initAnalytics() {
+    try{
+      if(!window.telegramAnalytics) return;
+      const token='REPLACE_WITH_YOUR_TG_ANALYTICS_TOKEN';
+      const appName='REPLACE_WITH_YOUR_ANALYTICS_IDENTIFIER';
+      if(token.startsWith('REPLACE_') || appName.startsWith('REPLACE_')) return;
+      window.telegramAnalytics.init({ token, appName });
+    }catch(e){}
+  }
+</script>
+<script async src="https://tganalytics.xyz/index.js" onload="initAnalytics()" type="text/javascript"></script>
+
+<!-- TON Connect UI (wallet connection) -->
+<script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
 <style>
 :root{
   --bg:#000;
@@ -13,58 +31,63 @@
   --text:#fff;
   --muted:#9a9a9a;
   --accent:#7CFC00;
-  --danger:#ff4d4f;
+
+  --chip:#111;
+  --chip2:#0f0f0f;
+  --danger:#ff4d4d;
+
+  --radius:14px;
+  --shadow:0 12px 30px rgba(0,0,0,.55);
 
   --input-bg:#070707;
   --result-bg:#060606;
   --chip-bg:#0a0a0a;
-
-  --shadow:0 12px 40px rgba(0,0,0,.45);
 }
-:root[data-theme="light"]{
-  --bg:#ffffff;
-  --panel:#f6f6f6;
-  --border:#e6e6e6;
-  --text:#111;
-  --muted:#666;
-  --accent:#0bbf5e;
-  --danger:#d9363e;
 
-  --input-bg:#ffffff;
-  --result-bg:#ffffff;
-  --chip-bg:#f1f1f1;
+html[data-theme="light"]{
+  --bg:#f6f7fb;
+  --panel:#ffffff;
+  --border:#e6e8ee;
+  --text:#0b0b0b;
+  --muted:#5f6675;
+  --accent:#2d8cff;
 
-  --shadow:0 12px 40px rgba(0,0,0,.12);
+  --chip:#f0f2f8;
+  --chip2:#eef1f7;
+  --danger:#d90429;
+
+  --shadow:0 12px 30px rgba(10,20,40,.10);
+
+  --input-bg:#fbfcff;
+  --result-bg:#f7f9ff;
+  --chip-bg:#f1f4fb;
 }
+
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,Helvetica,sans-serif;overflow:hidden}
-button,input,textarea{font-family:inherit}
-#app{height:100vh;display:flex;flex-direction:column;overflow:hidden}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+#app{min-height:100vh;display:flex;flex-direction:column}
 
-/* hide global scrollbars */
-*::-webkit-scrollbar{width:0;height:0}
-*{scrollbar-width:none}
-
-/* header */
+/* --- header --- */
 header{
   position:sticky;top:0;z-index:10;
-  background:var(--bg);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px 10px;
   border-bottom:1px solid var(--border);
-  padding:10px 12px;
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  background:rgba(0,0,0,.35);
+  backdrop-filter: blur(8px);
 }
+html[data-theme="light"] header{background:rgba(255,255,255,.7)}
+
 .leftbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
 .lang{display:flex;gap:6px;align-items:center}
 .lang button{
-  border:1px solid var(--border);
-  background:transparent;
-  color:var(--muted);
-  padding:6px 10px;
-  border-radius:12px;
-  cursor:pointer;
-  font-weight:800;
-  line-height:1.1;
-  white-space:nowrap;
+  background:transparent;border:1px solid var(--border);
+  color:var(--muted);padding:5px 9px;cursor:pointer;border-radius:12px;
+  font-weight:800;font-size:12px;letter-spacing:.4px;
 }
 .lang button.active{border-color:var(--accent);color:var(--accent)}
 
@@ -80,24 +103,14 @@ header{
   min-height:34px;
   display:inline-flex;
   align-items:center;
-  justify-content:center;
   gap:8px;
-  white-space:nowrap;
-  max-width:100%;
-  overflow:hidden;
 }
-.iconbtn .ico{font-size:14px;line-height:1;flex:0 0 auto}
-.iconbtn .lbl{font-size:12px;flex:1 1 auto;overflow:hidden;text-overflow:ellipsis}
-.iconbtn:active{transform:translateY(1px)}
+.iconbtn:hover{border-color:color-mix(in srgb, var(--accent) 50%, var(--border))}
+.iconbtn .ico{font-size:15px}
+.iconbtn .lbl{font-size:12px;font-weight:800;white-space:nowrap}
 .iconbtn.active{border-color:var(--accent);color:var(--accent)}
 
-.tabs{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  flex-wrap:wrap;
-  margin-left:auto;
-}
+.tabs{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
 .tab{
   background:none;border:none;
   color:var(--muted);
@@ -105,252 +118,220 @@ header{
   padding:6px 10px;
   cursor:pointer;
   border-radius:12px;
-  white-space:nowrap;
+  font-weight:900;
+  border:1px solid transparent;
 }
-.tab.active{color:var(--accent);border-bottom:2px solid var(--accent)}
+.tab:hover{border-color:var(--border)}
+.tab.active{color:var(--accent);border-color:var(--accent)}
 
-/* main layout */
-main{
-  flex:1;
-  padding:14px;
-  display:flex;
-  gap:16px;
-  flex-direction:column;
-  overflow-y:auto;
-  overflow-x:hidden;
-}
-.panels{display:flex;gap:16px;flex-wrap:wrap}
+/* --- layout --- */
+main{flex:1;padding:12px;display:flex;gap:14px;flex-direction:column}
+@media(min-width:980px){ main{flex-direction:row;align-items:flex-start} }
+
+.panels{display:flex;gap:14px;flex-wrap:wrap;flex:1}
 .screen{display:none;width:100%}
 .screen.active{display:block}
 
 .card{
   background:var(--panel);
   border:1px solid var(--border);
-  border-radius:16px;
+  border-radius:var(--radius);
   padding:12px;
-  max-width:860px;
+  max-width:820px;
+  box-shadow:var(--shadow);
 }
+.card h3{margin:0 0 10px 0}
+
 .field{margin-bottom:10px}
-label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
-input{
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:800}
+input, select{
   width:100%;
-  padding:10px;
+  padding:11px 10px;
   background:var(--input-bg);
   border:1px solid var(--border);
   color:var(--text);
-  border-radius:14px;
-  font-size:14px;
+  border-radius:12px;
+  font-size:15px;
   outline:none;
 }
-input:focus{border-color:color-mix(in oklab, var(--accent) 45%, var(--border))}
+input:focus, select:focus{border-color:color-mix(in srgb, var(--accent) 60%, var(--border))}
 
-.row{
-  display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;
-  padding:10px;
-  border:1px solid var(--border);
-  border-radius:16px;
-  background:color-mix(in oklab, var(--panel) 75%, var(--bg));
-}
-.row .col{flex:1;min-width:140px}
-.mini{
-  width:40px;height:40px;
-  display:flex;align-items:center;justify-content:center;
-  border-radius:14px;
-  border:1px solid var(--border);
-  background:var(--chip-bg);
-  cursor:pointer;
-  color:var(--muted);
-  flex:0 0 auto;
-}
-.mini:active{transform:translateY(1px)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row > *{flex:1;min-width:150px}
 
 .result{
-  margin-top:10px;
+  margin-top:8px;
   padding:10px;
-  border-radius:16px;
+  border-radius:12px;
   background:var(--result-bg);
   border:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  display:flex;
+  gap:8px;
+  align-items:center;
+  justify-content:space-between;
+  font-weight:900;
 }
-.res-left{display:flex;flex-direction:column;gap:3px;min-width:0}
-.res-label{font-size:12px;color:var(--muted)}
-.res-value{font-size:14px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.res-value.muted{color:var(--muted);font-weight:800}
+.result .v{color:var(--accent)}
+.small{font-size:12px;color:var(--muted);font-weight:700}
 
 .controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .btn{
-  border:1px solid var(--border);
   background:transparent;
   color:var(--accent);
-  padding:8px 12px;
-  border-radius:14px;
+  border:1px solid color-mix(in srgb, var(--border) 80%, var(--accent));
+  padding:9px 12px;
+  border-radius:12px;
   cursor:pointer;
   font-weight:900;
-  line-height:1.1;
-  min-height:36px;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  max-width:100%;
 }
-.btn.ghost{color:var(--muted)}
-.btn.small{padding:6px 10px;border-radius:999px;min-height:32px;font-size:12px}
-.btn:active{transform:translateY(1px)}
+.btn:hover{border-color:var(--accent)}
+.btn.ghost{color:var(--muted);border-color:var(--border)}
+.btn.danger{color:var(--danger);border-color:color-mix(in srgb, var(--danger) 40%, var(--border))}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 
-.note{font-size:12px;color:var(--muted);line-height:1.35}
-.small{font-size:11px;color:var(--muted)}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .chip{
-  display:inline-flex;align-items:center;gap:6px;
   border:1px solid var(--border);
   background:var(--chip-bg);
-  padding:6px 10px;border-radius:999px;
-  color:var(--muted);font-size:12px;
-  max-width:100%;
-  overflow:hidden;
+  padding:7px 10px;
+  border-radius:999px;
+  cursor:pointer;
+  color:var(--muted);
+  font-weight:900;
+  font-size:12px;
 }
-.chip b{color:var(--text);max-width:100%;overflow:hidden;text-overflow:ellipsis}
-.hr{height:1px;background:var(--border);margin:12px 0}
+.chip:hover{border-color:color-mix(in srgb, var(--accent) 50%, var(--border))}
+.chip.active{border-color:var(--accent);color:var(--accent)}
 
-/* indicator visuals */
-.viz-grid{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
-.viz{
-  flex:1;min-width:240px;
-  background:color-mix(in oklab, var(--panel) 60%, var(--bg));
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:10px;
-}
-.viz-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:10px}
-.viz-title b{font-size:12px}
-.viz-title span{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.viz canvas{
-  width:100%;
-  height:140px;
-  display:block;
-  border-radius:14px;
-  background:var(--result-bg);
-  border:1px solid var(--border);
-}
-
-/* history */
 .history{
   background:var(--panel);
   border:1px solid var(--border);
-  border-radius:18px;
+  border-radius:var(--radius);
   padding:10px;
-  max-width:420px;
-  flex:0 0 auto;
+  width:100%;
+  max-width:460px;
+  box-shadow:var(--shadow);
 }
-.history-list{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow:auto}
-.hitem{
-  padding:10px;
+.history h4{margin:0 0 8px 0}
+.history-list{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow:auto;padding-right:4px}
+.hist-item{
   border:1px solid var(--border);
-  border-radius:16px;
-  background:color-mix(in oklab, var(--panel) 75%, var(--bg));
+  border-radius:12px;
+  padding:8px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
 }
-.hitem-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.hitem-title{font-weight:900}
-.hitem-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.hitem .note{margin-top:4px}
-.hitem .small{margin-top:4px}
+html[data-theme="light"] .hist-item{background:linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,0))}
+.hist-item b{display:block;font-size:13px}
+.hist-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.mini{
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--muted);
+  padding:6px 9px;
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:900;
+  font-size:12px;
+}
+.mini:hover{border-color:color-mix(in srgb, var(--accent) 45%, var(--border)); color:var(--accent)}
+.note{font-size:12px;color:var(--muted);font-weight:700;margin-top:8px}
 
-/* footer */
 footer{
   border-top:1px solid var(--border);
   padding:12px;
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:6px;
-  background:var(--bg);
+  gap:6px
 }
-.tags{font-size:12px;color:var(--muted);letter-spacing:1px}
+.tags{font-size:12px;color:var(--muted);letter-spacing:1px;font-weight:900}
 .links{display:flex;gap:18px;margin-top:2px;flex-wrap:wrap;justify-content:center}
 .rainbow{
-  display:inline-block;font-weight:900;text-decoration:none;
+  display:inline-block;
+  font-weight:1000;
+  text-decoration:none;
   background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet);
   background-size:400% 400%;
-  -webkit-background-clip:text;color:transparent;
-  animation:rain 3.5s linear infinite;
+  -webkit-background-clip:text;
+  color:transparent;
+  animation:rain 3.5s linear infinite
 }
 @keyframes rain{0%{background-position:0% 50%}100%{background-position:100% 50%}}
 
-@media(min-width:900px){main{flex-direction:row}}
+/* toast */
+#toast{
+  position:fixed;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:14px;
+  padding:10px 12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.75);
+  color:#fff;
+  font-weight:900;
+  font-size:13px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .18s ease, transform .18s ease;
+  z-index:999;
+}
+html[data-theme="light"] #toast{background:rgba(0,0,0,.72)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(-2px)}
+
+/* modal */
+#modal_backdrop{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:998;
+  padding:12px;
+}
+#modal{
+  width:min(680px, 100%);
+  border-radius:18px;
+  border:1px solid var(--border);
+  background:var(--panel);
+  box-shadow:var(--shadow);
+  padding:12px;
+}
+#modal_header{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#modal_header b{font-size:14px}
+#modal_close{border:1px solid var(--border);background:transparent;border-radius:12px;color:var(--muted);padding:6px 10px;cursor:pointer;font-weight:1000}
+#modal_body{margin-top:10px;display:flex;gap:12px;flex-wrap:wrap}
+#modal_canvas_wrap{flex:1;min-width:280px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--result-bg)}
+#modal_right{width:240px;min-width:240px;display:flex;flex-direction:column;gap:8px}
+#modal_right .btn{width:100%}
+#modal_help{font-size:12px;color:var(--muted);font-weight:700}
+
+/* indicators visuals */
+.vizgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+@media(max-width:520px){ .vizgrid{grid-template-columns:1fr} }
+.viz{
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:10px;
+  background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
+}
+html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,0))}
+.viz h5{margin:0 0 8px 0;font-size:12px;color:var(--muted);font-weight:1000;letter-spacing:.3px}
+.viz canvas{width:100%;height:130px;display:block}
+.viz .big{font-size:22px;font-weight:1000}
+.viz .sub{font-size:12px;color:var(--muted);font-weight:800;margin-top:2px}
+
 @media(max-width:420px){
   .iconbtn .lbl{display:none}
   .tabs{gap:6px}
   .tab{padding:6px 8px}
 }
-
-/* toast */
-#toast{
-  position:fixed;left:50%;bottom:18px;
-  transform:translateX(-50%);
-  background:color-mix(in oklab, var(--panel) 85%, var(--bg));
-  border:1px solid var(--border);
-  color:var(--text);
-  padding:10px 12px;
-  border-radius:999px;
-  box-shadow:var(--shadow);
-  opacity:0;
-  pointer-events:none;
-  transition:opacity .18s ease, transform .18s ease;
-  z-index:9999;
-  font-weight:900;
-  font-size:13px;
-  max-width:92vw;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
-
-/* modal */
-#modalOverlay{
-  position:fixed;inset:0;z-index:9998;
-  background:rgba(0,0,0,.55);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding:14px;
-}
-#modalOverlay.show{display:flex}
-#modal{
-  width:min(920px, 100%);
-  background:color-mix(in oklab, var(--panel) 90%, var(--bg));
-  border:1px solid var(--border);
-  border-radius:18px;
-  box-shadow:var(--shadow);
-  overflow:hidden;
-}
-#modalHeader{
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
-  padding:12px;border-bottom:1px solid var(--border);
-}
-#modalHeader b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#modalBody{padding:12px}
-#modalFooter{
-  padding:12px;border-top:1px solid var(--border);
-  display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;
-}
-#modalImg{
-  width:100%;
-  max-height:70vh;
-  object-fit:contain;
-  border-radius:14px;
-  border:1px solid var(--border);
-  background:var(--result-bg);
-}
-#modalHint{margin-top:10px}
 </style>
 </head>
-
 <body>
 <div id="app">
   <header>
@@ -359,6 +340,17 @@ footer{
         <button id="btn_ru">RU</button>
         <button id="btn_en">EN</button>
       </div>
+
+      <button class="iconbtn" id="wallet_btn" type="button" aria-label="TON Wallet">
+        <span class="ico">👛</span>
+        <span class="lbl" data-i18n="wallet">Wallet</span>
+      </button>
+
+      <button class="iconbtn" id="tip_btn" type="button" aria-label="Tip TON">
+        <span class="ico">💎</span>
+        <span class="lbl" data-i18n="tip">Tip TON</span>
+      </button>
+
 
       <button class="iconbtn" id="theme_toggle" type="button" aria-label="Theme">
         <span class="ico" id="theme_icon">🌙</span>
@@ -385,62 +377,64 @@ footer{
   </header>
 
   <main>
-    <div class="panels" style="flex:1;min-width:0">
+    <div class="panels">
       <!-- DCA -->
       <section id="dca" class="screen active">
         <div class="card">
-          <div class="note" data-i18n="dca.tip">Tip…</div>
-          <div style="height:10px"></div>
+          <div class="small" style="margin-bottom:10px" data-i18n="dca.tip">
+            Tip: add multiple entries — app will calculate avg, total volume and cost.
+          </div>
 
           <div id="dca_rows"></div>
 
-          <div class="controls">
-            <button class="btn" id="dca_add" type="button" data-i18n="dca.add">+ Add</button>
+          <div class="controls" style="margin-top:10px">
+            <button class="btn" id="dca_add" type="button" data-i18n="dca.add">+ Add entry</button>
             <button class="btn ghost" id="dca_clear" type="button" data-i18n="common.clear">Clear</button>
           </div>
 
-          <div class="result">
-            <div class="res-left">
-              <span class="res-label" data-i18n="dca.avg">Average</span>
-              <span class="res-value muted" id="dca_avg">—</span>
+          <div class="result" style="margin-top:12px">
+            <div>
+              <div class="small" data-i18n="dca.avg">Average price</div>
+              <div><span class="v" id="dca_avg">—</span></div>
             </div>
-            <button class="btn small ghost" id="dca_copy" type="button" data-i18n="common.copy">Copy</button>
+            <button class="btn ghost" id="dca_copy" type="button" data-i18n="common.copy">Copy</button>
           </div>
 
-          <div class="chips">
-            <span class="chip"><span data-i18n="dca.totalVol">Vol</span>: <b id="dca_totalVol">—</b></span>
-            <span class="chip"><span data-i18n="dca.totalCost">Cost</span>: <b id="dca_totalCost">—</b></span>
-          </div>
-
-          <div class="small" id="dca_hint" style="margin-top:8px"></div>
-
-          <div class="hr"></div>
-
-          <h4 style="margin:0 0 8px 0" data-i18n="dca.goal.title">DCA Goal</h4>
-          <div class="note" data-i18n="dca.goal.note">…</div>
-
-          <div style="height:10px"></div>
-          <div class="row">
-            <div class="col">
-              <label data-i18n="dca.goal.price">Add price X</label>
-              <input id="dca_goal_price" type="number" inputmode="decimal" step="any" placeholder="0.00">
+          <div class="row" style="margin-top:10px">
+            <div class="result" style="flex:1">
+              <div>
+                <div class="small" data-i18n="dca.vol">Total volume</div>
+                <div><span class="v" id="dca_total_vol">—</span></div>
+              </div>
             </div>
-            <div class="col">
-              <label data-i18n="dca.goal.avg">Target avg Y</label>
-              <input id="dca_goal_avg" type="number" inputmode="decimal" step="any" placeholder="0.00">
-            </div>
-            <div class="col" style="min-width:170px">
-              <label data-i18n="dca.goal.fee">Fee %</label>
-              <input id="dca_fee" type="number" inputmode="decimal" step="any" min="0" max="5" placeholder="0">
+            <div class="result" style="flex:1">
+              <div>
+                <div class="small" data-i18n="dca.cost">Total cost</div>
+                <div><span class="v" id="dca_total_cost">—</span></div>
+              </div>
             </div>
           </div>
 
-          <div class="chips">
-            <span class="chip"><span data-i18n="dca.goal.needVol">Need vol</span>: <b id="dca_needVol">—</b></span>
-            <span class="chip"><span data-i18n="dca.goal.needCost">Cost</span>: <b id="dca_needCost">—</b></span>
-            <span class="chip"><span data-i18n="dca.goal.status">Status</span>: <b id="dca_goalStatus">—</b></span>
+          <div style="margin-top:12px;border-top:1px dashed var(--border);padding-top:12px">
+            <div class="small" style="margin-bottom:8px" data-i18n="dca.goalTitle">Target average (optional)</div>
+            <div class="row">
+              <div class="field" style="margin:0">
+                <label data-i18n="dca.goalPrice">Target avg price</label>
+                <input id="dca_goal" type="number" step="any" inputmode="decimal" />
+              </div>
+              <div class="field" style="margin:0">
+                <label data-i18n="dca.nextPrice">Next buy price</label>
+                <input id="dca_next_price" type="number" step="any" inputmode="decimal" />
+              </div>
+            </div>
+            <div class="result">
+              <div>
+                <div class="small" data-i18n="dca.need">Needed volume at next price</div>
+                <div><span class="v" id="dca_need_vol">—</span></div>
+              </div>
+              <button class="btn ghost" id="dca_need_copy" type="button" data-i18n="common.copy">Copy</button>
+            </div>
           </div>
-          <div class="small" id="dca_goal_hint" style="margin-top:8px"></div>
         </div>
       </section>
 
@@ -448,40 +442,45 @@ footer{
       <section id="rr" class="screen">
         <div class="card">
           <div class="row">
-            <div class="col">
+            <div class="field" style="flex:1">
               <label data-i18n="rr.entry">Entry</label>
-              <input id="rr_entry" type="number" inputmode="decimal" step="any" placeholder="0.00">
+              <input id="rr_entry" type="number" step="any" inputmode="decimal" />
             </div>
-            <div class="col">
+            <div class="field" style="flex:1">
               <label data-i18n="rr.sl">Stop Loss</label>
-              <input id="rr_sl" type="number" inputmode="decimal" step="any" placeholder="0.00">
+              <input id="rr_sl" type="number" step="any" inputmode="decimal" />
             </div>
-            <div class="col">
+            <div class="field" style="flex:1">
               <label data-i18n="rr.tp">Take Profit</label>
-              <input id="rr_tp" type="number" inputmode="decimal" step="any" placeholder="0.00">
+              <input id="rr_tp" type="number" step="any" inputmode="decimal" />
             </div>
           </div>
 
-          <div class="row" style="margin-top:10px">
-            <div class="col">
-              <label data-i18n="rr.fee">Fee %</label>
-              <input id="rr_fee" type="number" inputmode="decimal" step="any" min="0" max="5" placeholder="0">
+          <div class="row">
+            <div class="field" style="flex:1">
+              <label data-i18n="rr.fee">Fee % (entry+exit)</label>
+              <input id="rr_fee" type="number" step="any" inputmode="decimal" value="0.2" />
+              <div class="small" data-i18n="rr.feeNote" style="margin-top:4px">
+                Shows net R/R: approximates entry+exit fees.
+              </div>
             </div>
-            <div class="col" style="min-width:240px">
-              <div class="note" data-i18n="rr.feeNote">…</div>
+          </div>
+
+          <div class="result">
+            <div>
+              <div class="small" data-i18n="rr.gross">Gross R/R</div>
+              <div><span class="v" id="rr_gross">—</span></div>
             </div>
+            <button class="btn ghost" id="rr_copy_gross" type="button" data-i18n="common.copy">Copy</button>
           </div>
 
-          <div class="controls">
-            <button class="btn ghost" id="rr_clear" type="button" data-i18n="common.clear">Clear</button>
+          <div class="result">
+            <div>
+              <div class="small" data-i18n="rr.net">Net R/R (fees)</div>
+              <div><span class="v" id="rr_net">—</span></div>
+            </div>
+            <button class="btn ghost" id="rr_copy_net" type="button" data-i18n="common.copy">Copy</button>
           </div>
-
-          <div class="chips">
-            <span class="chip"><span data-i18n="rr.gross">Gross</span>: <b id="rr_value">—</b></span>
-            <span class="chip"><span data-i18n="rr.net">Net</span>: <b id="rr_net">—</b></span>
-          </div>
-
-          <div class="small" id="rr_hint" style="margin-top:8px"></div>
         </div>
       </section>
 
@@ -489,138 +488,145 @@ footer{
       <section id="cap" class="screen">
         <div class="card">
           <div class="row">
-            <div class="col">
+            <div class="field">
               <label data-i18n="cap.dep">Deposit</label>
-              <input id="cap_dep" type="number" inputmode="decimal" step="any" min="0" placeholder="0">
+              <input id="cap_dep" type="number" step="any" inputmode="decimal" />
             </div>
-            <div class="col">
+            <div class="field">
               <label data-i18n="cap.risk">Risk %</label>
-              <input id="cap_risk" type="number" inputmode="decimal" step="any" min="0" max="100" placeholder="1">
+              <input id="cap_risk" type="number" step="any" inputmode="decimal" value="1" />
             </div>
-            <div class="col">
-              <label data-i18n="cap.entry">Entry</label>
-              <input id="cap_entry" type="number" inputmode="decimal" step="any" placeholder="0.00">
-            </div>
-            <div class="col">
-              <label data-i18n="cap.sl">Stop Loss</label>
-              <input id="cap_sl" type="number" inputmode="decimal" step="any" placeholder="0.00">
+            <div class="field">
+              <label data-i18n="cap.lev">Leverage</label>
+              <input id="cap_lev" type="number" step="any" inputmode="decimal" value="1" />
             </div>
           </div>
 
-          <div class="row" style="margin-top:10px">
-            <div class="col">
-              <label data-i18n="cap.fee">Fee %</label>
-              <input id="cap_fee" type="number" inputmode="decimal" step="any" min="0" max="5" placeholder="0">
+          <div class="chips" aria-label="Risk presets">
+            <div class="small" style="width:100%" data-i18n="cap.presets">Quick risks</div>
+            <button class="chip" data-risk="0.5" type="button">0.5%</button>
+            <button class="chip active" data-risk="1" type="button">1%</button>
+            <button class="chip" data-risk="2" type="button">2%</button>
+            <button class="chip" data-risk="3" type="button">3%</button>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <div class="field">
+              <label data-i18n="cap.entry">Entry</label>
+              <input id="cap_entry" type="number" step="any" inputmode="decimal" />
             </div>
-            <div class="col">
-              <label data-i18n="cap.lev">Leverage</label>
-              <input id="cap_lev" type="number" inputmode="decimal" step="any" min="1" max="200" placeholder="1">
+            <div class="field">
+              <label data-i18n="cap.sl">Stop Loss</label>
+              <input id="cap_sl" type="number" step="any" inputmode="decimal" />
             </div>
-            <div class="col" style="min-width:260px">
-              <label data-i18n="cap.presets">Quick</label>
-              <div class="controls" style="margin-top:0">
-                <button class="btn small ghost cap_preset" type="button" data-v="0.5">0.5%</button>
-                <button class="btn small ghost cap_preset" type="button" data-v="1">1%</button>
-                <button class="btn small ghost cap_preset" type="button" data-v="2">2%</button>
-                <button class="btn small ghost cap_preset" type="button" data-v="3">3%</button>
+            <div class="field">
+              <label data-i18n="cap.fee">Fee % (entry+exit)</label>
+              <input id="cap_fee" type="number" step="any" inputmode="decimal" value="0.2" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="result" style="flex:1">
+              <div>
+                <div class="small" data-i18n="cap.pos">Position size</div>
+                <div><span class="v" id="cap_pos">—</span></div>
+              </div>
+              <button class="btn ghost" id="cap_copy_pos" type="button" data-i18n="common.copy">Copy</button>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="result" style="flex:1">
+              <div>
+                <div class="small" data-i18n="cap.riskUsd">Risk $</div>
+                <div><span class="v" id="cap_risk_usd">—</span></div>
+              </div>
+            </div>
+            <div class="result" style="flex:1">
+              <div>
+                <div class="small" data-i18n="cap.margin">Margin (lev)</div>
+                <div><span class="v" id="cap_margin">—</span></div>
               </div>
             </div>
           </div>
-
-          <div class="controls">
-            <button class="btn ghost" id="cap_clear" type="button" data-i18n="common.clear">Clear</button>
-          </div>
-
-          <div class="chips">
-            <span class="chip"><span data-i18n="cap.pos">Position</span>: <b id="cap_value">—</b></span>
-            <span class="chip"><span data-i18n="cap.riskUsd">Risk $</span>: <b id="cap_riskUsd">—</b></span>
-            <span class="chip"><span data-i18n="cap.margin">Margin</span>: <b id="cap_margin">—</b></span>
-          </div>
-
-          <div class="small" id="cap_hint" style="margin-top:8px"></div>
         </div>
       </section>
 
       <!-- Indicators -->
       <section id="ind" class="screen">
         <div class="card">
-          <h3 style="margin:0 0 10px 0" data-i18n="ind.title">Indicators</h3>
+          <h3 data-i18n="ind.title">Indicators</h3>
 
-          <div class="field">
-            <label data-i18n="ind.fg.label">Fear &amp; Greed</label>
-            <div class="result">
-              <div class="res-left">
-                <span class="res-label" data-i18n="ind.fg.valueLabel">Value</span>
-                <span class="res-value muted" id="fg_value">—</span>
+          <div class="row">
+            <div class="field" style="flex:1">
+              <label data-i18n="ind.fg.label">Fear &amp; Greed</label>
+              <div id="fg_value" class="result">
+                <div>
+                  <div class="small" data-i18n="ind.fg.valueLabel">Value</div>
+                  <div><span class="v" id="fg_text">—</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="field" style="flex:1">
+              <label data-i18n="ind.mood.label">Market Mood</label>
+              <div class="result">
+                <div>
+                  <div class="small" data-i18n="ind.mood.hint">Derived from F&G + Alt dom</div>
+                  <div><span class="v" id="mood">—</span></div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="field">
-            <label data-i18n="ind.tcap.label">Total Market Cap (USD)</label>
-            <div class="result">
-              <div class="res-left">
-                <span class="res-label">USD</span>
-                <span class="res-value muted" id="tcap">—</span>
-              </div>
+          <div class="row">
+            <div class="field" style="flex:1">
+              <label data-i18n="ind.tcap.label">Total Market Cap (USD)</label>
+              <div id="tcap" class="result"><span class="v" id="tcap_text">—</span></div>
+            </div>
+            <div class="field" style="flex:1">
+              <label data-i18n="ind.alt.label">Alt dominance (proxy Altseason)</label>
+              <div id="alt_dom" class="result"><span class="v" id="alt_text">—</span></div>
             </div>
           </div>
 
-          <div class="field">
-            <label data-i18n="ind.alt.label">Alt dominance</label>
-            <div class="result">
-              <div class="res-left">
-                <span class="res-label">Alt %</span>
-                <span class="res-value muted" id="alt_dom">—</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="field">
-            <label data-i18n="ind.mood.label">Market Mood</label>
-            <div class="result">
-              <div class="res-left">
-                <span class="res-label" data-i18n="ind.mood.hint">Derived</span>
-                <span class="res-value muted" id="mood_value">—</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="viz-grid">
-            <div class="viz">
-              <div class="viz-title"><b data-i18n="ind.viz.fg">F&G Gauge</b><span id="fg_viz_text">—</span></div>
-              <canvas id="fg_canvas"></canvas>
-            </div>
-            <div class="viz">
-              <div class="viz-title"><b data-i18n="ind.viz.cap">Market Cap</b><span id="cap_viz_text">—</span></div>
-              <canvas id="cap_canvas"></canvas>
-            </div>
-            <div class="viz">
-              <div class="viz-title"><b data-i18n="ind.viz.alt">Alt Dom</b><span id="alt_viz_text">—</span></div>
-              <canvas id="alt_canvas"></canvas>
-            </div>
-          </div>
-
-          <div class="controls" style="margin-top:12px">
+          <div class="controls">
             <button class="btn" id="refresh_ind" type="button" data-i18n="ind.refresh">Refresh</button>
+            <span class="small" id="ind_note"></span>
           </div>
-          <div class="note" id="ind_note"></div>
+
+          <div class="vizgrid">
+            <div class="viz">
+              <h5 data-i18n="ind.viz.fg">F&G Gauge</h5>
+              <canvas id="fg_canvas" width="600" height="260"></canvas>
+              <div class="big" id="fg_big">—</div>
+              <div class="sub" id="fg_sub">—</div>
+            </div>
+            <div class="viz">
+              <h5 data-i18n="ind.viz.dom">Dominance Split</h5>
+              <canvas id="dom_canvas" width="600" height="260"></canvas>
+              <div class="big" id="dom_big">—</div>
+              <div class="sub" id="dom_sub">—</div>
+            </div>
+          </div>
+
         </div>
       </section>
+
     </div>
 
+    <!-- history -->
     <aside class="history" aria-live="polite">
       <h4 data-i18n="hist.title">History</h4>
       <div class="history-list" id="history_list"></div>
       <div class="controls" style="margin-top:8px">
         <button class="btn ghost" id="clear_history" type="button" data-i18n="hist.clear">Clear</button>
       </div>
-      <div class="note" data-i18n="hist.note">Saved locally</div>
+      <div class="note" data-i18n="hist.note">Saved locally in your browser</div>
     </aside>
   </main>
 
   <footer>
-    <div class="tags" data-i18n="footer.tags">АИРДРОП · НОВОСТИ · ТРЕЙДИНГ</div>
+    <div class="tags" data-i18n="footer.tags">AIRDROP · NEWS · TRADING</div>
     <div class="links">
       <a id="link_telegram" class="rainbow" href="https://t.me/InvestTraderTrade" target="_blank" rel="noopener">TELEGRAM</a>
       <a id="link_youtube" class="rainbow" href="https://www.youtube.com/@TRADER_TRADE" target="_blank" rel="noopener">YOUTUBE</a>
@@ -630,61 +636,47 @@ footer{
 
 <div id="toast">—</div>
 
-<!-- Modal (PNG preview only; no "Open") -->
-<div id="modalOverlay" role="dialog" aria-modal="true">
+<!-- card modal -->
+<div id="modal_backdrop" role="dialog" aria-modal="true">
   <div id="modal">
-    <div id="modalHeader">
-      <b id="modalTitle">—</b>
-      <button class="btn small ghost" id="modalClose" type="button">✕</button>
+    <div id="modal_header">
+      <b data-i18n="card.title">Trade Card</b>
+      <button id="modal_close" type="button">✕</button>
     </div>
-    <div id="modalBody">
-      <img id="modalImg" alt="preview" />
-      <div class="note" id="modalHint"></div>
-    </div>
-    <div id="modalFooter">
-      <button class="btn ghost" id="modalCopySummary" type="button" data-i18n="modal.copy">Copy</button>
-      <button class="btn" id="modalShare" type="button" data-i18n="modal.share">Share</button>
-      <button class="btn" id="modalOk" type="button" data-i18n="modal.ok">OK</button>
+    <div id="modal_body">
+      <div id="modal_canvas_wrap">
+        <canvas id="card_canvas" width="900" height="600"></canvas>
+      </div>
+      <div id="modal_right">
+        <button class="btn" id="card_download" type="button" data-i18n="card.download">Download PNG</button>
+        <button class="btn ghost" id="card_copy" type="button" data-i18n="card.copy">Copy</button>
+        <div id="modal_help" data-i18n="card.help">If copy doesn't work on your device, use Download PNG.</div>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-/* ========= Robust bootstrap ========= */
 (function(){
+  /* ---------- telegram init ---------- */
   const tg = window.Telegram?.WebApp || null;
-  try{ tg?.ready?.(); tg?.expand?.(); tg?.disableVerticalSwipes?.(); }catch(e){}
+  try{ tg?.expand?.(); }catch(e){}
+  try{ tg?.disableVerticalSwipes?.(); }catch(e){} // reduce accidental position changes in TWA
+  try{ tg?.ready?.(); }catch(e){}
 
   /* ---------- i18n ---------- */
   const locales = {
     ru:{
       "tab.dca":"DCA","tab.rr":"R/R","tab.cap":"Capital","tab.ind":"Indicators",
-      "share":"Поделиться","cardpng":"Карточка PNG",
+      "share":"Поделиться","cardpng":"Карточка PNG","wallet":"Кошелёк","tip":"Донат TON","wallet.disconnectQ":"Отключить кошелёк?","toast.walletNeed":"Сначала подключи кошелёк","toast.sent":"Транзакция отправлена","toast.fail":"Ошибка","toast.tonManifest":"Укажи manifest URL",
       "common.clear":"Очистить","common.copy":"Копировать",
       "toast.copied":"Скопировано!","toast.saved":"Готово",
       "theme.dark":"Тёмная","theme.light":"Светлая",
       "dca.tip":"Совет: добавляй несколько входов — калькулятор посчитает среднюю цену, общий объём и сумму.",
-      "dca.add":"+ Добавить вход",
-      "dca.avg":"Средняя цена","dca.totalVol":"Общий объём","dca.totalCost":"Сумма",
-      "dca.row.price":"Цена","dca.row.vol":"Объём",
-      "dca.hint.empty":"Добавь хотя бы один валидный вход (цена + объём > 0).",
-      "dca.hint.partial":"Часть строк не учтена (проверь цену/объём).",
-      "dca.goal.title":"DCA Goal: Target Average",
-      "dca.goal.note":"Посчитай, сколько докупить по цене X, чтобы получить среднюю Y.",
-      "dca.goal.price":"Цена докупки (X)",
-      "dca.goal.avg":"Целевая средняя (Y)",
-      "dca.goal.fee":"Комиссия покупки %",
-      "dca.goal.needVol":"Нужно докупить",
-      "dca.goal.needCost":"Стоимость",
-      "dca.goal.status":"Статус",
-      "dca.goal.status.na":"—",
-      "dca.goal.status.ok":"Возможно",
-      "dca.goal.status.already":"Уже на цели",
-      "dca.goal.status.impossible":"Невозможно при этой цене",
-      "dca.goal.hint.fill":"Заполни X и Y, и добавь хотя бы один вход сверху.",
+      "dca.add":"+ Добавить вход","dca.avg":"Средняя цена","dca.vol":"Общий объём","dca.cost":"Сумма",
+      "dca.goalTitle":"Цель по средней (опционально)","dca.goalPrice":"Целевая средняя цена","dca.nextPrice":"Цена следующей покупки","dca.need":"Нужный объём по next-price",
       "rr.entry":"Entry","rr.sl":"Stop Loss","rr.tp":"Take Profit",
-      "rr.fee":"Комиссия % (примерно)",
-      "rr.feeNote":"Покажет net R/R: учитывает вход+выход комиссию (приближённо).",
+      "rr.fee":"Комиссия % (вход+выход)","rr.feeNote":"Показывает net R/R с учётом примерной комиссии.",
       "rr.gross":"Gross R/R","rr.net":"Net R/R (fees)",
       "cap.dep":"Депозит","cap.risk":"Риск %","cap.entry":"Entry","cap.sl":"Stop Loss",
       "cap.fee":"Комиссия % (вход+выход)","cap.lev":"Плечо","cap.presets":"Быстрые риски",
@@ -693,52 +685,32 @@ footer{
       "ind.fg.label":"Fear & Greed","ind.fg.valueLabel":"Значение",
       "ind.tcap.label":"Общая капитализация (USD)",
       "ind.alt.label":"Доминация альтов (proxy Altseason)",
-      "ind.mood.label":"Market Mood",
-      "ind.mood.hint":"На основе F&G + доминации альтов",
+      "ind.mood.label":"Режим рынка",
+      "ind.mood.hint":"Считается из F&G + доминации",
       "ind.refresh":"Обновить",
       "ind.loading":"Обновляю…",
-      "ind.cached":"Показаны данные из кеша",
-      "ind.rate":"Лимит/ошибка API — попробуй позже",
+      "ind.cached":"Показаны кэш-данные",
+      "ind.rate":"Лимит API/ошибка — попробуй позже",
       "ind.viz.fg":"F&G Gauge",
-      "ind.viz.cap":"Market Cap",
-      "ind.viz.alt":"Alt Dom",
-      "hist.title":"История",
-      "hist.clear":"Очистить",
-      "hist.note":"Сохранено локально",
+      "ind.viz.dom":"Split доминации",
+      "hist.title":"История","hist.clear":"Очистить","hist.note":"Сохранено локально в браузере",
       "footer.tags":"АИРДРОП · НОВОСТИ · ТРЕЙДИНГ",
-      "modal.ok":"OK",
-      "modal.copy":"Копировать текст",
-      "modal.share":"Поделиться PNG",
-      "modal.hint":"Если меню «Поделиться» не появилось — сделай долгий тап по картинке и выбери «Сохранить / Поделиться»."
+      "card.title":"Trade Card",
+      "card.download":"Скачать PNG",
+      "card.copy":"Копировать",
+      "card.help":"Если копирование не работает на устройстве — используй Скачать PNG."
     },
     en:{
       "tab.dca":"DCA","tab.rr":"R/R","tab.cap":"Capital","tab.ind":"Indicators",
-      "share":"Share","cardpng":"Card PNG",
+      "share":"Share","cardpng":"Card PNG","wallet":"Wallet","tip":"Tip TON","wallet.disconnectQ":"Disconnect wallet?","toast.walletNeed":"Connect wallet first","toast.sent":"Transaction sent","toast.fail":"Error","toast.tonManifest":"Set manifest URL",
       "common.clear":"Clear","common.copy":"Copy",
       "toast.copied":"Copied!","toast.saved":"Done",
       "theme.dark":"Dark","theme.light":"Light",
-      "dca.tip":"Tip: add multiple entries — it will calculate average price, total volume and cost.",
-      "dca.add":"+ Add entry",
-      "dca.avg":"Average price","dca.totalVol":"Total volume","dca.totalCost":"Total cost",
-      "dca.row.price":"Price","dca.row.vol":"Volume",
-      "dca.hint.empty":"Add at least one valid entry (price + volume > 0).",
-      "dca.hint.partial":"Some rows were ignored (check price/volume).",
-      "dca.goal.title":"DCA Goal: Target Average",
-      "dca.goal.note":"Calculate how much to buy at price X to reach target average Y.",
-      "dca.goal.price":"Add price (X)",
-      "dca.goal.avg":"Target average (Y)",
-      "dca.goal.fee":"Buy fee %",
-      "dca.goal.needVol":"Need volume",
-      "dca.goal.needCost":"Cost",
-      "dca.goal.status":"Status",
-      "dca.goal.status.na":"—",
-      "dca.goal.status.ok":"Possible",
-      "dca.goal.status.already":"Already at target",
-      "dca.goal.status.impossible":"Impossible at this price",
-      "dca.goal.hint.fill":"Fill X and Y and add at least one entry above.",
+      "dca.tip":"Tip: add multiple entries — app will calculate avg, total volume and cost.",
+      "dca.add":"+ Add entry","dca.avg":"Average price","dca.vol":"Total volume","dca.cost":"Total cost",
+      "dca.goalTitle":"Target average (optional)","dca.goalPrice":"Target avg price","dca.nextPrice":"Next buy price","dca.need":"Needed volume at next price",
       "rr.entry":"Entry","rr.sl":"Stop Loss","rr.tp":"Take Profit",
-      "rr.fee":"Fee % (approx)",
-      "rr.feeNote":"Shows net R/R: approximates entry+exit fees.",
+      "rr.fee":"Fee % (entry+exit)","rr.feeNote":"Shows net R/R: approximates entry+exit fees.",
       "rr.gross":"Gross R/R","rr.net":"Net R/R (fees)",
       "cap.dep":"Deposit","cap.risk":"Risk %","cap.entry":"Entry","cap.sl":"Stop Loss",
       "cap.fee":"Fee % (entry+exit)","cap.lev":"Leverage","cap.presets":"Quick risks",
@@ -754,16 +726,13 @@ footer{
       "ind.cached":"Showing cached data",
       "ind.rate":"API limit/error — try later",
       "ind.viz.fg":"F&G Gauge",
-      "ind.viz.cap":"Market Cap",
-      "ind.viz.alt":"Alt Dom",
-      "hist.title":"History",
-      "hist.clear":"Clear",
-      "hist.note":"Saved locally",
+      "ind.viz.dom":"Dominance Split",
+      "hist.title":"History","hist.clear":"Clear","hist.note":"Saved locally in your browser",
       "footer.tags":"AIRDROP · NEWS · TRADING",
-      "modal.ok":"OK",
-      "modal.copy":"Copy text",
-      "modal.share":"Share PNG",
-      "modal.hint":"If Share menu doesn’t appear — long-press the image to Save/Share."
+      "card.title":"Trade Card",
+      "card.download":"Download PNG",
+      "card.copy":"Copy",
+      "card.help":"If copy doesn't work on your device, use Download PNG."
     }
   };
 
@@ -771,15 +740,17 @@ footer{
   try{
     const tgl = tg?.initDataUnsafe?.user?.language_code;
     if (tgl) lang = /^ru|uk|be/i.test(tgl) ? 'ru' : 'en';
-    else lang = /^ru|uk|be/i.test(navigator.language) ? 'ru' : 'en';
   }catch(e){ lang='en'; }
 
   function t(key){ return (locales[lang] && locales[lang][key] !== undefined) ? locales[lang][key] : key; }
   function translateAll(){
     document.querySelectorAll('[data-i18n]').forEach(el=>{
-      const k = el.getAttribute('data-i18n');
-      if(locales[lang] && locales[lang][k] !== undefined) el.textContent = locales[lang][k];
+      const k=el.getAttribute('data-i18n');
+      if(locales[lang] && locales[lang][k] !== undefined){
+        el.textContent = locales[lang][k];
+      }
     });
+    // also update theme label
     updateThemeUI();
   }
 
@@ -799,10 +770,11 @@ footer{
     const saved=localStorage.getItem(THEME_KEY);
     if(saved==='dark'||saved==='light') return saved;
     const tgScheme=(tg?.colorScheme||'').toLowerCase();
-    if(tgScheme==='dark'||tgScheme==='light') return tgScheme;
-    return (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+    if(tgScheme==='light') return 'light';
+    return 'dark';
   }
   function setTheme(theme){
+    if(theme!=='dark' && theme!=='light') theme='dark';
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem(THEME_KEY, theme);
     updateThemeUI();
@@ -823,33 +795,22 @@ footer{
       btn.classList.remove('active');
     }
   }
+  setTheme(getInitialTheme());
+  document.getElementById('theme_toggle').addEventListener('click', ()=>{
+    const current=document.documentElement.getAttribute('data-theme')||'dark';
+    setTheme(current==='dark'?'light':'dark');
+  });
 
-  /* ---------- helpers ---------- */
-  function safeNum(v){ const x=parseFloat(v); return Number.isFinite(x)?x:NaN; }
-  function fmt(n, maxFrac=8){ return Number.isFinite(n)?n.toLocaleString(undefined,{maximumFractionDigits:maxFrac}):'—'; }
-  function fmtMoney(n){ return Number.isFinite(n)?('$'+n.toLocaleString(undefined,{maximumFractionDigits:0})):'—'; }
-
-  async function copyText(text){
-    if(!text || text==='—') return false;
-    try{
-      if(navigator.clipboard?.writeText){
-        await navigator.clipboard.writeText(text);
-        return true;
-      }
-    }catch(e){}
-    try{
-      const ta=document.createElement('textarea');
-      ta.value=text;
-      ta.setAttribute('readonly','');
-      ta.style.position='fixed';
-      ta.style.left='-9999px';
-      document.body.appendChild(ta);
-      ta.select();
-      const ok=document.execCommand('copy');
-      document.body.removeChild(ta);
-      return !!ok;
-    }catch(e){ return false; }
+  /* ---------- utils ---------- */
+  function safeNum(v){ const x=parseFloat(v); return isFinite(x)?x:0; }
+  function fmt(v, digits=8){
+    if(v===null || v===undefined || !isFinite(v)) return '—';
+    const n=Number(v);
+    const abs=Math.abs(n);
+    const d = abs>=1000 ? 2 : (abs>=1 ? 6 : digits);
+    return n.toLocaleString(undefined,{maximumFractionDigits:d});
   }
+  function now(){ return Date.now(); }
 
   function haptic(type='impact', style='light'){
     try{
@@ -866,8 +827,10 @@ footer{
     if(lang==='ru'){ btnRu.classList.add('active'); btnEn.classList.remove('active'); }
     else { btnEn.classList.add('active'); btnRu.classList.remove('active'); }
   }
-  btnRu.addEventListener('click', ()=>{ lang='ru'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); });
-  btnEn.addEventListener('click', ()=>{ lang='en'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); });
+  // Set the correct active state on first load
+  syncLangButtons();
+  btnRu.addEventListener('click', ()=>{ lang='ru'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); (typeof updateWalletUI==='function') && updateWalletUI(); });
+  btnEn.addEventListener('click', ()=>{ lang='en'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); (typeof updateWalletUI==='function') && updateWalletUI(); });
 
   /* ---------- tabs ---------- */
   document.querySelectorAll('.tab').forEach(btn=>{
@@ -880,726 +843,645 @@ footer{
       if(target==='ind' && document.getElementById('tcap').textContent.trim()==='—') fetchIndicators();
     });
   });
+  function activeTab(){
+    const act=document.querySelector('.tab.active');
+    return act?.dataset?.tab || 'dca';
+  }
 
-  /* ---------- DCA rows ---------- */
+  /* ---------- DCA dynamic rows ---------- */
   const dcaRowsEl=document.getElementById('dca_rows');
   const dcaAvgEl=document.getElementById('dca_avg');
-  const dcaTotalVolEl=document.getElementById('dca_totalVol');
-  const dcaTotalCostEl=document.getElementById('dca_totalCost');
-  const dcaHintEl=document.getElementById('dca_hint');
-  const dcaCopyBtn=document.getElementById('dca_copy');
+  const dcaTotalVolEl=document.getElementById('dca_total_vol');
+  const dcaTotalCostEl=document.getElementById('dca_total_cost');
+  const dcaGoal=document.getElementById('dca_goal');
+  const dcaNext=document.getElementById('dca_next_price');
+  const dcaNeedVol=document.getElementById('dca_need_vol');
 
-  const dcaGoalPrice=document.getElementById('dca_goal_price');
-  const dcaGoalAvg=document.getElementById('dca_goal_avg');
-  const dcaFee=document.getElementById('dca_fee');
-  const dcaNeedVol=document.getElementById('dca_needVol');
-  const dcaNeedCost=document.getElementById('dca_needCost');
-  const dcaGoalStatus=document.getElementById('dca_goalStatus');
-  const dcaGoalHint=document.getElementById('dca_goal_hint');
+  let dcaRows=[];
 
-  function dcaRowEl(price='', vol=''){
+  function addDcaRow(p=0,v=0){
+    const rowId=String(Math.random()).slice(2);
     const wrap=document.createElement('div');
     wrap.className='row';
+    wrap.style.marginBottom='8px';
     wrap.innerHTML=`
-      <div class="col">
-        <label data-i18n="dca.row.price">${t('dca.row.price')}</label>
-        <input class="dca_price" type="number" inputmode="decimal" step="any" placeholder="0.00" value="${price}">
+      <div class="field" style="flex:1;margin:0">
+        <label>${lang==='ru'?'Цена':'Price'}</label>
+        <input type="number" step="any" inputmode="decimal" value="${p||''}">
       </div>
-      <div class="col">
-        <label data-i18n="dca.row.vol">${t('dca.row.vol')}</label>
-        <input class="dca_vol" type="number" inputmode="decimal" step="any" min="0" placeholder="0" value="${vol}">
+      <div class="field" style="flex:1;margin:0">
+        <label>${lang==='ru'?'Объём':'Volume'}</label>
+        <input type="number" step="any" inputmode="decimal" value="${v||''}">
       </div>
-      <button class="mini dca_remove" type="button" aria-label="Remove">✕</button>
+      <div style="display:flex;align-items:flex-end">
+        <button class="btn ghost" type="button" aria-label="remove" style="padding:9px 12px">×</button>
+      </div>
     `;
-    return wrap;
-  }
-  function ensureRows(){
-    if(dcaRowsEl.children.length===0){
-      dcaRowsEl.appendChild(dcaRowEl());
-      dcaRowsEl.appendChild(dcaRowEl());
-      translateAll();
-    }
-  }
-
-  function getDcaLegs(){
-    const rows=[...dcaRowsEl.querySelectorAll('.row')];
-    let valid=[], ignored=0;
-    for(const r of rows){
-      const p=safeNum(r.querySelector('.dca_price')?.value);
-      const v=safeNum(r.querySelector('.dca_vol')?.value);
-      if(Number.isFinite(p) && Number.isFinite(v) && v>0){
-        valid.push({p,v});
-      }else{
-        const pv=(r.querySelector('.dca_price')?.value||'').trim();
-        const vv=(r.querySelector('.dca_vol')?.value||'').trim();
-        if(pv || vv) ignored++;
-      }
-    }
-    return {valid, ignored};
+    const inputs=wrap.querySelectorAll('input');
+    const btnRemove=wrap.querySelector('button');
+    const item={id:rowId, el:wrap, pEl:inputs[0], vEl:inputs[1]};
+    inputs.forEach(inp=>inp.addEventListener('input', calcDCA));
+    btnRemove.addEventListener('click', ()=>{
+      dcaRows = dcaRows.filter(r=>r.id!==rowId);
+      wrap.remove();
+      calcDCA();
+    });
+    dcaRows.push(item);
+    dcaRowsEl.appendChild(wrap);
+    calcDCA();
   }
 
-  function dcaBase(){
-    const {valid}=getDcaLegs();
-    if(!valid.length) return null;
-    let totalVol=0,totalCost=0;
-    for(const leg of valid){ totalVol+=leg.v; totalCost+=leg.p*leg.v; }
-    return {totalVol,totalCost,avg: totalCost/totalVol};
+  function clearDCA(){
+    dcaRows=[];
+    dcaRowsEl.innerHTML='';
+    addDcaRow();
+    addDcaRow();
+    dcaGoal.value='';
+    dcaNext.value='';
+    calcDCA();
   }
 
   function calcDCA(){
-    const {valid, ignored}=getDcaLegs();
-    if(!valid.length){
+    let totalVol=0;
+    let totalCost=0;
+    dcaRows.forEach(r=>{
+      const p=safeNum(r.pEl.value);
+      const v=safeNum(r.vEl.value);
+      if(p>0 && v>0){
+        totalVol += v;
+        totalCost += p*v;
+      }
+    });
+
+    if(totalVol<=0){
       dcaAvgEl.textContent='—';
       dcaTotalVolEl.textContent='—';
       dcaTotalCostEl.textContent='—';
-      dcaHintEl.textContent=t('dca.hint.empty');
-      dcaCopyBtn.disabled=true;
-      calcDcaGoal(null);
-      return;
+      dcaNeedVol.textContent='—';
+      return {avg:null, totalVol:0, totalCost:0};
     }
-    let totalVol=0,totalCost=0;
-    for(const leg of valid){ totalVol+=leg.v; totalCost+=leg.p*leg.v; }
+
     const avg=totalCost/totalVol;
+    dcaAvgEl.textContent = fmt(avg, 10);
+    dcaTotalVolEl.textContent = fmt(totalVol, 8);
+    dcaTotalCostEl.textContent = fmt(totalCost, 2);
 
-    dcaAvgEl.textContent=fmt(avg, 8);
-    dcaTotalVolEl.textContent=fmt(totalVol, 8);
-    dcaTotalCostEl.textContent=fmtMoney(totalCost);
-    dcaHintEl.textContent=ignored>0 ? t('dca.hint.partial') : '';
-    dcaCopyBtn.disabled=false;
+    // goal calc: find needed volume at next price to reach target average
+    const target=safeNum(dcaGoal.value);
+    const nextP=safeNum(dcaNext.value);
+    if(target>0 && nextP>0 && nextP!==target){
+      // (totalCost + nextP*x) / (totalVol + x) = target  => x = (target*totalVol - totalCost) / (nextP - target)
+      const x=(target*totalVol - totalCost) / (nextP - target);
+      if(isFinite(x) && x>0){
+        dcaNeedVol.textContent = fmt(x, 8);
+      }else dcaNeedVol.textContent='—';
+    }else dcaNeedVol.textContent='—';
 
-    scheduleSave('DCA', buildSummary('DCA', {avg, totalVol, totalCost}), {avg, totalVol, totalCost});
-    calcDcaGoal({avg,totalVol,totalCost});
+    return {avg, totalVol, totalCost};
   }
 
-  function calcDcaGoal(base){
-    dcaNeedVol.textContent='—';
-    dcaNeedCost.textContent='—';
-    dcaGoalStatus.textContent=t('dca.goal.status.na');
-    dcaGoalHint.textContent='';
-    if(!base){ dcaGoalHint.textContent=t('dca.goal.hint.fill'); return; }
+  document.getElementById('dca_add').addEventListener('click', ()=>addDcaRow());
+  document.getElementById('dca_clear').addEventListener('click', clearDCA);
+  dcaGoal.addEventListener('input', calcDCA);
+  dcaNext.addEventListener('input', calcDCA);
 
-    const X=safeNum(dcaGoalPrice.value);
-    const Y=safeNum(dcaGoalAvg.value);
-    const feePct=safeNum(dcaFee.value);
-    const fee=Number.isFinite(feePct)?Math.max(0, feePct)/100:0;
-
-    if(!Number.isFinite(X) || !Number.isFinite(Y)){ dcaGoalHint.textContent=t('dca.goal.hint.fill'); return; }
-    if(X===Y){ dcaGoalStatus.textContent=t('dca.goal.status.impossible'); return; }
-
-    const Xeff=X*(1+fee);
-    // base.avg == base.totalCost/base.totalVol
-    if(Math.abs(base.avg - Y) / (Math.abs(Y) || 1) < 1e-12){
-      dcaGoalStatus.textContent=t('dca.goal.status.already');
-      dcaNeedVol.textContent='0';
-      dcaNeedCost.textContent='$0';
-      return;
+  /* ---------- copy helpers ---------- */
+  async function copyText(text){
+    if(!text || text==='—') return false;
+    try{
+      await navigator.clipboard.writeText(String(text));
+      return true;
+    }catch(e){
+      try{
+        const ta=document.createElement('textarea');
+        ta.value=String(text);
+        ta.style.position='fixed';
+        ta.style.top='-1000px';
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        const ok=document.execCommand('copy');
+        ta.remove();
+        return !!ok;
+      }catch(e2){ return false; }
     }
-
-    const numerator=(Y*base.totalVol) - base.totalCost;
-    const denom=(Xeff - Y);
-    const v=numerator/denom;
-
-    if(!Number.isFinite(v) || v<=0){
-      dcaGoalStatus.textContent=t('dca.goal.status.impossible');
-      return;
-    }
-    dcaNeedVol.textContent=fmt(v, 8);
-    dcaNeedCost.textContent=fmtMoney(Xeff*v);
-    dcaGoalStatus.textContent=t('dca.goal.status.ok');
-
-    scheduleSave('DCA_GOAL', buildSummary('DCA_GOAL', {needVol:v, addPrice:X, targetAvg:Y}), {needVol:v, addPrice:X, targetAvg:Y});
   }
 
-  document.getElementById('dca_add').addEventListener('click', ()=>{
-    dcaRowsEl.appendChild(dcaRowEl());
-    translateAll();
-    calcDCA();
-    haptic('impact','light');
-  });
-  document.getElementById('dca_clear').addEventListener('click', ()=>{
-    dcaRowsEl.innerHTML='';
-    ensureRows();
-    calcDCA();
-    haptic('notify','success');
-  });
-  dcaRowsEl.addEventListener('input', (e)=>{
-    if(e.target.classList.contains('dca_price') || e.target.classList.contains('dca_vol')) calcDCA();
-  });
-  dcaRowsEl.addEventListener('click', (e)=>{
-    const rm=e.target.closest('.dca_remove');
-    if(!rm) return;
-    const row=rm.closest('.row');
-    if(row) row.remove();
-    ensureRows();
-    calcDCA();
-    haptic('impact','light');
-  });
-  dcaCopyBtn.addEventListener('click', async ()=>{
-    const ok=await copyText(dcaAvgEl.textContent.trim());
-    if(ok){ showToast(t('toast.copied')); haptic('notify','success'); }
-  });
-  [dcaGoalPrice,dcaGoalAvg,dcaFee].forEach(el=>el.addEventListener('input', ()=>calcDcaGoal(dcaBase())));
+  function bindCopy(btn, getVal){
+    btn.addEventListener('click', async ()=>{
+      const val=getVal();
+      const ok = await copyText(val);
+      if(ok){
+        showToast(t('toast.copied'));
+        haptic('notify','success');
+      }
+    });
+  }
 
-  /* ---------- R/R ---------- */
-  const rr_entry=document.getElementById('rr_entry');
-  const rr_sl=document.getElementById('rr_sl');
-  const rr_tp=document.getElementById('rr_tp');
-  const rr_fee=document.getElementById('rr_fee');
-  const rr_value=document.getElementById('rr_value');
-  const rr_net=document.getElementById('rr_net');
-  const rr_hint=document.getElementById('rr_hint');
+  const dcaCopyBtn=document.getElementById('dca_copy');
+  const dcaNeedCopyBtn=document.getElementById('dca_need_copy');
+  bindCopy(dcaCopyBtn, ()=>dcaAvgEl.textContent);
+  bindCopy(dcaNeedCopyBtn, ()=>dcaNeedVol.textContent);
+
+  /* ---------- RR ---------- */
+  const rrEntry=document.getElementById('rr_entry');
+  const rrSl=document.getElementById('rr_sl');
+  const rrTp=document.getElementById('rr_tp');
+  const rrFee=document.getElementById('rr_fee');
+  const rrGross=document.getElementById('rr_gross');
+  const rrNet=document.getElementById('rr_net');
 
   function calcRR(){
-    rr_value.textContent='—';
-    rr_net.textContent='—';
-    rr_hint.textContent='';
-    const e=safeNum(rr_entry.value), sl=safeNum(rr_sl.value), tp=safeNum(rr_tp.value);
-    const feePct=safeNum(rr_fee.value);
-    const fee=Number.isFinite(feePct)?Math.max(0, feePct)/100:0;
-
-    if([e,sl,tp].some(x=>Number.isNaN(x))) return;
-    if(e===sl) return;
-
+    const e=safeNum(rrEntry.value), sl=safeNum(rrSl.value), tp=safeNum(rrTp.value);
+    const fee=safeNum(rrFee.value)/100;
+    if(!e || !sl || !tp || e===sl){
+      rrGross.textContent='—';
+      rrNet.textContent='—';
+      return {gross:null, net:null};
+    }
     const risk=Math.abs(e-sl);
     const reward=Math.abs(tp-e);
-    if(!(risk>0)) return;
-
+    if(!risk || !reward){
+      rrGross.textContent='—'; rrNet.textContent='—'; return {gross:null, net:null};
+    }
     const gross=(reward/risk);
-    rr_value.textContent=`1:${gross.toFixed(2)}`;
+    rrGross.textContent = '1:' + gross.toFixed(2);
 
-    const riskNet=risk + fee*(Math.abs(e)+Math.abs(sl));
-    const rewardNet=reward - fee*(Math.abs(e)+Math.abs(tp));
-    rr_net.textContent = (rewardNet<=0)?'0.00':(rewardNet/riskNet).toFixed(2);
-
-    scheduleSave('RR', buildSummary('RR', {gross, net:parseFloat(rr_net.textContent)}), {gross, net:parseFloat(rr_net.textContent)});
+    // net: approximate fees reduce reward and increase risk slightly
+    const feeEntry = e*fee;
+    const feeExit  = tp*fee;
+    const netReward = Math.max(0, reward - (feeEntry+feeExit));
+    const net=(netReward / (risk + feeEntry)); // conservative
+    rrNet.textContent = '1:' + net.toFixed(2);
+    return {gross, net};
   }
-  [rr_entry,rr_sl,rr_tp,rr_fee].forEach(el=>el.addEventListener('input', calcRR));
-  document.getElementById('rr_clear').addEventListener('click', ()=>{
-    rr_entry.value=''; rr_sl.value=''; rr_tp.value=''; rr_fee.value='';
-    calcRR();
-    haptic('notify','success');
-  });
+  [rrEntry,rrSl,rrTp,rrFee].forEach(x=>x.addEventListener('input', ()=>{ calcRR(); pushHistoryIfReady(); }));
+  bindCopy(document.getElementById('rr_copy_gross'), ()=>rrGross.textContent);
+  bindCopy(document.getElementById('rr_copy_net'), ()=>rrNet.textContent);
 
   /* ---------- Capital ---------- */
-  const cap_dep=document.getElementById('cap_dep');
-  const cap_risk=document.getElementById('cap_risk');
-  const cap_entry=document.getElementById('cap_entry');
-  const cap_sl=document.getElementById('cap_sl');
-  const cap_fee=document.getElementById('cap_fee');
-  const cap_lev=document.getElementById('cap_lev');
+  const capDep=document.getElementById('cap_dep');
+  const capRisk=document.getElementById('cap_risk');
+  const capLev=document.getElementById('cap_lev');
+  const capEntry=document.getElementById('cap_entry');
+  const capSl=document.getElementById('cap_sl');
+  const capFee=document.getElementById('cap_fee');
+  const capPos=document.getElementById('cap_pos');
+  const capRiskUsd=document.getElementById('cap_risk_usd');
+  const capMargin=document.getElementById('cap_margin');
 
-  const cap_value=document.getElementById('cap_value');
-  const cap_riskUsd=document.getElementById('cap_riskUsd');
-  const cap_margin=document.getElementById('cap_margin');
-  const cap_hint=document.getElementById('cap_hint');
+  document.querySelectorAll('.chip[data-risk]').forEach(ch=>{
+    ch.addEventListener('click', ()=>{
+      document.querySelectorAll('.chip[data-risk]').forEach(x=>x.classList.remove('active'));
+      ch.classList.add('active');
+      capRisk.value=ch.dataset.risk;
+      calcCap();
+      pushHistoryIfReady();
+    });
+  });
 
   function calcCap(){
-    cap_value.textContent='—';
-    cap_riskUsd.textContent='—';
-    cap_margin.textContent='—';
-    cap_hint.textContent='';
+    const dep=safeNum(capDep.value);
+    const rp=safeNum(capRisk.value)/100;
+    const lev=Math.max(1, safeNum(capLev.value)||1);
+    const e=safeNum(capEntry.value);
+    const sl=safeNum(capSl.value);
+    const fee=safeNum(capFee.value)/100;
 
-    const dep=safeNum(cap_dep.value);
-    const rp=safeNum(cap_risk.value);
-    const e=safeNum(cap_entry.value);
-    const sl=safeNum(cap_sl.value);
-    const feePct=safeNum(cap_fee.value);
-    const fee=Number.isFinite(feePct)?Math.max(0, feePct)/100:0;
-    const levRaw=safeNum(cap_lev.value);
-    const lev=Number.isFinite(levRaw)?Math.max(1, levRaw):1;
+    if(dep<=0 || rp<=0 || e<=0 || sl<=0 || e===sl){
+      capPos.textContent='—';
+      capRiskUsd.textContent='—';
+      capMargin.textContent='—';
+      return {pos:null};
+    }
 
-    if([dep,rp,e,sl].some(x=>Number.isNaN(x))) return;
-    if(dep<=0) return;
-    if(rp<=0 || rp>100) return;
-    if(e===sl) return;
+    const riskUsd=dep*rp;
+    // price movement per 1 unit position, include fee estimate
+    const move=Math.abs(e-sl) + (e*fee); // entry fee increases effective risk
+    const pos = riskUsd / move;
 
-    const riskUsd = dep*(rp/100);
-    const perUnit = Math.abs(e-sl) + fee*(Math.abs(e)+Math.abs(sl));
-    const size = riskUsd/perUnit;
-    if(!Number.isFinite(size) || size<=0) return;
+    capPos.textContent = fmt(pos, 8);
+    capRiskUsd.textContent = fmt(riskUsd, 2);
 
-    cap_value.textContent=size.toFixed(8);
-    cap_riskUsd.textContent='$'+riskUsd.toFixed(2);
-    cap_margin.textContent=fmtMoney(Math.abs(size*e)/lev);
-
-    scheduleSave('CAP', buildSummary('CAP', {size, riskUsd, margin:Math.abs(size*e)/lev}), {size, riskUsd, margin:Math.abs(size*e)/lev});
+    // margin estimate (simplified): notional / leverage
+    const notional = pos * e;
+    capMargin.textContent = fmt(notional/lev, 2);
+    return {pos};
   }
-  [cap_dep,cap_risk,cap_entry,cap_sl,cap_fee,cap_lev].forEach(el=>el.addEventListener('input', calcCap));
-  document.getElementById('cap_clear').addEventListener('click', ()=>{
-    cap_dep.value=''; cap_risk.value=''; cap_entry.value=''; cap_sl.value=''; cap_fee.value=''; cap_lev.value='';
-    calcCap();
-    haptic('notify','success');
-  });
-  document.querySelectorAll('.cap_preset').forEach(b=>b.addEventListener('click', ()=>{
-    cap_risk.value=b.dataset.v;
-    calcCap();
-    haptic('impact','light');
-  }));
+  [capDep,capRisk,capLev,capEntry,capSl,capFee].forEach(x=>x.addEventListener('input', ()=>{ calcCap(); pushHistoryIfReady(); }));
+  bindCopy(document.getElementById('cap_copy_pos'), ()=>capPos.textContent);
 
   /* ---------- Indicators ---------- */
-  const fgEl=document.getElementById('fg_value');
-  const tcapEl=document.getElementById('tcap');
-  const altDomEl=document.getElementById('alt_dom');
-  const moodEl=document.getElementById('mood_value');
+  const fgText=document.getElementById('fg_text');
+  const tcapText=document.getElementById('tcap_text');
+  const altText=document.getElementById('alt_text');
+  const moodEl=document.getElementById('mood');
   const indNote=document.getElementById('ind_note');
 
-  const fgVizText=document.getElementById('fg_viz_text');
-  const capVizText=document.getElementById('cap_viz_text');
-  const altVizText=document.getElementById('alt_viz_text');
-
-  const IND_CACHE_KEY='tc_ind_cache_v10';
-  const IND_CACHE_TTL=60_000;
-  let indBusy=false;
   let lastIndicators=null;
+  const IND_CACHE_KEY='tc_ind_cache_v2';
 
-  function cacheGet(){ try{ return JSON.parse(localStorage.getItem(IND_CACHE_KEY)||'null'); }catch(e){ return null; } }
-  function cacheSet(data){ localStorage.setItem(IND_CACHE_KEY, JSON.stringify({t:Date.now(), data})); }
-
-  function computeMood(fng, alt){
-    if(!Number.isFinite(fng) || !Number.isFinite(alt)) return '—';
-    if(fng>=60 && alt>=55) return '🟢 Risk-on';
-    if(fng<=40 && alt<=45) return '🔴 Risk-off';
-    return '🟡 Neutral';
+  function saveIndicatorsCache(data){
+    try{ localStorage.setItem(IND_CACHE_KEY, JSON.stringify({t:Date.now(), data})); }catch(e){}
   }
-  function applyIndicators(d){
-    const fgText = d.fgText || '—';
-    fgEl.textContent=fgText;
-    tcapEl.textContent = d.totalMc ? fmtMoney(Number(d.totalMc)) : '—';
-    altDomEl.textContent = (typeof d.altDom==='number') ? (d.altDom.toFixed(2)+'%') : '—';
-    moodEl.textContent = computeMood(d.fngValue, d.altDom);
+  function loadIndicatorsCache(){
+    try{
+      const raw=localStorage.getItem(IND_CACHE_KEY);
+      if(!raw) return null;
+      const j=JSON.parse(raw);
+      if(!j?.data) return null;
+      return j;
+    }catch(e){ return null; }
+  }
 
-    fgVizText.textContent = Number.isFinite(d.fngValue) ? String(d.fngValue) : '—';
-    capVizText.textContent = d.totalMc ? fmtMoney(Number(d.totalMc)) : '—';
-    altVizText.textContent = (typeof d.altDom==='number') ? (d.altDom.toFixed(2)+'%') : '—';
-
-    lastIndicators=d;
-    drawAllIndicatorVisuals(d);
+  function computeMood(fgValue, altDom){
+    if(!isFinite(fgValue) || !isFinite(altDom)) return '—';
+    // simple heuristic
+    if(fgValue>=70 && altDom<45) return lang==='ru'?'Риск-он (BTC фокус)':'Risk-on (BTC focus)';
+    if(fgValue>=70 && altDom>=45) return lang==='ru'?'Альт-рост':'Alt rally';
+    if(fgValue<=30 && altDom<45) return lang==='ru'?'Страх / защитный режим':'Fear / defensive';
+    if(fgValue<=30 && altDom>=45) return lang==='ru'?'Высокий риск (альты при страхе)':'High risk (alts in fear)';
+    return lang==='ru'?'Нейтрально':'Neutral';
   }
 
   async function fetchIndicators(){
-    if(indBusy) return;
-    indBusy=true;
-    indNote.textContent=t('ind.loading');
-
-    const c=cacheGet();
-    if(c && (Date.now()-c.t)<IND_CACHE_TTL){
-      applyIndicators(c.data);
-      indNote.textContent=t('ind.cached');
-      indBusy=false;
-      return;
-    }
-
-    const out={fgText:null, fngValue:NaN, totalMc:null, altDom:NaN};
-    let err=false;
+    indNote.textContent = t('ind.loading');
+    let fgVal=null, fgClass='—', totalMc=null, btcDom=null;
 
     try{
-      const r=await fetch('https://api.alternative.me/fng/?limit=1&format=json', {cache:'no-store'});
-      if(!r.ok) throw new Error('fng');
-      const j=await r.json();
+      const res = await fetch('https://api.alternative.me/fng/?limit=1&format=json', {cache:'no-store'});
+      if(!res.ok) throw new Error('FNG');
+      const j = await res.json();
       const d=j?.data?.[0];
-      if(d?.value){
-        out.fngValue=Number(d.value);
-        out.fgText=`${d.value} · ${d.value_classification||''}`.trim();
-      }
-    }catch(e){ err=true; }
+      fgVal = d ? Number(d.value) : null;
+      fgClass = d?.value_classification || '—';
+    }catch(e){
+      // ignore
+    }
 
     try{
-      const r=await fetch('https://api.coingecko.com/api/v3/global', {cache:'no-store'});
-      if(!r.ok) throw new Error('cg');
-      const j=await r.json();
-      out.totalMc = j?.data?.total_market_cap?.usd ?? null;
-      const btcDom = (typeof j?.data?.market_cap_percentage?.btc==='number') ? j.data.market_cap_percentage.btc : null;
-      if(typeof btcDom==='number') out.altDom = 100 - btcDom;
-    }catch(e){ err=true; }
+      const res2 = await fetch('https://api.coingecko.com/api/v3/global', {cache:'no-store'});
+      if(!res2.ok) throw new Error('CG');
+      const j2 = await res2.json();
+      totalMc = j2?.data?.total_market_cap?.usd ?? null;
+      btcDom = j2?.data?.market_cap_percentage?.btc ?? null;
+    }catch(e){
+      // ignore
+    }
 
-    applyIndicators(out);
-    cacheSet(out);
-    indNote.textContent = err ? t('ind.rate') : '';
-    indBusy=false;
+    // apply
+    if(isFinite(fgVal)){
+      fgText.textContent = `${fgVal} · ${fgClass}`;
+    }else{
+      fgText.textContent = '—';
+    }
+    if(isFinite(totalMc)){
+      tcapText.textContent = '$' + Number(totalMc).toLocaleString(undefined,{maximumFractionDigits:0});
+    }else tcapText.textContent='—';
+
+    let altDom=null;
+    if(typeof btcDom==='number' && isFinite(btcDom)){
+      altDom = 100 - btcDom;
+      altText.textContent = altDom.toFixed(2) + '%';
+    }else altText.textContent='—';
+
+    moodEl.textContent = computeMood(fgVal ?? NaN, altDom ?? NaN);
+    lastIndicators = { fgVal, fgClass, totalMc, btcDom, altDom };
+    saveIndicatorsCache(lastIndicators);
+
+    drawAllIndicatorVisuals(lastIndicators);
+    indNote.textContent='';
   }
-  document.getElementById('refresh_ind').addEventListener('click', ()=>{
-    try{ localStorage.removeItem(IND_CACHE_KEY); }catch(e){}
-    fetchIndicators();
-    haptic('impact','light');
-  });
 
-  /* indicator drawing */
-  function cssVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
-  function setupCanvas(canvas){
-    const dpr=window.devicePixelRatio||1;
-    const w=Math.max(10, canvas.clientWidth);
-    const h=Math.max(10, canvas.clientHeight);
-    canvas.width=Math.floor(w*dpr);
-    canvas.height=Math.floor(h*dpr);
+  document.getElementById('refresh_ind').addEventListener('click', fetchIndicators);
+
+  /* visuals */
+  function drawGauge(canvas, value){
+    if(!canvas) return;
     const ctx=canvas.getContext('2d');
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-    return {ctx,w,h};
-  }
-  function roundRect(ctx,x,y,w,h,r){
-    const rr=Math.min(r,w/2,h/2);
+    const w=canvas.width, h=canvas.height;
+    ctx.clearRect(0,0,w,h);
+
+    // background arc
+    const cx=w/2, cy=h*0.9;
+    const r=Math.min(w*0.42, h*0.75);
+    const start=Math.PI, end=0;
+
+    ctx.lineWidth = Math.max(18, r*0.12);
+    ctx.lineCap='round';
+
+    // base
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#222';
     ctx.beginPath();
-    ctx.moveTo(x+rr,y);
-    ctx.arcTo(x+w,y,x+w,y+h,rr);
-    ctx.arcTo(x+w,y+h,x,y+h,rr);
-    ctx.arcTo(x,y+h,x,y,rr);
-    ctx.arcTo(x,y,x+w,y,rr);
+    ctx.arc(cx,cy,r,start,end,false);
+    ctx.stroke();
+
+    if(!isFinite(value)) return;
+
+    const clamped=Math.max(0, Math.min(100, value));
+    const angle = start + (end-start) * (clamped/100);
+
+    // active
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7CFC00';
+    ctx.beginPath();
+    ctx.arc(cx,cy,r,start,angle,false);
+    ctx.stroke();
+
+    // needle
+    ctx.save();
+    ctx.translate(cx,cy);
+    ctx.rotate(angle - Math.PI);
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#fff';
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.lineTo(r*0.72, -4);
+    ctx.lineTo(r*0.72, 4);
     ctx.closePath();
-  }
-  function mix(a,b,t){
-    try{
-      const c=document.createElement('canvas'); c.width=c.height=1;
-      const x=c.getContext('2d');
-      x.fillStyle=a; x.fillRect(0,0,1,1); const A=x.getImageData(0,0,1,1).data;
-      x.clearRect(0,0,1,1);
-      x.fillStyle=b; x.fillRect(0,0,1,1); const B=x.getImageData(0,0,1,1).data;
-      const r=Math.round(A[0]+(B[0]-A[0])*t);
-      const g=Math.round(A[1]+(B[1]-A[1])*t);
-      const bl=Math.round(A[2]+(B[2]-A[2])*t);
-      return `rgb(${r},${g},${bl})`;
-    }catch(e){ return b; }
-  }
-  function drawFG(value){
-    const canvas=document.getElementById('fg_canvas');
-    const {ctx,w,h}=setupCanvas(canvas);
-    const bg=cssVar('--result-bg'), border=cssVar('--border'), muted=cssVar('--muted'), text=cssVar('--text'), accent=cssVar('--accent'), danger=cssVar('--danger');
+    ctx.fill();
+    ctx.restore();
 
-    ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
-    ctx.strokeStyle=border; ctx.lineWidth=2; ctx.strokeRect(1,1,w-2,h-2);
-
-    const cx=w/2, cy=h*0.86, r=Math.min(w*0.38, h*0.8);
+    // center dot
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#fff';
     ctx.beginPath();
-    ctx.strokeStyle=mix(muted,border,.55);
-    ctx.lineWidth=12; ctx.lineCap='round';
-    ctx.arc(cx,cy,r,Math.PI,0,false);
-    ctx.stroke();
-
-    if(Number.isFinite(value)){
-      const v=Math.max(0,Math.min(100,value));
-      const end=Math.PI-(Math.PI*(v/100));
-      ctx.beginPath();
-      ctx.strokeStyle= v<35?danger:(v>65?accent:mix(accent,muted,.55));
-      ctx.lineWidth=12; ctx.lineCap='round';
-      ctx.arc(cx,cy,r,Math.PI,end,false);
-      ctx.stroke();
-
-      const ang=Math.PI-(Math.PI*(v/100));
-      const nx=cx+Math.cos(ang)*(r-8);
-      const ny=cy+Math.sin(ang)*(r-8);
-      ctx.beginPath();
-      ctx.strokeStyle=text; ctx.lineWidth=3;
-      ctx.moveTo(cx,cy); ctx.lineTo(nx,ny); ctx.stroke();
-      ctx.beginPath();
-      ctx.fillStyle=text; ctx.arc(cx,cy,5,0,Math.PI*2); ctx.fill();
-
-      ctx.fillStyle=text; ctx.font='900 16px Inter, Arial, sans-serif'; ctx.textAlign='center';
-      ctx.fillText(`F&G: ${v}`, cx, 26);
-
-      ctx.fillStyle=muted; ctx.font='700 12px Inter, Arial, sans-serif';
-      const lbl = v<=25?'Extreme Fear':v<=45?'Fear':v<=55?'Neutral':v<=75?'Greed':'Extreme Greed';
-      ctx.fillText(lbl, cx, 46);
-    }else{
-      ctx.fillStyle=muted; ctx.font='900 16px Inter, Arial, sans-serif'; ctx.textAlign='center';
-      ctx.fillText('—', cx, 30);
-    }
+    ctx.arc(cx,cy,6,0,Math.PI*2);
+    ctx.fill();
   }
-  function drawCap(totalMc){
-    const canvas=document.getElementById('cap_canvas');
-    const {ctx,w,h}=setupCanvas(canvas);
-    const bg=cssVar('--result-bg'), border=cssVar('--border'), muted=cssVar('--muted'), text=cssVar('--text'), accent=cssVar('--accent');
 
-    ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
-    ctx.strokeStyle=border; ctx.lineWidth=2; ctx.strokeRect(1,1,w-2,h-2);
+  function drawDonutSplit(canvas, btcDom){
+    if(!canvas) return;
+    const ctx=canvas.getContext('2d');
+    const w=canvas.width, h=canvas.height;
+    ctx.clearRect(0,0,w,h);
 
-    const pad=14;
-    const barX=pad, barY=h/2-10, barW=w-pad*2, barH=20;
+    const cx=w/2, cy=h/2, r=Math.min(w,h)*0.32;
+    const inner=r*0.62;
 
-    ctx.fillStyle=mix(muted,border,.75);
-    roundRect(ctx, barX, barY, barW, barH, 10); ctx.fill();
+    const border=getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#222';
+    const accent=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7CFC00';
+    const muted=getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() || '#999';
 
-    if(Number.isFinite(totalMc) && totalMc>0){
-      const max=10_000_000_000_000;
-      const norm=Math.min(1, Math.log10(totalMc)/Math.log10(max));
-      const fillW=Math.max(8, barW*norm);
-      ctx.fillStyle=accent;
-      roundRect(ctx, barX, barY, fillW, barH, 10); ctx.fill();
-
-      ctx.fillStyle=text; ctx.font='900 16px Inter, Arial, sans-serif'; ctx.textAlign='left';
-      ctx.fillText('Total Cap', barX, 28);
-      ctx.fillStyle=muted; ctx.font='700 12px Inter, Arial, sans-serif';
-      ctx.fillText('log scale (0..10T)', barX, 46);
-    }else{
-      ctx.fillStyle=muted; ctx.font='900 16px Inter, Arial, sans-serif'; ctx.textAlign='center';
-      ctx.fillText('—', w/2, h/2+6);
-    }
-  }
-  function drawAlt(altDom){
-    const canvas=document.getElementById('alt_canvas');
-    const {ctx,w,h}=setupCanvas(canvas);
-    const bg=cssVar('--result-bg'), border=cssVar('--border'), muted=cssVar('--muted'), text=cssVar('--text'), accent=cssVar('--accent');
-
-    ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
-    ctx.strokeStyle=border; ctx.lineWidth=2; ctx.strokeRect(1,1,w-2,h-2);
-
-    const cx=w/2, cy=h/2+6, r=Math.min(w,h)*0.28;
-
+    // base ring
+    ctx.fillStyle = border;
     ctx.beginPath();
-    ctx.strokeStyle=mix(muted,border,.65);
-    ctx.lineWidth=16;
     ctx.arc(cx,cy,r,0,Math.PI*2);
-    ctx.stroke();
+    ctx.fill();
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--panel').trim() || '#0b0b0b';
+    ctx.beginPath();
+    ctx.arc(cx,cy,inner,0,Math.PI*2);
+    ctx.fill();
 
-    if(Number.isFinite(altDom)){
-      const v=Math.max(0,Math.min(100,altDom));
-      const start=-Math.PI/2;
-      const end=start+(Math.PI*2)*(v/100);
+    if(!isFinite(btcDom)) return;
 
-      ctx.beginPath();
-      ctx.strokeStyle=accent;
-      ctx.lineWidth=16;
-      ctx.lineCap='round';
-      ctx.arc(cx,cy,r,start,end);
-      ctx.stroke();
+    const btc = Math.max(0, Math.min(100, btcDom));
+    const alt = 100 - btc;
 
-      ctx.fillStyle=text; ctx.font='900 18px Inter, Arial, sans-serif'; ctx.textAlign='center';
-      ctx.fillText(`${v.toFixed(2)}%`, cx, 28);
+    const a0=-Math.PI/2;
+    const aB = a0 + (Math.PI*2)*(btc/100);
 
-      ctx.fillStyle=muted; ctx.font='700 12px Inter, Arial, sans-serif';
-      ctx.fillText('Alt dominance', cx, 46);
+    // BTC slice
+    ctx.fillStyle = accent;
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,a0,aB,false);
+    ctx.closePath();
+    ctx.fill();
+
+    // ALT slice
+    ctx.fillStyle = muted;
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,aB,a0+Math.PI*2,false);
+    ctx.closePath();
+    ctx.fill();
+
+    // inner cutout
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--panel').trim() || '#0b0b0b';
+    ctx.beginPath();
+    ctx.arc(cx,cy,inner,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  function drawAllIndicatorVisuals(data){
+    const fgCanvas=document.getElementById('fg_canvas');
+    const domCanvas=document.getElementById('dom_canvas');
+    drawGauge(fgCanvas, data?.fgVal);
+    drawDonutSplit(domCanvas, data?.btcDom);
+
+    const fgBig=document.getElementById('fg_big');
+    const fgSub=document.getElementById('fg_sub');
+    const domBig=document.getElementById('dom_big');
+    const domSub=document.getElementById('dom_sub');
+
+    if(isFinite(data?.fgVal)){
+      fgBig.textContent = String(Math.round(data.fgVal));
+      fgSub.textContent = data.fgClass || '—';
     }else{
-      ctx.fillStyle=muted; ctx.font='900 16px Inter, Arial, sans-serif'; ctx.textAlign='center';
-      ctx.fillText('—', cx, cy+6);
+      fgBig.textContent='—'; fgSub.textContent='—';
+    }
+
+    if(typeof data?.btcDom==='number' && isFinite(data.btcDom)){
+      domBig.textContent = `BTC ${data.btcDom.toFixed(2)}%`;
+      const alt = (100 - data.btcDom);
+      domSub.textContent = `ALT ${alt.toFixed(2)}%`;
+    }else{
+      domBig.textContent='—'; domSub.textContent='—';
     }
   }
-  function drawAllIndicatorVisuals(d){
-    if(!d){ drawFG(NaN); drawCap(NaN); drawAlt(NaN); return; }
-    drawFG(d.fngValue);
-    drawCap(Number(d.totalMc));
-    drawAlt(d.altDom);
+
+  // initial cache
+  const cached=loadIndicatorsCache();
+  if(cached?.data){
+    lastIndicators=cached.data;
+    fgText.textContent = isFinite(lastIndicators.fgVal) ? `${lastIndicators.fgVal} · ${lastIndicators.fgClass||'—'}` : '—';
+    tcapText.textContent = isFinite(lastIndicators.totalMc) ? '$' + Number(lastIndicators.totalMc).toLocaleString(undefined,{maximumFractionDigits:0}) : '—';
+    altText.textContent = (typeof lastIndicators.btcDom==='number' && isFinite(lastIndicators.btcDom)) ? ((100-lastIndicators.btcDom).toFixed(2)+'%') : '—';
+    moodEl.textContent = computeMood(lastIndicators.fgVal ?? NaN, lastIndicators.altDom ?? NaN);
+    indNote.textContent = t('ind.cached');
+    drawAllIndicatorVisuals(lastIndicators);
   }
 
-  /* ---------- History (no export; clear must work) ---------- */
+  /* ---------- history ---------- */
   const HISTORY_KEY='tc_history_v10';
-  const historyList=document.getElementById('history_list');
-
-  function loadHistory(){ try{ return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]') || []; }catch(e){ return []; } }
-  function saveHistory(arr){ localStorage.setItem(HISTORY_KEY, JSON.stringify(arr)); }
+  function loadHistory(){ try{ return JSON.parse(localStorage.getItem(HISTORY_KEY))||[] }catch(e){return[]} }
+  function saveHistory(arr){ try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(arr)); }catch(e){} }
   function pushHistory(item){
     const arr=loadHistory();
     arr.unshift(item);
-    if(arr.length>120) arr.pop();
+    if(arr.length>60) arr.pop();
     saveHistory(arr);
     renderHistory();
   }
 
-  function buildSummary(type, data){
-    if(type==='DCA') return `AVG ${fmt(data.avg,8)} · vol ${fmt(data.totalVol,8)} · cost ${fmtMoney(data.totalCost)}`;
-    if(type==='DCA_GOAL') return `Need ${fmt(data.needVol,8)} @ ${data.addPrice} → avg ${data.targetAvg}`;
-    if(type==='RR') return `Gross 1:${data.gross.toFixed(2)} · Net ${Number.isFinite(data.net)?data.net.toFixed(2):'—'}`;
-    if(type==='CAP') return `Size ${data.size.toFixed(8)} · Risk ${data.riskUsd.toFixed(2)} · Margin ${fmtMoney(data.margin)}`;
-    if(type==='IND') return `F&G ${fgEl.textContent} · Alt ${altDomEl.textContent} · Mood ${moodEl.textContent}`;
-    return '';
-  }
-
-  function scheduleSave(type, summary, payload){
-    // debounce per type
-    scheduleSave._t = scheduleSave._t || {};
-    scheduleSave._last = scheduleSave._last || {};
-    clearTimeout(scheduleSave._t[type]);
-    scheduleSave._t[type]=setTimeout(()=>{
-      const key = JSON.stringify(payload || {});
-      if(scheduleSave._last[type] === key) return;
-      scheduleSave._last[type] = key;
-      pushHistory({
-        id: String(Date.now()) + '_' + Math.random().toString(16).slice(2),
-        type,
-        summary,
-        t: Date.now(),
-        payload
-      });
-    }, 650);
-  }
-
   function renderHistory(){
+    const list=document.getElementById('history_list');
+    list.innerHTML='';
     const arr=loadHistory();
-    historyList.innerHTML='';
     if(!arr.length){
       const el=document.createElement('div');
       el.className='note';
       el.textContent=t('hist.note');
-      historyList.appendChild(el);
+      list.appendChild(el);
       return;
     }
-    for(const it of arr){
-      const card=document.createElement('div');
-      card.className='hitem';
-      const when=new Date(it.t).toLocaleString();
-      card.innerHTML=`
-        <div class="hitem-top">
-          <div class="hitem-title">${escapeHtml(it.type || '')}</div>
-          <div class="hitem-actions">
-            <button class="btn small" type="button" data-action="card" data-id="${it.id}">${lang==='ru'?'Карточка':'Card'}</button>
-          </div>
-        </div>
-        <div class="note">${escapeHtml(it.summary || '')}</div>
-        <div class="small">${escapeHtml(when)}</div>
-      `;
-      historyList.appendChild(card);
-    }
-  }
+    arr.forEach((it, idx)=>{
+      const node=document.createElement('div');
+      node.className='hist-item';
+      const dt=new Date(it.t).toLocaleString();
+      const left=document.createElement('div');
+      left.innerHTML = `<b>${it.type}</b><div class="small">${dt}</div><div class="small">${it.summary||''}</div>`;
+      const right=document.createElement('div');
+      right.className='hist-actions';
 
+      const btnCard=document.createElement('button');
+      btnCard.className='mini';
+      btnCard.type='button';
+      btnCard.textContent='PNG';
+      btnCard.addEventListener('click', ()=>{
+        exportCardPNG({fromHistory:true, historyItem:it});
+      });
+
+      const btnCopy=document.createElement('button');
+      btnCopy.className='mini';
+      btnCopy.type='button';
+      btnCopy.textContent=t('common.copy');
+      btnCopy.addEventListener('click', async ()=>{
+        const ok = await copyText(it.summary || '');
+        if(ok){ showToast(t('toast.copied')); haptic('notify','success'); }
+      });
+
+      right.appendChild(btnCard);
+      right.appendChild(btnCopy);
+
+      node.appendChild(left);
+      node.appendChild(right);
+      list.appendChild(node);
+    });
+  }
   document.getElementById('clear_history').addEventListener('click', ()=>{
-    try{
-      localStorage.removeItem(HISTORY_KEY);
-    }catch(e){}
+    localStorage.removeItem(HISTORY_KEY);
     renderHistory();
-    showToast(t('toast.saved'));
-    haptic('notify','success');
   });
 
-  historyList.addEventListener('click', (e)=>{
-    const btn=e.target.closest('button[data-action="card"]');
-    if(!btn) return;
-    const id=btn.getAttribute('data-id');
-    const arr=loadHistory();
-    const it=arr.find(x=>x.id===id);
-    if(!it) return;
-    exportCardPNG({fromHistory:true, item:it});
-  });
+  // history push throttled (avoid spam on every keystroke)
+  let lastPushAt=0;
+  function pushHistoryIfReady(){
+    const tnow=Date.now();
+    if(tnow-lastPushAt<900) return;
+    lastPushAt=tnow;
 
-  function escapeHtml(s){
-    return String(s).replace(/[&<>"']/g, (c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[c]));
-  }
-
-  /* ---------- Modal for PNG (no open) ---------- */
-  const modalOverlay=document.getElementById('modalOverlay');
-  const modalTitle=document.getElementById('modalTitle');
-  const modalImg=document.getElementById('modalImg');
-  const modalHint=document.getElementById('modalHint');
-  const modalClose=document.getElementById('modalClose');
-  const modalOk=document.getElementById('modalOk');
-  const modalCopySummary=document.getElementById('modalCopySummary');
-  const modalShare=document.getElementById('modalShare');
-
-  let modalState={ blob:null, filename:null, summary:'' };
-
-  function openModal({title, url, blob, filename, summary}){
-    modalTitle.textContent=title || 'Trade Card';
-    modalImg.src=url;
-    modalHint.textContent=t('modal.hint');
-    modalOverlay.classList.add('show');
-    modalState={ blob, filename, summary: summary || '' };
-  }
-  function closeModal(){ modalOverlay.classList.remove('show'); }
-  modalClose.addEventListener('click', closeModal);
-  modalOk.addEventListener('click', closeModal);
-  modalOverlay.addEventListener('click', (e)=>{ if(e.target===modalOverlay) closeModal(); });
-
-  modalCopySummary.addEventListener('click', async ()=>{
-    const ok=await copyText(modalState.summary || '');
-    if(ok){ showToast(t('toast.copied')); haptic('notify','success'); }
-  });
-
-  function canShareFiles(blob, filename, mime){
-    try{
-      const f=new File([blob], filename, {type:mime});
-      return !!(navigator.canShare && navigator.canShare({files:[f]}) && navigator.share);
-    }catch(e){ return false; }
-  }
-  async function shareFile(blob, filename, mime, title){
-    try{
-      const f=new File([blob], filename, {type:mime});
-      if(navigator.canShare && navigator.canShare({files:[f]}) && navigator.share){
-        await navigator.share({files:[f], title:title||filename});
-        haptic('notify','success');
-        return true;
-      }
-    }catch(e){}
-    return false;
-  }
-  modalShare.addEventListener('click', async ()=>{
-    if(!modalState.blob) return;
-    const ok = await shareFile(modalState.blob, modalState.filename || 'trade_card.png', 'image/png', modalTitle.textContent);
-    if(!ok){
-      // fallback: copy summary
-      const copied = await copyText(modalState.summary || '');
-      if(copied) showToast(t('toast.copied'));
-    }
-  });
-
-  /* ---------- Trade Card PNG (current tab + history item) ---------- */
-  function activeTab(){ return document.querySelector('.tab.active')?.dataset?.tab || 'dca'; }
-
-  function cardPayloadFromCurrent(){
     const tab=activeTab();
-    const dt=new Date().toLocaleString();
-    let lines=[];
-    let summary='';
     if(tab==='dca'){
-      const base=dcaBase();
-      if(!base) return null;
-      lines.push(['AVG', fmt(base.avg,8)]);
-      lines.push(['VOL', fmt(base.totalVol,8)]);
-      lines.push(['COST', fmtMoney(base.totalCost)]);
-      const goalVol=dcaNeedVol.textContent.trim();
-      if(goalVol && goalVol!=='—'){
-        lines.push(['GOAL NEED', goalVol]);
-        lines.push(['GOAL COST', dcaNeedCost.textContent.trim()]);
-        lines.push(['STATUS', dcaGoalStatus.textContent.trim()]);
+      const r=calcDCA();
+      if(r.avg){
+        pushHistory({
+          t:tnow,
+          type:'DCA',
+          summary:`AVG ${dcaAvgEl.textContent} | VOL ${dcaTotalVolEl.textContent} | COST ${dcaTotalCostEl.textContent}`
+        });
       }
-      summary=buildSummary('DCA', base);
-    }else if(tab==='rr'){
-      const g=rr_value.textContent.trim();
-      if(g==='—') return null;
-      const gross=parseFloat(g.split(':')[1]||'');
-      const net=parseFloat(rr_net.textContent.trim());
-      lines.push(['GROSS', g]);
-      lines.push(['NET', Number.isFinite(net)?net.toFixed(2):rr_net.textContent.trim()]);
-      summary=buildSummary('RR', {gross:Number.isFinite(gross)?gross:0, net});
-    }else if(tab==='cap'){
-      const s=cap_value.textContent.trim();
-      if(s==='—') return null;
-      lines.push(['SIZE', s]);
-      lines.push(['RISK', cap_riskUsd.textContent.trim()]);
-      lines.push(['MARGIN', cap_margin.textContent.trim()]);
-      summary = `Size ${s} · Risk ${cap_riskUsd.textContent.trim()} · Margin ${cap_margin.textContent.trim()}`;
-    }else if(tab==='ind'){
-      if(fgEl.textContent.trim()==='—' && altDomEl.textContent.trim()==='—') return null;
-      lines.push(['F&G', fgEl.textContent.trim()]);
-      lines.push(['ALT DOM', altDomEl.textContent.trim()]);
-      lines.push(['MOOD', moodEl.textContent.trim()]);
-      summary = buildSummary('IND', {});
     }
-    return { title:'Trader Calculator', subtitle:`${tab.toUpperCase()} · ${dt}`, lines, summary, tab };
+    if(tab==='rr'){
+      const r=calcRR();
+      if(r.gross){
+        pushHistory({
+          t:tnow,
+          type:'R/R',
+          summary:`Gross ${rrGross.textContent} | Net ${rrNet.textContent}`
+        });
+      }
+    }
+    if(tab==='cap'){
+      const r=calcCap();
+      if(r.pos){
+        pushHistory({
+          t:tnow,
+          type:'Capital',
+          summary:`POS ${capPos.textContent} | Risk $${capRiskUsd.textContent} | Margin $${capMargin.textContent}`
+        });
+      }
+    }
   }
 
-  function cardPayloadFromHistory(item){
-    const dt=new Date(item.t).toLocaleString();
-    const type=item.type || 'HISTORY';
-    const p=item.payload || {};
-    let lines=[];
-    if(type==='DCA'){
-      lines.push(['AVG', fmt(p.avg,8)]);
-      lines.push(['VOL', fmt(p.totalVol,8)]);
-      lines.push(['COST', fmtMoney(p.totalCost)]);
-    }else if(type==='DCA_GOAL'){
-      lines.push(['NEED', fmt(p.needVol,8)]);
-      lines.push(['PRICE', String(p.addPrice ?? '—')]);
-      lines.push(['TARGET', String(p.targetAvg ?? '—')]);
-    }else if(type==='RR'){
-      lines.push(['GROSS', `1:${(p.gross ?? 0).toFixed(2)}`]);
-      lines.push(['NET', Number.isFinite(p.net)?p.net.toFixed(2):'—']);
-    }else if(type==='CAP'){
-      lines.push(['SIZE', Number.isFinite(p.size)?p.size.toFixed(8):'—']);
-      lines.push(['RISK', Number.isFinite(p.riskUsd)?('$'+p.riskUsd.toFixed(2)):'—']);
-      lines.push(['MARGIN', Number.isFinite(p.margin)?fmtMoney(p.margin):'—']);
-    }else{
-      lines.push(['RESULT', item.summary || '—']);
-    }
-    return { title:'Trader Calculator', subtitle:`${type} · ${dt}`, lines, summary:item.summary || '', tab:type };
+  /* ---------- links ---------- */
+  function openUrl(url){
+    try{
+      if(tg?.openLink) return tg.openLink(url);
+      if(tg?.openTelegramLink && url.startsWith('https://t.me/')) return tg.openTelegramLink(url);
+    }catch(e){}
+    window.open(url,'_blank');
+  }
+  document.getElementById('link_telegram').addEventListener('click', e=>{ e.preventDefault(); openUrl('https://t.me/InvestTraderTrade');});
+  document.getElementById('link_youtube').addEventListener('click', e=>{ e.preventDefault(); openUrl('https://www.youtube.com/@TRADER_TRADE');});
+
+  /* ---------- trade card PNG ---------- */
+  const modalBackdrop=document.getElementById('modal_backdrop');
+  const modalClose=document.getElementById('modal_close');
+  const cardCanvas=document.getElementById('card_canvas');
+  const btnDownload=document.getElementById('card_download');
+  const btnCopyImg=document.getElementById('card_copy');
+
+  function openModal(){ modalBackdrop.style.display='flex'; }
+  function closeModal(){ modalBackdrop.style.display='none'; }
+  modalClose.addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', (e)=>{ if(e.target===modalBackdrop) closeModal(); });
+
+  function drawCard({title, lines}){
+    const ctx=cardCanvas.getContext('2d');
+    const w=cardCanvas.width, h=cardCanvas.height;
+    ctx.clearRect(0,0,w,h);
+
+    const theme=document.documentElement.getAttribute('data-theme')||'dark';
+    const bg = theme==='light' ? '#f6f7fb' : '#0a0a0a';
+    const panel = theme==='light' ? '#ffffff' : '#0f0f0f';
+    const border = theme==='light' ? '#e6e8ee' : '#1a1a1a';
+    const text = theme==='light' ? '#0b0b0b' : '#ffffff';
+    const muted = theme==='light' ? '#5f6675' : '#a8a8a8';
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || (theme==='light' ? '#2d8cff' : '#7CFC00');
+
+    // bg
+    ctx.fillStyle=bg;
+    ctx.fillRect(0,0,w,h);
+
+    // panel
+    const pad=30;
+    const r=24;
+    roundRect(ctx, pad, pad, w-pad*2, h-pad*2, r);
+    ctx.fillStyle=panel;
+    ctx.fill();
+    ctx.lineWidth=2;
+    ctx.strokeStyle=border;
+    ctx.stroke();
+
+    // header
+    ctx.fillStyle=text;
+    ctx.font='800 44px Inter, Arial';
+    ctx.fillText('Trader Calculator', pad+28, pad+64);
+
+    ctx.font='900 36px Inter, Arial';
+    ctx.fillStyle=accent;
+    ctx.fillText(title, pad+28, pad+118);
+
+    // lines
+    ctx.fillStyle=text;
+    ctx.font='800 30px Inter, Arial';
+    let y=pad+175;
+    lines.forEach(line=>{
+      ctx.fillStyle=muted;
+      ctx.font='800 26px Inter, Arial';
+      ctx.fillText(line.k, pad+28, y);
+      ctx.fillStyle=text;
+      ctx.font='900 28px Inter, Arial';
+      ctx.fillText(line.v, pad+330, y);
+      y+=46;
+    });
+
+    // footer tag
+    ctx.fillStyle=muted;
+    ctx.font='900 22px Inter, Arial';
+    ctx.fillText('AIRDROP · NEWS · TRADING', pad+28, h-pad-22);
   }
 
-  function roundRectPath(ctx,x,y,w,h,r){
-    const rr=Math.min(r,w/2,h/2);
+  function roundRect(ctx,x,y,w,h,r){
+    const rr = Math.min(r, w/2, h/2);
     ctx.beginPath();
     ctx.moveTo(x+rr,y);
     ctx.arcTo(x+w,y,x+w,y+h,rr);
@@ -1609,95 +1491,229 @@ footer{
     ctx.closePath();
   }
 
-  async function exportCardPNG(opts){
-    const fromHistory=opts?.fromHistory;
-    const payload = fromHistory ? cardPayloadFromHistory(opts.item) : cardPayloadFromCurrent();
-    if(!payload){
-      try{ tg?.showAlert?.(lang==='ru' ? 'Нет данных для карточки' : 'No data for card'); }catch(e){}
-      return;
+  function buildCardData({fromHistory, historyItem}){
+    if(fromHistory && historyItem){
+      return {
+        title: historyItem.type,
+        lines: [
+          {k:'Time', v: new Date(historyItem.t).toLocaleString()},
+          {k:'Summary', v: historyItem.summary || '—'}
+        ]
+      };
     }
-
-    const W=1080,H=1080,scale=2;
-    const canvas=document.createElement('canvas');
-    canvas.width=W*scale;
-    canvas.height=H*scale;
-    const ctx=canvas.getContext('2d');
-    ctx.scale(scale,scale);
-
-    const bg=cssVar('--bg')||'#000';
-    const panel=cssVar('--panel')||'#0b0b0b';
-    const border=cssVar('--border')||'#151515';
-    const text=cssVar('--text')||'#fff';
-    const muted=cssVar('--muted')||'#9a9a9a';
-    const accent=cssVar('--accent')||'#7CFC00';
-
-    ctx.fillStyle=bg;
-    ctx.fillRect(0,0,W,H);
-
-    const pad=70;
-    const x=pad,y=pad,w=W-pad*2,h=H-pad*2;
-
-    ctx.fillStyle=panel;
-    roundRectPath(ctx,x,y,w,h,36); ctx.fill();
-
-    ctx.strokeStyle=border; ctx.lineWidth=3; ctx.stroke();
-
-    ctx.fillStyle=accent;
-    roundRectPath(ctx,x+28,y+28,10,h-56,10); ctx.fill();
-
-    ctx.fillStyle=text;
-    ctx.font='900 54px Inter, Arial, sans-serif';
-    ctx.fillText(payload.title, x+60, y+90);
-
-    ctx.fillStyle=muted;
-    ctx.font='700 28px Inter, Arial, sans-serif';
-    ctx.fillText(payload.subtitle, x+60, y+135);
-
-    let yy=y+210;
-    const left=x+60;
-    const right=x+w-60;
-
-    ctx.font='800 34px Inter, Arial, sans-serif';
-    for(const row of payload.lines.slice(0,12)){
-      const k=String(row[0]||'');
-      const v=String(row[1]||'');
-      ctx.fillStyle=muted; ctx.textAlign='left';
-      ctx.fillText(k, left, yy);
-
-      ctx.fillStyle=text; ctx.textAlign='right';
-      // truncate too long values
-      let vv=v;
-      while(ctx.measureText(vv).width>520 && vv.length>3) vv = vv.slice(0,-2) + '…';
-      ctx.fillText(vv, right, yy);
-      yy+=70;
+    const tab=activeTab();
+    if(tab==='dca'){
+      return {
+        title:'DCA',
+        lines:[
+          {k:'AVG', v: dcaAvgEl.textContent},
+          {k:'VOL', v: dcaTotalVolEl.textContent},
+          {k:'COST', v: dcaTotalCostEl.textContent},
+          {k:'GOAL NEED', v: dcaNeedVol.textContent}
+        ]
+      };
     }
-
-    ctx.textAlign='left';
-    ctx.fillStyle=muted;
-    ctx.font='700 26px Inter, Arial, sans-serif';
-    ctx.fillText('@InvestTraderTrade', x+60, y+h-60);
-
-    ctx.textAlign='right';
-    ctx.fillText('Trader Calculator', x+w-60, y+h-60);
-
-    const blob = await new Promise(res=>canvas.toBlob(res, 'image/png'));
-    if(!blob){
-      try{ tg?.showAlert?.('PNG error'); }catch(e){}
-      return;
+    if(tab==='rr'){
+      return {
+        title:'R/R',
+        lines:[
+          {k:'Gross', v: rrGross.textContent},
+          {k:'Net', v: rrNet.textContent}
+        ]
+      };
     }
-
-    const url = URL.createObjectURL(blob);
-    const filename = `trade_card_${payload.tab}_${Date.now()}.png`;
-    openModal({
-      title: fromHistory ? (lang==='ru'?'Карточка из истории':'History card') : 'Trade Card',
-      url, blob, filename, summary: payload.summary
-    });
-
-    // revoke later
-    setTimeout(()=>URL.revokeObjectURL(url), 120000);
+    if(tab==='cap'){
+      return {
+        title:'Capital',
+        lines:[
+          {k:'POS', v: capPos.textContent},
+          {k:'Risk $', v: capRiskUsd.textContent},
+          {k:'Margin $', v: capMargin.textContent}
+        ]
+      };
+    }
+    return {title:'Trader', lines:[{k:'—',v:'—'}]};
   }
 
+  async function canvasToBlob(){
+    return await new Promise(resolve=>cardCanvas.toBlob(resolve,'image/png'));
+  }
+
+  async function tryCopyImage(){
+    try{
+      const blob = await canvasToBlob();
+      if(!blob) throw new Error('no blob');
+      if(!navigator.clipboard || !window.ClipboardItem) throw new Error('no clipboard api');
+      await navigator.clipboard.write([new ClipboardItem({[blob.type]: blob})]);
+      return true;
+    }catch(e){ return false; }
+  }
+
+  async function downloadPng(){
+    const blob = await canvasToBlob();
+    if(!blob) return;
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='trade-card.png';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast(t('toast.saved'));
+    haptic('notify','success');
+  }
+
+  async function exportCardPNG({fromHistory=false, historyItem=null}){
+    const data=buildCardData({fromHistory, historyItem});
+    drawCard(data);
+    openModal();
+  }
+
+  btnDownload.addEventListener('click', downloadPng);
+  btnCopyImg.addEventListener('click', async ()=>{
+    const ok = await tryCopyImage();
+    if(ok){
+      showToast(t('toast.copied'));
+      haptic('notify','success');
+    }else{
+      // fallback to download
+      await downloadPng();
+    }
+  });
+
   document.getElementById('card_btn').addEventListener('click', ()=>{ exportCardPNG({fromHistory:false}); });
+
+  /* ---------- TON Connect (TON-only wallet via TON Connect SDK) ---------- */
+  // 1) Create https://YOUR_DOMAIN/tonconnect-manifest.json (see manifest template below).
+  // 2) Put the manifest URL here:
+  const TONCONNECT_MANIFEST_URL = 'https://YOUR_DOMAIN/tonconnect-manifest.json';
+  // Optional: TON tip settings (set your TON address)
+  const TIP_ADDRESS = 'REPLACE_WITH_YOUR_TON_ADDRESS';
+  const TIP_AMOUNT_TON = 0.05;
+
+  let tonConnectUI = null;
+
+  function shortAddr(addr){
+    if(!addr) return '';
+    return addr.length > 12 ? (addr.slice(0,4) + '…' + addr.slice(-4)) : addr;
+  }
+
+  function toNanoStr(ton){
+    const v = Number(ton);
+    if(!isFinite(v) || v <= 0) return '0';
+    return String(Math.floor(v * 1e9));
+  }
+
+  async function confirmDialog(text){
+    try{
+      if(tg?.showConfirm){
+        return await new Promise(resolve => tg.showConfirm(text, ok => resolve(!!ok)));
+      }
+    }catch(e){}
+    return window.confirm(text);
+  }
+
+  function updateWalletUI(){
+    const wBtn = document.getElementById('wallet_btn');
+    const tipBtn = document.getElementById('tip_btn');
+    if(!wBtn || !tipBtn) return;
+
+    const lbl = wBtn.querySelector('.lbl');
+    if(!tonConnectUI){
+      wBtn.disabled = true;
+      tipBtn.disabled = true;
+      if(lbl) lbl.textContent = t('wallet');
+      return;
+    }
+    wBtn.disabled = false;
+
+    if(tonConnectUI.connected){
+      const addr = tonConnectUI.account?.address || '';
+      if(lbl) lbl.textContent = shortAddr(addr) || t('wallet');
+      tipBtn.disabled = false;
+    }else{
+      if(lbl) lbl.textContent = t('wallet');
+      tipBtn.disabled = true;
+    }
+  }
+
+  function initTonConnect(){
+    try{
+      if(TONCONNECT_MANIFEST_URL.includes('YOUR_DOMAIN')){
+        tonConnectUI = null;
+        updateWalletUI();
+        return;
+      }
+      if(!window.TON_CONNECT_UI?.TonConnectUI) return;
+      tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
+        manifestUrl: TONCONNECT_MANIFEST_URL
+      });
+
+      // React to connect/disconnect
+      tonConnectUI.onStatusChange(() => {
+        updateWalletUI();
+        haptic('notify','success');
+      });
+
+      // Restore previous session if any
+      tonConnectUI.connectionRestored?.then(() => updateWalletUI()).catch(() => {});
+      updateWalletUI();
+    }catch(e){
+      tonConnectUI = null;
+      updateWalletUI();
+    }
+  }
+
+  document.getElementById('wallet_btn')?.addEventListener('click', async ()=>{
+    if(!tonConnectUI){
+      showToast(t('toast.tonManifest'));
+      return;
+    }
+    try{
+      if(tonConnectUI.connected){
+        const ok = await confirmDialog(t('wallet.disconnectQ'));
+        if(ok){
+          await tonConnectUI.disconnect();
+          updateWalletUI();
+          showToast(t('toast.saved'));
+        }
+      }else{
+        await tonConnectUI.openModal();
+        // UI will update via onStatusChange
+      }
+    }catch(e){
+      // some abort errors are uncaught by sdk on certain wallets; keep UI stable
+      updateWalletUI();
+    }
+  });
+
+  document.getElementById('tip_btn')?.addEventListener('click', async ()=>{
+    if(!tonConnectUI?.connected){
+      showToast(t('toast.walletNeed'));
+      haptic('notify','warning');
+      return;
+    }
+    if(!TIP_ADDRESS || TIP_ADDRESS.startsWith('REPLACE_')){
+      showToast('Set TIP_ADDRESS');
+      return;
+    }
+    try{
+      const tx = {
+        validUntil: Math.floor(Date.now()/1000) + 600,
+        messages: [{ address: TIP_ADDRESS, amount: toNanoStr(TIP_AMOUNT_TON) }]
+      };
+      await tonConnectUI.sendTransaction(tx);
+      showToast(t('toast.sent'));
+      haptic('notify','success');
+    }catch(e){
+      showToast(t('toast.fail'));
+      haptic('notify','error');
+    }
+  });
+
+  initTonConnect();
+
 
   /* ---------- Share text (clipboard / share sheet) ---------- */
   document.getElementById('share_btn').addEventListener('click', async ()=>{
@@ -1705,64 +1721,69 @@ footer{
     let text='📊 Trader Calculator\n';
     if(tab==='dca'){
       text += `DCA AVG: ${dcaAvgEl.textContent}\nVOL: ${dcaTotalVolEl.textContent}\nCOST: ${dcaTotalCostEl.textContent}\n`;
-      if(dcaNeedVol.textContent.trim()!=='—') text += `\n🎯 Goal\nNeed: ${dcaNeedVol.textContent}\nCost: ${dcaNeedCost.textContent}\n`;
-    }else if(tab==='rr'){
-      text += `Gross: ${rr_value.textContent}\nNet: ${rr_net.textContent}\n`;
-    }else if(tab==='cap'){
-      text += `Size: ${cap_value.textContent}\nRisk: ${cap_riskUsd.textContent}\nMargin: ${cap_margin.textContent}\n`;
-    }else if(tab==='ind'){
-      text += `F&G: ${fgEl.textContent}\nAlt dom: ${altDomEl.textContent}\nMood: ${moodEl.textContent}\n`;
+      if(dcaNeedVol.textContent.trim()!=='—') text += `\n🎯 Goal\nNeed: ${dcaNeedVol.textContent}`;
     }
+    if(tab==='rr'){
+      text += `Gross: ${rrGross.textContent}\nNet: ${rrNet.textContent}\n`;
+    }
+    if(tab==='cap'){
+      text += `POS: ${capPos.textContent}\nRisk$: ${capRiskUsd.textContent}\nMargin$: ${capMargin.textContent}\n`;
+    }
+
+    // try share sheet in Telegram / Web
     try{
       if(navigator.share){
-        await navigator.share({text, title:'Trader Calculator'});
-        haptic('notify','success');
+        await navigator.share({text});
         return;
       }
     }catch(e){}
-    const ok=await copyText(text);
+
+    const ok = await copyText(text);
     if(ok){ showToast(t('toast.copied')); haptic('notify','success'); }
   });
 
-  /* ---------- theme button ---------- */
-  document.getElementById('theme_toggle').addEventListener('click', ()=>{
-    const cur=document.documentElement.getAttribute('data-theme')||'dark';
-    setTheme(cur==='dark'?'light':'dark');
-    haptic('impact','light');
-  });
-
-  /* ---------- footer links ---------- */
-  function openUrl(url){
-    try{
-      if(tg?.openTelegramLink && url.startsWith('https://t.me/')) return tg.openTelegramLink(url);
-      if(tg?.openLink) return tg.openLink(url);
-    }catch(e){}
-    window.open(url,'_blank','noopener');
-  }
-  document.getElementById('link_telegram').addEventListener('click', e=>{ e.preventDefault(); openUrl('https://t.me/InvestTraderTrade'); });
-  document.getElementById('link_youtube').addEventListener('click', e=>{ e.preventDefault(); openUrl('https://www.youtube.com/@TRADER_TRADE'); });
-
   /* ---------- init ---------- */
-  function refreshAll(){ calcDCA(); calcRR(); calcCap(); }
-  window.refreshAll = refreshAll; // for safety
+  function refreshAll(){
+    // ensure labels in dynamic DCA rows match language (simple update)
+    dcaRows.forEach(r=>{
+      const labels=r.el.querySelectorAll('label');
+      if(labels[0]) labels[0].textContent = (lang==='ru'?'Цена':'Price');
+      if(labels[1]) labels[1].textContent = (lang==='ru'?'Объём':'Volume');
+    });
+    calcDCA();
+    calcRR();
+    calcCap();
+    drawAllIndicatorVisuals(lastIndicators);
+  }
 
-  setTheme(getInitialTheme());
-  syncLangButtons();
+  // initial content
   translateAll();
-
-  ensureRows();
+  clearDCA(); // creates 2 rows
+  calcRR(); calcCap();
   renderHistory();
 
-  calcDCA(); calcRR(); calcCap();
-  fetchIndicators();
-  drawAllIndicatorVisuals(null);
+  // gentle first refresh after render
+  setTimeout(()=>{ try{ refreshAll(); }catch(e){} }, 60);
 
-  // redraw canvases on resize
-  let resizeTimer=null;
-  window.addEventListener('resize', ()=>{
-    clearTimeout(resizeTimer);
-    resizeTimer=setTimeout(()=>drawAllIndicatorVisuals(lastIndicators), 150);
+  // auto refresh indicators when opening Indicators tab first time
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.visibilityState==='visible'){
+      // optional: refresh cached visuals
+      drawAllIndicatorVisuals(lastIndicators);
+    }
   });
+
+  window.refreshAll = refreshAll; // for safety
+  window.addEventListener('resize', ()=>{ drawAllIndicatorVisuals(lastIndicators); });
+
+  // If opened directly in browser, you can still use app.
+  // In Telegram, keep stable layout
+  try{
+    tg?.onEvent?.('viewportChanged', ()=>{
+      // prevent layout jumps
+      setTimeout(()=>drawAllIndicatorVisuals(lastIndicators), 150);
+    });
+  }catch(e){}
 })();
 </script>
 </body>
