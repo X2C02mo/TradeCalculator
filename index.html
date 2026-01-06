@@ -11,8 +11,12 @@
   function initAnalytics() {
     try{
       if(!window.telegramAnalytics) return;
+
+      
       const token='eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=';
+
       const appName='trader_calculator';
+
       if(token.startsWith('REPLACE_') || appName.startsWith('REPLACE_')) return;
       window.telegramAnalytics.init({ token, appName });
     }catch(e){}
@@ -309,6 +313,20 @@ html[data-theme="light"] #toast{background:rgba(0,0,0,.72)}
 #modal_right .btn{width:100%}
 #modal_help{font-size:12px;color:var(--muted);font-weight:700}
 
+/* FIX: prevent PNG card canvas cropping on mobile */
+#modal_canvas_wrap{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+#card_canvas{
+  display:block;
+  width:100%;
+  height:auto;
+  max-width:100%;
+  max-height:70vh;
+}
+
 /* indicators visuals */
 .vizgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
 @media(max-width:520px){ .vizgrid{grid-template-columns:1fr} }
@@ -413,7 +431,12 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
             </div>
           </div>
 
+          <!-- FIX: separate DCA Goal block + extra text summary -->
           <div style="margin-top:12px;border-top:1px dashed var(--border);padding-top:12px">
+            <div style="font-weight:1000;margin-bottom:6px;letter-spacing:.3px">
+              🎯 <span data-i18n="dca.goalBlock">DCA Goal</span>
+            </div>
+
             <div class="small" style="margin-bottom:8px" data-i18n="dca.goalTitle">Target average (optional)</div>
             <div class="row">
               <div class="field" style="margin:0">
@@ -432,6 +455,8 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
               </div>
               <button class="btn ghost" id="dca_need_copy" type="button" data-i18n="common.copy">Copy</button>
             </div>
+
+            <div class="note" id="dca_goal_summary"></div>
           </div>
         </div>
       </section>
@@ -661,10 +686,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
   try{ tg?.disableVerticalSwipes?.(); }catch(e){}
   try{ tg?.ready?.(); }catch(e){}
 
-  /* =========================================================
-     CRITICAL FIX:
-     lastIndicators must exist BEFORE setTheme() touches it.
-     ========================================================= */
+
   let lastIndicators = null;
 
   /* ---------- i18n ---------- */
@@ -677,6 +699,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
       "theme.dark":"Тёмная","theme.light":"Светлая",
       "dca.tip":"Совет: добавляй несколько входов — калькулятор посчитает среднюю цену, общий объём и сумму.",
       "dca.add":"+ Добавить вход","dca.avg":"Средняя цена","dca.vol":"Общий объём","dca.cost":"Сумма",
+      "dca.goalBlock":"DCA Цель",
       "dca.goalTitle":"Цель по средней (опционально)","dca.goalPrice":"Целевая средняя цена","dca.nextPrice":"Цена следующей покупки","dca.need":"Нужный объём по next-price",
       "rr.entry":"Entry","rr.sl":"Stop Loss","rr.tp":"Take Profit",
       "rr.fee":"Комиссия % (вход+выход)","rr.feeNote":"Показывает net R/R с учётом примерной комиссии.",
@@ -711,6 +734,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
       "theme.dark":"Dark","theme.light":"Light",
       "dca.tip":"Tip: add multiple entries — app will calculate avg, total volume and cost.",
       "dca.add":"+ Add entry","dca.avg":"Average price","dca.vol":"Total volume","dca.cost":"Total cost",
+      "dca.goalBlock":"DCA Goal",
       "dca.goalTitle":"Target average (optional)","dca.goalPrice":"Target avg price","dca.nextPrice":"Next buy price","dca.need":"Needed volume at next price",
       "rr.entry":"Entry","rr.sl":"Stop Loss","rr.tp":"Take Profit",
       "rr.fee":"Fee % (entry+exit)","rr.feeNote":"Shows net R/R: approximates entry+exit fees.",
@@ -780,8 +804,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem(THEME_KEY, theme);
     updateThemeUI();
-    // safe even if null
-    drawAllIndicatorVisuals(lastIndicators);
+    try{ drawAllIndicatorVisuals(lastIndicators); }catch(e){}
   }
   function updateThemeUI(){
     const theme=document.documentElement.getAttribute('data-theme')||'dark';
@@ -860,6 +883,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
   const dcaGoal=document.getElementById('dca_goal');
   const dcaNext=document.getElementById('dca_next_price');
   const dcaNeedVol=document.getElementById('dca_need_vol');
+  const dcaGoalSummary=document.getElementById('dca_goal_summary');
 
   let dcaRows=[];
 
@@ -902,6 +926,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     addDcaRow();
     dcaGoal.value='';
     dcaNext.value='';
+    if(dcaGoalSummary) dcaGoalSummary.textContent='';
     calcDCA();
   }
 
@@ -922,6 +947,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
       dcaTotalVolEl.textContent='—';
       dcaTotalCostEl.textContent='—';
       dcaNeedVol.textContent='—';
+      if(dcaGoalSummary) dcaGoalSummary.textContent='';
       return {avg:null, totalVol:0, totalCost:0};
     }
 
@@ -930,14 +956,37 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     dcaTotalVolEl.textContent = fmt(totalVol, 8);
     dcaTotalCostEl.textContent = fmt(totalCost, 2);
 
+    // goal calc: find needed volume at next price to reach target average
     const target=safeNum(dcaGoal.value);
     const nextP=safeNum(dcaNext.value);
+
+    if(dcaGoalSummary) dcaGoalSummary.textContent = '';
+
     if(target>0 && nextP>0 && nextP!==target){
+      // (totalCost + nextP*x) / (totalVol + x) = target  => x = (target*totalVol - totalCost) / (nextP - target)
       const x=(target*totalVol - totalCost) / (nextP - target);
       if(isFinite(x) && x>0){
         dcaNeedVol.textContent = fmt(x, 8);
-      }else dcaNeedVol.textContent='—';
-    }else dcaNeedVol.textContent='—';
+        if(dcaGoalSummary){
+          dcaGoalSummary.textContent =
+            (lang==='ru'
+              ? `Цель: средняя ${fmt(target,10)} при следующей цене ${fmt(nextP,10)} → нужен объём ${fmt(x,8)}`
+              : `Goal: avg ${fmt(target,10)} at next price ${fmt(nextP,10)} → need volume ${fmt(x,8)}`
+            );
+        }
+      }else{
+        dcaNeedVol.textContent='—';
+        if(dcaGoalSummary){
+          dcaGoalSummary.textContent =
+            (lang==='ru'
+              ? `Цель недостижима с такой next-price (проверь значения).`
+              : `Goal can't be reached with this next price (check inputs).`
+            );
+        }
+      }
+    }else{
+      dcaNeedVol.textContent='—';
+    }
 
     return {avg, totalVol, totalCost};
   }
@@ -1139,7 +1188,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     lastIndicators = { fgVal, fgClass, totalMc, btcDom, altDom };
     saveIndicatorsCache(lastIndicators);
 
-    drawAllIndicatorVisuals(lastIndicators);
+    try{ drawAllIndicatorVisuals(lastIndicators); }catch(e){}
     indNote.textContent='';
   }
   document.getElementById('refresh_ind')?.addEventListener('click', fetchIndicators);
@@ -1274,7 +1323,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     altText.textContent = (typeof lastIndicators.btcDom==='number' && isFinite(lastIndicators.btcDom)) ? ((100-lastIndicators.btcDom).toFixed(2)+'%') : '—';
     moodEl.textContent = computeMood(lastIndicators.fgVal ?? NaN, lastIndicators.altDom ?? NaN);
     indNote.textContent = t('ind.cached');
-    drawAllIndicatorVisuals(lastIndicators);
+    try{ drawAllIndicatorVisuals(lastIndicators); }catch(e){}
   }
 
   /* ---------- history ---------- */
@@ -1339,6 +1388,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     renderHistory();
   });
 
+  // history push throttled
   let lastPushAt=0;
   function pushHistoryIfReady(){
     const tnow=Date.now();
@@ -1445,8 +1495,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     ctx.fillStyle=accent;
     ctx.fillText(title, pad+28, pad+118);
 
-    ctx.fillStyle=text;
-    ctx.font='800 30px Inter, Arial';
     let y=pad+175;
     lines.forEach(line=>{
       ctx.fillStyle=muted;
@@ -1599,11 +1647,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
 
   function initTonConnect(){
     try{
-      if(TONCONNECT_MANIFEST_URL.includes('YOUR_DOMAIN')){
-        tonConnectUI = null;
-        updateWalletUI();
-        return;
-      }
       if(!window.TON_CONNECT_UI?.TonConnectUI) return;
       tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
         manifestUrl: TONCONNECT_MANIFEST_URL
@@ -1705,7 +1748,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     calcDCA();
     calcRR();
     calcCap();
-    drawAllIndicatorVisuals(lastIndicators);
+    try{ drawAllIndicatorVisuals(lastIndicators); }catch(e){}
   }
 
   translateAll();
@@ -1717,16 +1760,16 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
 
   document.addEventListener('visibilitychange', ()=>{
     if(document.visibilityState==='visible'){
-      drawAllIndicatorVisuals(lastIndicators);
+      try{ drawAllIndicatorVisuals(lastIndicators); }catch(e){}
     }
   });
 
   window.refreshAll = refreshAll;
-  window.addEventListener('resize', ()=>{ drawAllIndicatorVisuals(lastIndicators); });
+  window.addEventListener('resize', ()=>{ try{ drawAllIndicatorVisuals(lastIndicators); }catch(e){} });
 
   try{
     tg?.onEvent?.('viewportChanged', ()=>{
-      setTimeout(()=>drawAllIndicatorVisuals(lastIndicators), 150);
+      setTimeout(()=>{ try{ drawAllIndicatorVisuals(lastIndicators); }catch(e){} }, 150);
     });
   }catch(e){}
 })();
