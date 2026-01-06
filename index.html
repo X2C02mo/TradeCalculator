@@ -5,30 +5,21 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Trader Calculator</title>
 
-  <!-- Optional: favicon for web + TON Connect icon file will be /icon-512.png -->
-  <link rel="icon" type="image/png" href="/icon-512.png" />
-  <link rel="apple-touch-icon" href="/icon-512.png" />
-
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
 
-  <!-- Analytics (loaded ONLY after user consent) -->
+  <!-- Analytics (loads ONLY after consent) -->
   <script>
-    const TG_ANALYTICS_TOKEN = "eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0="; 
-    const TG_ANALYTICS_APP_NAME = "trader_calculator"; 
+    const TG_ANALYTICS_TOKEN = "eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=";
+    const TG_ANALYTICS_APP_NAME = "trader_calculator";
 
     function initAnalytics() {
       try {
         if (!window.telegramAnalytics) return;
         if (!TG_ANALYTICS_TOKEN || !TG_ANALYTICS_APP_NAME) return;
-
-        // Если токен не задан — просто не включаем аналитику
         if (String(TG_ANALYTICS_TOKEN).includes("eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=")) return;
 
-        window.telegramAnalytics.init({
-          token: TG_ANALYTICS_TOKEN,
-          appName: TG_ANALYTICS_APP_NAME
-        });
+        window.telegramAnalytics.init({ token: TG_ANALYTICS_TOKEN, appName: TG_ANALYTICS_APP_NAME });
       } catch (e) {}
     }
 
@@ -92,7 +83,10 @@
 
     header{
       position:sticky;top:0;z-index:10;
-      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
       padding:10px 10px;
       border-bottom:1px solid var(--border);
       background:rgba(0,0,0,.35);
@@ -129,8 +123,29 @@
     .iconbtn .lbl{font-size:12px;font-weight:800;white-space:nowrap}
     .iconbtn.active{border-color:var(--accent);color:var(--accent)}
 
-    .tabs{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
-    .tab{
+    /* MAIN area (reserve space for bottom tabs) */
+    main{
+      flex:1;
+      padding:12px;
+      padding-bottom: 92px; /* space for bottom nav */
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    .main-screen{display:none}
+    .main-screen.active{display:block}
+
+    /* calculator inner tabs (DCA/RR/Capital/Indicators) */
+    .subtabs{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:center;
+      margin-bottom:12px;
+    }
+    .subtab{
       background:none;border:none;
       color:var(--muted);
       font-size:13px;
@@ -140,11 +155,8 @@
       font-weight:900;
       border:1px solid transparent;
     }
-    .tab:hover{border-color:var(--border)}
-    .tab.active{color:var(--accent);border-color:var(--accent)}
-
-    main{flex:1;padding:12px;display:flex;gap:14px;flex-direction:column}
-    @media(min-width:980px){ main{flex-direction:row;align-items:flex-start} }
+    .subtab:hover{border-color:var(--border)}
+    .subtab.active{color:var(--accent);border-color:var(--accent)}
 
     .panels{display:flex;gap:14px;flex-wrap:wrap;flex:1}
     .screen{display:none;width:100%}
@@ -258,31 +270,87 @@
     .mini:hover{border-color:color-mix(in srgb, var(--accent) 45%, var(--border)); color:var(--accent)}
     .note{font-size:12px;color:var(--muted);font-weight:700;margin-top:8px}
 
-    footer{
-      border-top:1px solid var(--border);
-      padding:12px;
+    /* Rainbow text (Support tab footer) */
+    .rainbow{
+      display:inline-block;
+      font-weight:1000;
+      text-decoration:none;
+      background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,violet);
+      background-size:400% 400%;
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+      animation:rain 3.5s linear infinite;
+    }
+    @keyframes rain{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+
+    .support-wrap{
       display:flex;
       flex-direction:column;
+      gap:14px;
       align-items:center;
-      gap:6px
     }
-    .tags{font-size:12px;color:var(--muted);letter-spacing:1px;font-weight:900}
-    .links{display:flex;gap:14px;margin-top:2px;flex-wrap:wrap;justify-content:center}
-    .link{
-      font-weight:900;
-      text-decoration:none;
-      color:var(--accent);
-      border:1px solid color-mix(in srgb, var(--border) 80%, var(--accent));
-      padding:7px 10px;border-radius:999px;
+    .support-links{
+      display:flex;
+      gap:18px;
+      flex-wrap:wrap;
+      justify-content:center;
+      align-items:center;
+      margin-top:8px;
     }
-    .link:hover{border-color:var(--accent)}
-    .footer-small{font-size:12px;color:var(--muted);font-weight:800}
+    .support-tags{
+      font-size:13px;
+      letter-spacing:1px;
+      font-weight:1000;
+    }
 
+    /* Bottom tabs (main navigation) */
+    .bottomnav{
+      position:fixed;
+      left:0; right:0; bottom:0;
+      z-index:20;
+      padding:10px 12px;
+      padding-bottom: calc(10px + env(safe-area-inset-bottom));
+      border-top:1px solid var(--border);
+      background:rgba(0,0,0,.55);
+      backdrop-filter: blur(10px);
+      display:flex;
+      justify-content:center;
+    }
+    html[data-theme="light"] .bottomnav{background:rgba(255,255,255,.85)}
+
+    .bottomnav .bar{
+      width:min(520px, 100%);
+      display:flex;
+      gap:10px;
+    }
+    .main-tab{
+      flex:1;
+      border:1px solid var(--border);
+      background:transparent;
+      color:var(--muted);
+      border-radius:14px;
+      padding:10px 12px;
+      cursor:pointer;
+      font-weight:1000;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+    }
+    .main-tab:hover{border-color:color-mix(in srgb, var(--accent) 50%, var(--border))}
+    .main-tab.active{
+      border-color:var(--accent);
+      color:var(--accent);
+    }
+    .main-tab .ico{font-size:16px}
+
+    /* toast */
     #toast{
       position:fixed;
       left:50%;
       transform:translateX(-50%);
-      bottom:14px;
+      bottom:88px; /* above bottom nav */
       padding:10px 12px;
       border-radius:999px;
       border:1px solid var(--border);
@@ -321,27 +389,15 @@
     #modal_close{border:1px solid var(--border);background:transparent;border-radius:12px;color:var(--muted);padding:6px 10px;cursor:pointer;font-weight:1000}
     #modal_body{margin-top:10px;display:flex;gap:12px;flex-wrap:wrap}
     #modal_canvas_wrap{
-      flex:1;
-      min-width:280px;
-      border:1px solid var(--border);
-      border-radius:14px;
-      overflow:hidden;
-      background:var(--result-bg);
-      aspect-ratio: 3 / 2; /* IMPORTANT: prevents “crop/zoom” on mobile */
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      flex:1;min-width:280px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--result-bg);
+      aspect-ratio:3/2;display:flex;align-items:center;justify-content:center;
     }
-    #card_canvas{
-      display:block;
-      width:100%;   /* IMPORTANT: fit into modal on mobile */
-      height:100%;  /* keep aspect ratio via wrapper */
-    }
+    #card_canvas{display:block;width:100%;height:100%}
     #modal_right{width:240px;min-width:240px;display:flex;flex-direction:column;gap:8px}
     #modal_right .btn{width:100%}
     #modal_help{font-size:12px;color:var(--muted);font-weight:700}
 
-    /* consent modal (analytics) */
+    /* consent modal */
     #consent_backdrop{
       position:fixed;inset:0;
       background:rgba(0,0,0,.55);
@@ -380,8 +436,8 @@
 
     @media(max-width:420px){
       .iconbtn .lbl{display:none}
-      .tabs{gap:6px}
-      .tab{padding:6px 8px}
+      .subtabs{gap:6px}
+      .subtab{padding:6px 8px}
       #modal_right{width:100%;min-width:100%}
     }
   </style>
@@ -395,16 +451,6 @@
         <button id="btn_ru">RU</button>
         <button id="btn_en">EN</button>
       </div>
-
-      <button class="iconbtn" id="wallet_btn" type="button" aria-label="TON Wallet">
-        <span class="ico">👛</span>
-        <span class="lbl" data-i18n="wallet">Wallet</span>
-      </button>
-
-      <button class="iconbtn" id="tip_btn" type="button" aria-label="Tip TON">
-        <span class="ico">💎</span>
-        <span class="lbl" data-i18n="tip">Tip TON</span>
-      </button>
 
       <button class="iconbtn" id="theme_toggle" type="button" aria-label="Theme">
         <span class="ico" id="theme_icon">🌙</span>
@@ -421,285 +467,327 @@
         <span class="lbl" data-i18n="cardpng">Card PNG</span>
       </button>
     </div>
-
-    <div class="tabs" role="tablist">
-      <button class="tab active" data-tab="dca" data-i18n="tab.dca" type="button">DCA</button>
-      <button class="tab" data-tab="rr" data-i18n="tab.rr" type="button">R/R</button>
-      <button class="tab" data-tab="cap" data-i18n="tab.cap" type="button">Capital</button>
-      <button class="tab" data-tab="ind" data-i18n="tab.ind" type="button">Indicators</button>
-    </div>
   </header>
 
   <main>
-    <div class="panels">
-      <!-- DCA -->
-      <section id="dca" class="screen active">
-        <div class="card">
-          <div class="small" style="margin-bottom:10px" data-i18n="dca.tip">
-            Tip: add multiple entries — app will calculate avg, total volume and cost.
-          </div>
+    <!-- MAIN: CALCULATOR -->
+    <section id="main_calc" class="main-screen active">
+      <div class="subtabs" role="tablist" aria-label="Calculator tabs">
+        <button class="subtab active" data-tab="dca" data-i18n="tab.dca" type="button">DCA</button>
+        <button class="subtab" data-tab="rr" data-i18n="tab.rr" type="button">R/R</button>
+        <button class="subtab" data-tab="cap" data-i18n="tab.cap" type="button">Capital</button>
+        <button class="subtab" data-tab="ind" data-i18n="tab.ind" type="button">Indicators</button>
+      </div>
 
-          <div id="dca_rows"></div>
-
-          <div class="controls" style="margin-top:10px">
-            <button class="btn" id="dca_add" type="button" data-i18n="dca.add">+ Add entry</button>
-            <button class="btn ghost" id="dca_clear" type="button" data-i18n="common.clear">Clear</button>
-          </div>
-
-          <div class="result" style="margin-top:12px">
-            <div>
-              <div class="small" data-i18n="dca.avg">Average price</div>
-              <div><span class="v" id="dca_avg">—</span></div>
+      <div class="panels">
+        <!-- DCA -->
+        <section id="dca" class="screen active">
+          <div class="card">
+            <div class="small" style="margin-bottom:10px" data-i18n="dca.tip">
+              Tip: add multiple entries — app will calculate avg, total volume and cost.
             </div>
-            <button class="btn ghost" id="dca_copy" type="button" data-i18n="common.copy">Copy</button>
-          </div>
 
-          <div class="row" style="margin-top:10px">
-            <div class="result" style="flex:1">
+            <div id="dca_rows"></div>
+
+            <div class="controls" style="margin-top:10px">
+              <button class="btn" id="dca_add" type="button" data-i18n="dca.add">+ Add entry</button>
+              <button class="btn ghost" id="dca_clear" type="button" data-i18n="common.clear">Clear</button>
+            </div>
+
+            <div class="result" style="margin-top:12px">
               <div>
-                <div class="small" data-i18n="dca.vol">Total volume</div>
-                <div><span class="v" id="dca_total_vol">—</span></div>
+                <div class="small" data-i18n="dca.avg">Average price</div>
+                <div><span class="v" id="dca_avg">—</span></div>
+              </div>
+              <button class="btn ghost" id="dca_copy" type="button" data-i18n="common.copy">Copy</button>
+            </div>
+
+            <div class="row" style="margin-top:10px">
+              <div class="result" style="flex:1">
+                <div>
+                  <div class="small" data-i18n="dca.vol">Total volume</div>
+                  <div><span class="v" id="dca_total_vol">—</span></div>
+                </div>
+              </div>
+              <div class="result" style="flex:1">
+                <div>
+                  <div class="small" data-i18n="dca.cost">Total cost</div>
+                  <div><span class="v" id="dca_total_cost">—</span></div>
+                </div>
               </div>
             </div>
-            <div class="result" style="flex:1">
-              <div>
-                <div class="small" data-i18n="dca.cost">Total cost</div>
-                <div><span class="v" id="dca_total_cost">—</span></div>
+
+            <!-- DCA GOAL -->
+            <div style="margin-top:12px;border-top:1px dashed var(--border);padding-top:12px">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
+                <b style="color:var(--accent);font-weight:1000" data-i18n="dca.goalHeader">DCA Goal</b>
+                <span class="small" data-i18n="dca.goalOptional">optional</span>
+              </div>
+
+              <div class="small" style="margin-bottom:8px" data-i18n="dca.goalTitle">Target average (optional)</div>
+
+              <div class="row">
+                <div class="field" style="margin:0">
+                  <label data-i18n="dca.goalPrice">Target avg price</label>
+                  <input id="dca_goal" type="number" step="any" inputmode="decimal" />
+                </div>
+                <div class="field" style="margin:0">
+                  <label data-i18n="dca.nextPrice">Next buy price</label>
+                  <input id="dca_next_price" type="number" step="any" inputmode="decimal" />
+                </div>
+              </div>
+
+              <div class="result">
+                <div>
+                  <div class="small" data-i18n="dca.need">Needed volume at next price</div>
+                  <div><span class="v" id="dca_need_vol">—</span></div>
+                </div>
+                <button class="btn ghost" id="dca_need_copy" type="button" data-i18n="common.copy">Copy</button>
               </div>
             </div>
           </div>
+        </section>
 
-          <!-- DCA GOAL (separated block) -->
-          <div style="margin-top:12px;border-top:1px dashed var(--border);padding-top:12px">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
-              <b style="color:var(--accent);font-weight:1000" data-i18n="dca.goalHeader">DCA Goal</b>
-              <span class="small" data-i18n="dca.goalOptional">optional</span>
+        <!-- R/R -->
+        <section id="rr" class="screen">
+          <div class="card">
+            <div class="row">
+              <div class="field" style="flex:1">
+                <label data-i18n="rr.entry">Entry</label>
+                <input id="rr_entry" type="number" step="any" inputmode="decimal" />
+              </div>
+              <div class="field" style="flex:1">
+                <label data-i18n="rr.sl">Stop Loss</label>
+                <input id="rr_sl" type="number" step="any" inputmode="decimal" />
+              </div>
+              <div class="field" style="flex:1">
+                <label data-i18n="rr.tp">Take Profit</label>
+                <input id="rr_tp" type="number" step="any" inputmode="decimal" />
+              </div>
             </div>
-
-            <div class="small" style="margin-bottom:8px" data-i18n="dca.goalTitle">Target average (optional)</div>
 
             <div class="row">
-              <div class="field" style="margin:0">
-                <label data-i18n="dca.goalPrice">Target avg price</label>
-                <input id="dca_goal" type="number" step="any" inputmode="decimal" />
-              </div>
-              <div class="field" style="margin:0">
-                <label data-i18n="dca.nextPrice">Next buy price</label>
-                <input id="dca_next_price" type="number" step="any" inputmode="decimal" />
+              <div class="field" style="flex:1">
+                <label data-i18n="rr.fee">Fee % (entry+exit)</label>
+                <input id="rr_fee" type="number" step="any" inputmode="decimal" value="0.2" />
+                <div class="small" data-i18n="rr.feeNote" style="margin-top:4px">
+                  Shows net R/R: approximates entry+exit fees.
+                </div>
               </div>
             </div>
 
             <div class="result">
               <div>
-                <div class="small" data-i18n="dca.need">Needed volume at next price</div>
-                <div><span class="v" id="dca_need_vol">—</span></div>
+                <div class="small" data-i18n="rr.gross">Gross R/R</div>
+                <div><span class="v" id="rr_gross">—</span></div>
               </div>
-              <button class="btn ghost" id="dca_need_copy" type="button" data-i18n="common.copy">Copy</button>
+              <button class="btn ghost" id="rr_copy_gross" type="button" data-i18n="common.copy">Copy</button>
             </div>
-          </div>
-        </div>
-      </section>
 
-      <!-- R/R -->
-      <section id="rr" class="screen">
-        <div class="card">
-          <div class="row">
-            <div class="field" style="flex:1">
-              <label data-i18n="rr.entry">Entry</label>
-              <input id="rr_entry" type="number" step="any" inputmode="decimal" />
-            </div>
-            <div class="field" style="flex:1">
-              <label data-i18n="rr.sl">Stop Loss</label>
-              <input id="rr_sl" type="number" step="any" inputmode="decimal" />
-            </div>
-            <div class="field" style="flex:1">
-              <label data-i18n="rr.tp">Take Profit</label>
-              <input id="rr_tp" type="number" step="any" inputmode="decimal" />
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="field" style="flex:1">
-              <label data-i18n="rr.fee">Fee % (entry+exit)</label>
-              <input id="rr_fee" type="number" step="any" inputmode="decimal" value="0.2" />
-              <div class="small" data-i18n="rr.feeNote" style="margin-top:4px">
-                Shows net R/R: approximates entry+exit fees.
-              </div>
-            </div>
-          </div>
-
-          <div class="result">
-            <div>
-              <div class="small" data-i18n="rr.gross">Gross R/R</div>
-              <div><span class="v" id="rr_gross">—</span></div>
-            </div>
-            <button class="btn ghost" id="rr_copy_gross" type="button" data-i18n="common.copy">Copy</button>
-          </div>
-
-          <div class="result">
-            <div>
-              <div class="small" data-i18n="rr.net">Net R/R (fees)</div>
-              <div><span class="v" id="rr_net">—</span></div>
-            </div>
-            <button class="btn ghost" id="rr_copy_net" type="button" data-i18n="common.copy">Copy</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Capital -->
-      <section id="cap" class="screen">
-        <div class="card">
-          <div class="row">
-            <div class="field">
-              <label data-i18n="cap.dep">Deposit</label>
-              <input id="cap_dep" type="number" step="any" inputmode="decimal" />
-            </div>
-            <div class="field">
-              <label data-i18n="cap.risk">Risk %</label>
-              <input id="cap_risk" type="number" step="any" inputmode="decimal" value="1" />
-            </div>
-            <div class="field">
-              <label data-i18n="cap.lev">Leverage</label>
-              <input id="cap_lev" type="number" step="any" inputmode="decimal" value="1" />
-            </div>
-          </div>
-
-          <div class="chips" aria-label="Risk presets">
-            <div class="small" style="width:100%" data-i18n="cap.presets">Quick risks</div>
-            <button class="chip" data-risk="0.5" type="button">0.5%</button>
-            <button class="chip active" data-risk="1" type="button">1%</button>
-            <button class="chip" data-risk="2" type="button">2%</button>
-            <button class="chip" data-risk="3" type="button">3%</button>
-          </div>
-
-          <div class="row" style="margin-top:8px">
-            <div class="field">
-              <label data-i18n="cap.entry">Entry</label>
-              <input id="cap_entry" type="number" step="any" inputmode="decimal" />
-            </div>
-            <div class="field">
-              <label data-i18n="cap.sl">Stop Loss</label>
-              <input id="cap_sl" type="number" step="any" inputmode="decimal" />
-            </div>
-            <div class="field">
-              <label data-i18n="cap.fee">Fee % (entry+exit)</label>
-              <input id="cap_fee" type="number" step="any" inputmode="decimal" value="0.2" />
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="result" style="flex:1">
+            <div class="result">
               <div>
-                <div class="small" data-i18n="cap.pos">Position size</div>
-                <div><span class="v" id="cap_pos">—</span></div>
+                <div class="small" data-i18n="rr.net">Net R/R (fees)</div>
+                <div><span class="v" id="rr_net">—</span></div>
               </div>
-              <button class="btn ghost" id="cap_copy_pos" type="button" data-i18n="common.copy">Copy</button>
+              <button class="btn ghost" id="rr_copy_net" type="button" data-i18n="common.copy">Copy</button>
             </div>
           </div>
+        </section>
 
-          <div class="row">
-            <div class="result" style="flex:1">
-              <div>
-                <div class="small" data-i18n="cap.riskUsd">Risk $</div>
-                <div><span class="v" id="cap_risk_usd">—</span></div>
+        <!-- Capital -->
+        <section id="cap" class="screen">
+          <div class="card">
+            <div class="row">
+              <div class="field">
+                <label data-i18n="cap.dep">Deposit</label>
+                <input id="cap_dep" type="number" step="any" inputmode="decimal" />
+              </div>
+              <div class="field">
+                <label data-i18n="cap.risk">Risk %</label>
+                <input id="cap_risk" type="number" step="any" inputmode="decimal" value="1" />
+              </div>
+              <div class="field">
+                <label data-i18n="cap.lev">Leverage</label>
+                <input id="cap_lev" type="number" step="any" inputmode="decimal" value="1" />
               </div>
             </div>
-            <div class="result" style="flex:1">
-              <div>
-                <div class="small" data-i18n="cap.margin">Margin (lev)</div>
-                <div><span class="v" id="cap_margin">—</span></div>
+
+            <div class="chips" aria-label="Risk presets">
+              <div class="small" style="width:100%" data-i18n="cap.presets">Quick risks</div>
+              <button class="chip" data-risk="0.5" type="button">0.5%</button>
+              <button class="chip active" data-risk="1" type="button">1%</button>
+              <button class="chip" data-risk="2" type="button">2%</button>
+              <button class="chip" data-risk="3" type="button">3%</button>
+            </div>
+
+            <div class="row" style="margin-top:8px">
+              <div class="field">
+                <label data-i18n="cap.entry">Entry</label>
+                <input id="cap_entry" type="number" step="any" inputmode="decimal" />
+              </div>
+              <div class="field">
+                <label data-i18n="cap.sl">Stop Loss</label>
+                <input id="cap_sl" type="number" step="any" inputmode="decimal" />
+              </div>
+              <div class="field">
+                <label data-i18n="cap.fee">Fee % (entry+exit)</label>
+                <input id="cap_fee" type="number" step="any" inputmode="decimal" value="0.2" />
               </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      <!-- Indicators -->
-      <section id="ind" class="screen">
-        <div class="card">
-          <h3 data-i18n="ind.title">Indicators</h3>
-
-          <div class="row">
-            <div class="field" style="flex:1">
-              <label data-i18n="ind.fg.label">Fear &amp; Greed</label>
-              <div id="fg_value" class="result">
+            <div class="row">
+              <div class="result" style="flex:1">
                 <div>
-                  <div class="small" data-i18n="ind.fg.valueLabel">Value</div>
-                  <div><span class="v" id="fg_text">—</span></div>
+                  <div class="small" data-i18n="cap.pos">Position size</div>
+                  <div><span class="v" id="cap_pos">—</span></div>
+                </div>
+                <button class="btn ghost" id="cap_copy_pos" type="button" data-i18n="common.copy">Copy</button>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="result" style="flex:1">
+                <div>
+                  <div class="small" data-i18n="cap.riskUsd">Risk $</div>
+                  <div><span class="v" id="cap_risk_usd">—</span></div>
                 </div>
               </div>
-            </div>
-            <div class="field" style="flex:1">
-              <label data-i18n="ind.mood.label">Market Mood</label>
-              <div class="result">
+              <div class="result" style="flex:1">
                 <div>
-                  <div class="small" data-i18n="ind.mood.hint">Derived from F&G + Alt dom</div>
-                  <div><span class="v" id="mood">—</span></div>
+                  <div class="small" data-i18n="cap.margin">Margin (lev)</div>
+                  <div><span class="v" id="cap_margin">—</span></div>
                 </div>
               </div>
             </div>
           </div>
+        </section>
 
-          <div class="row">
-            <div class="field" style="flex:1">
-              <label data-i18n="ind.tcap.label">Total Market Cap (USD)</label>
-              <div id="tcap" class="result"><span class="v" id="tcap_text">—</span></div>
+        <!-- Indicators -->
+        <section id="ind" class="screen">
+          <div class="card">
+            <h3 data-i18n="ind.title">Indicators</h3>
+
+            <div class="row">
+              <div class="field" style="flex:1">
+                <label data-i18n="ind.fg.label">Fear &amp; Greed</label>
+                <div id="fg_value" class="result">
+                  <div>
+                    <div class="small" data-i18n="ind.fg.valueLabel">Value</div>
+                    <div><span class="v" id="fg_text">—</span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="field" style="flex:1">
+                <label data-i18n="ind.mood.label">Market Mood</label>
+                <div class="result">
+                  <div>
+                    <div class="small" data-i18n="ind.mood.hint">Derived from F&G + Alt dom</div>
+                    <div><span class="v" id="mood">—</span></div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="field" style="flex:1">
-              <label data-i18n="ind.alt.label">Alt dominance (proxy Altseason)</label>
-              <div id="alt_dom" class="result"><span class="v" id="alt_text">—</span></div>
+
+            <div class="row">
+              <div class="field" style="flex:1">
+                <label data-i18n="ind.tcap.label">Total Market Cap (USD)</label>
+                <div id="tcap" class="result"><span class="v" id="tcap_text">—</span></div>
+              </div>
+              <div class="field" style="flex:1">
+                <label data-i18n="ind.alt.label">Alt dominance (proxy Altseason)</label>
+                <div id="alt_dom" class="result"><span class="v" id="alt_text">—</span></div>
+              </div>
+            </div>
+
+            <div class="controls">
+              <button class="btn" id="refresh_ind" type="button" data-i18n="ind.refresh">Refresh</button>
+              <span class="small" id="ind_note"></span>
+            </div>
+
+            <div class="vizgrid">
+              <div class="viz">
+                <h5 data-i18n="ind.viz.fg">F&G Gauge</h5>
+                <canvas id="fg_canvas" width="600" height="260"></canvas>
+                <div class="big" id="fg_big">—</div>
+                <div class="sub" id="fg_sub">—</div>
+              </div>
+              <div class="viz">
+                <h5 data-i18n="ind.viz.dom">Dominance Split</h5>
+                <canvas id="dom_canvas" width="600" height="260"></canvas>
+                <div class="big" id="dom_big">—</div>
+                <div class="sub" id="dom_sub">—</div>
+              </div>
             </div>
           </div>
+        </section>
 
-          <div class="controls">
-            <button class="btn" id="refresh_ind" type="button" data-i18n="ind.refresh">Refresh</button>
-            <span class="small" id="ind_note"></span>
+        <!-- history -->
+        <aside class="history" aria-live="polite">
+          <h4 data-i18n="hist.title">History</h4>
+          <div class="history-list" id="history_list"></div>
+          <div class="controls" style="margin-top:8px">
+            <button class="btn ghost" id="clear_history" type="button" data-i18n="hist.clear">Clear</button>
           </div>
-
-          <div class="vizgrid">
-            <div class="viz">
-              <h5 data-i18n="ind.viz.fg">F&G Gauge</h5>
-              <canvas id="fg_canvas" width="600" height="260"></canvas>
-              <div class="big" id="fg_big">—</div>
-              <div class="sub" id="fg_sub">—</div>
-            </div>
-            <div class="viz">
-              <h5 data-i18n="ind.viz.dom">Dominance Split</h5>
-              <canvas id="dom_canvas" width="600" height="260"></canvas>
-              <div class="big" id="dom_big">—</div>
-              <div class="sub" id="dom_sub">—</div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-
-    <!-- history -->
-    <aside class="history" aria-live="polite">
-      <h4 data-i18n="hist.title">History</h4>
-      <div class="history-list" id="history_list"></div>
-      <div class="controls" style="margin-top:8px">
-        <button class="btn ghost" id="clear_history" type="button" data-i18n="hist.clear">Clear</button>
+          <div class="note" data-i18n="hist.note">Saved locally in your browser</div>
+        </aside>
       </div>
-      <div class="note" data-i18n="hist.note">Saved locally in your browser</div>
-    </aside>
+    </section>
+
+    <!-- MAIN: SUPPORT -->
+    <section id="main_support" class="main-screen">
+      <div class="support-wrap">
+        <div class="card" style="width:min(820px,100%)">
+          <h3 data-i18n="support.title">Support</h3>
+
+          <div class="small" data-i18n="support.desc" style="margin-bottom:10px">
+            Wallet connection & tips are here. You can also contact support below.
+          </div>
+
+          <div class="controls" style="margin-top:8px">
+            <button class="btn" id="wallet_btn" type="button" aria-label="TON Wallet">
+              <span data-i18n="wallet">Wallet</span>
+            </button>
+
+            <button class="btn" id="tip_btn" type="button" aria-label="Tip TON">
+              <span data-i18n="tip">Tip TON</span>
+            </button>
+          </div>
+
+          <div class="small" style="margin-top:10px" data-i18n="support.docs">
+            Docs: Terms & Privacy are available at /terms.html and /privacy.html
+          </div>
+
+          <div class="controls" style="margin-top:10px">
+            <button class="btn ghost" id="open_terms" type="button">Terms</button>
+            <button class="btn ghost" id="open_privacy" type="button">Privacy</button>
+            <button class="btn ghost" id="open_support" type="button">Contact</button>
+          </div>
+        </div>
+
+        <div style="text-align:center">
+          <div class="support-tags rainbow">AIRDROP • NEWS • TRADING</div>
+          <div class="support-links">
+            <a id="link_telegram" class="rainbow" href="https://t.me/InvestTraderTrade" target="_blank" rel="noopener">TELEGRAM</a>
+            <a id="link_youtube" class="rainbow" href="https://www.youtube.com/@TRADER_TRADE" target="_blank" rel="noopener">YOUTUBE</a>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <footer>
-    <div class="tags" data-i18n="footer.tags">AIRDROP · NEWS · TRADING</div>
-
-    <div class="links">
-      <a class="link" id="link_telegram" href="https://t.me/InvestTraderTrade" target="_blank" rel="noopener">Telegram</a>
-      <a class="link" id="link_youtube" href="https://www.youtube.com/@TRADER_TRADE" target="_blank" rel="noopener">YouTube</a>
-      <a class="link" id="link_terms" href="/terms.html" target="_blank" rel="noopener">Terms</a>
-      <a class="link" id="link_privacy" href="/privacy.html" target="_blank" rel="noopener">Privacy</a>
+  <!-- Bottom main tabs -->
+  <nav class="bottomnav" aria-label="Main tabs">
+    <div class="bar">
+      <button id="main_tab_calc" class="main-tab active" type="button">
+        <span class="ico">🧮</span>
+        <span data-i18n="main.calc">Calculator</span>
+      </button>
+      <button id="main_tab_support" class="main-tab" type="button">
+        <span class="ico">🛟</span>
+        <span data-i18n="main.support">Support</span>
+      </button>
     </div>
-
-    <div class="footer-small">
-      <span data-i18n="footer.support">Support</span>: <a class="link" style="padding:4px 8px" id="link_support" href="https://t.me/popashadurov" target="_blank" rel="noopener">@popashadurov</a>
-      <span style="margin-left:10px" data-i18n="footer.age">Age</span>: 13+
-    </div>
-  </footer>
+  </nav>
 </div>
 
 <div id="toast">—</div>
@@ -726,7 +814,6 @@
     </div>
     <div id="modal_body">
       <div id="modal_canvas_wrap">
-        <!-- Keep high-res internal buffer, CSS will scale -->
         <canvas id="card_canvas" width="900" height="600"></canvas>
       </div>
       <div id="modal_right">
@@ -745,26 +832,64 @@
   try{ tg?.disableVerticalSwipes?.(); }catch(e){}
   try{ tg?.ready?.(); }catch(e){}
 
-  /* CRITICAL FIX (already): exists before setTheme uses it */
+  /* ====== main tabs (Calculator / Support) ====== */
+  const mainCalc = document.getElementById('main_calc');
+  const mainSupport = document.getElementById('main_support');
+  const mainBtnCalc = document.getElementById('main_tab_calc');
+  const mainBtnSupport = document.getElementById('main_tab_support');
+
+  function setMainTab(which){
+    const isCalc = which === 'calc';
+    mainCalc.classList.toggle('active', isCalc);
+    mainSupport.classList.toggle('active', !isCalc);
+
+    mainBtnCalc.classList.toggle('active', isCalc);
+    mainBtnSupport.classList.toggle('active', !isCalc);
+
+    // redraw visuals on tab switch
+    setTimeout(()=>{ try{ drawAllIndicatorVisuals(lastIndicators); }catch(e){} }, 60);
+  }
+  mainBtnCalc?.addEventListener('click', ()=>setMainTab('calc'));
+  mainBtnSupport?.addEventListener('click', ()=>setMainTab('support'));
+
+  /* =========================================================
+     CRITICAL: lastIndicators must exist before setTheme() touches it
+     ========================================================= */
   let lastIndicators = null;
 
+  /* ---------- i18n ---------- */
   const locales = {
     ru:{
+      "main.calc":"Калькулятор",
+      "main.support":"Поддержка",
+      "support.title":"Поддержка / Support",
+      "support.desc":"Здесь подключение кошелька и донат. Контакты и ссылки — ниже.",
+      "support.docs":"Документы: Terms и Privacy доступны по /terms.html и /privacy.html",
+
       "tab.dca":"DCA","tab.rr":"R/R","tab.cap":"Capital","tab.ind":"Indicators",
-      "share":"Поделиться","cardpng":"Карточка PNG","wallet":"Кошелёк","tip":"Донат TON","wallet.disconnectQ":"Отключить кошелёк?","toast.walletNeed":"Сначала подключи кошелёк","toast.sent":"Транзакция отправлена","toast.fail":"Ошибка","toast.tonManifest":"Укажи manifest URL",
+      "share":"Поделиться","cardpng":"Карточка PNG","wallet":"Кошелёк","tip":"Донат TON",
+      "wallet.disconnectQ":"Отключить кошелёк?",
+      "toast.walletNeed":"Сначала подключи кошелёк",
+      "toast.sent":"Транзакция отправлена",
+      "toast.fail":"Ошибка",
+      "toast.tonManifest":"Укажи manifest URL",
       "common.clear":"Очистить","common.copy":"Копировать",
       "toast.copied":"Скопировано!","toast.saved":"Готово",
       "theme.dark":"Тёмная","theme.light":"Светлая",
+
       "dca.tip":"Совет: добавляй несколько входов — калькулятор посчитает среднюю цену, общий объём и сумму.",
       "dca.add":"+ Добавить вход","dca.avg":"Средняя цена","dca.vol":"Общий объём","dca.cost":"Сумма",
       "dca.goalHeader":"DCA Goal","dca.goalOptional":"опционально",
       "dca.goalTitle":"Цель по средней (опционально)","dca.goalPrice":"Целевая средняя цена","dca.nextPrice":"Цена следующей покупки","dca.need":"Нужный объём по next-price",
+
       "rr.entry":"Entry","rr.sl":"Stop Loss","rr.tp":"Take Profit",
       "rr.fee":"Комиссия % (вход+выход)","rr.feeNote":"Показывает net R/R с учётом примерной комиссии.",
       "rr.gross":"Gross R/R","rr.net":"Net R/R (fees)",
+
       "cap.dep":"Депозит","cap.risk":"Риск %","cap.entry":"Entry","cap.sl":"Stop Loss",
       "cap.fee":"Комиссия % (вход+выход)","cap.lev":"Плечо","cap.presets":"Быстрые риски",
       "cap.pos":"Объём позиции","cap.riskUsd":"Риск $","cap.margin":"Маржа (плечо)",
+
       "ind.title":"Индикаторы",
       "ind.fg.label":"Fear & Greed","ind.fg.valueLabel":"Значение",
       "ind.tcap.label":"Общая капитализация (USD)",
@@ -777,34 +902,49 @@
       "ind.rate":"Лимит API/ошибка — попробуй позже",
       "ind.viz.fg":"F&G Gauge",
       "ind.viz.dom":"Split доминации",
+
       "hist.title":"История","hist.clear":"Очистить","hist.note":"Сохранено локально в браузере",
-      "footer.tags":"АИРДРОП · НОВОСТИ · ТРЕЙДИНГ",
-      "footer.support":"Поддержка",
-      "footer.age":"Возраст",
+
       "card.title":"Trade Card",
       "card.download":"Скачать PNG",
       "card.copy":"Копировать",
       "card.help":"Если копирование не работает на устройстве — используй Скачать PNG.",
+
       "consent.title":"Аналитика",
       "consent.accept":"Разрешить",
       "consent.decline":"Отказаться"
     },
     en:{
+      "main.calc":"Calculator",
+      "main.support":"Support",
+      "support.title":"Support",
+      "support.desc":"Wallet connection & tips are here. Contacts and links are below.",
+      "support.docs":"Docs: Terms & Privacy are available at /terms.html and /privacy.html",
+
       "tab.dca":"DCA","tab.rr":"R/R","tab.cap":"Capital","tab.ind":"Indicators",
-      "share":"Share","cardpng":"Card PNG","wallet":"Wallet","tip":"Tip TON","wallet.disconnectQ":"Disconnect wallet?","toast.walletNeed":"Connect wallet first","toast.sent":"Transaction sent","toast.fail":"Error","toast.tonManifest":"Set manifest URL",
+      "share":"Share","cardpng":"Card PNG","wallet":"Wallet","tip":"Tip TON",
+      "wallet.disconnectQ":"Disconnect wallet?",
+      "toast.walletNeed":"Connect wallet first",
+      "toast.sent":"Transaction sent",
+      "toast.fail":"Error",
+      "toast.tonManifest":"Set manifest URL",
       "common.clear":"Clear","common.copy":"Copy",
       "toast.copied":"Copied!","toast.saved":"Done",
       "theme.dark":"Dark","theme.light":"Light",
+
       "dca.tip":"Tip: add multiple entries — app will calculate avg, total volume and cost.",
       "dca.add":"+ Add entry","dca.avg":"Average price","dca.vol":"Total volume","dca.cost":"Total cost",
       "dca.goalHeader":"DCA Goal","dca.goalOptional":"optional",
       "dca.goalTitle":"Target average (optional)","dca.goalPrice":"Target avg price","dca.nextPrice":"Next buy price","dca.need":"Needed volume at next price",
+
       "rr.entry":"Entry","rr.sl":"Stop Loss","rr.tp":"Take Profit",
       "rr.fee":"Fee % (entry+exit)","rr.feeNote":"Shows net R/R: approximates entry+exit fees.",
       "rr.gross":"Gross R/R","rr.net":"Net R/R (fees)",
+
       "cap.dep":"Deposit","cap.risk":"Risk %","cap.entry":"Entry","cap.sl":"Stop Loss",
       "cap.fee":"Fee % (entry+exit)","cap.lev":"Leverage","cap.presets":"Quick risks",
       "cap.pos":"Position size","cap.riskUsd":"Risk $","cap.margin":"Margin (lev)",
+
       "ind.title":"Indicators",
       "ind.fg.label":"Fear & Greed","ind.fg.valueLabel":"Value",
       "ind.tcap.label":"Total Market Cap (USD)",
@@ -817,14 +957,14 @@
       "ind.rate":"API limit/error — try later",
       "ind.viz.fg":"F&G Gauge",
       "ind.viz.dom":"Dominance Split",
+
       "hist.title":"History","hist.clear":"Clear","hist.note":"Saved locally in your browser",
-      "footer.tags":"AIRDROP · NEWS · TRADING",
-      "footer.support":"Support",
-      "footer.age":"Age",
+
       "card.title":"Trade Card",
       "card.download":"Download PNG",
       "card.copy":"Copy",
       "card.help":"If copy doesn't work on your device, use Download PNG.",
+
       "consent.title":"Analytics",
       "consent.accept":"Accept",
       "consent.decline":"Decline"
@@ -838,6 +978,20 @@
   }catch(e){ lang='en'; }
 
   function t(key){ return (locales[lang] && locales[lang][key] !== undefined) ? locales[lang][key] : key; }
+
+  function updateConsentText(){
+    const txt = document.getElementById('consent_text');
+    const links = document.getElementById('consent_links');
+    if(!txt || !links) return;
+
+    if(lang === 'ru'){
+      txt.textContent = 'Разрешить анонимную аналитику для улучшения приложения? (Можно отказаться — калькулятор будет работать.)';
+      links.textContent = 'Документы доступны во вкладке Support.';
+    }else{
+      txt.textContent = 'Allow anonymous analytics to improve the app? (You can decline — the calculator will still work.)';
+      links.textContent = 'Docs are available in the Support tab.';
+    }
+  }
 
   function translateAll(){
     document.querySelectorAll('[data-i18n]').forEach(el=>{
@@ -909,7 +1063,6 @@
     const d = abs>=1000 ? 2 : (abs>=1 ? 6 : digits);
     return n.toLocaleString(undefined,{maximumFractionDigits:d});
   }
-
   function haptic(type='impact', style='light'){
     try{
       if(!tg?.HapticFeedback) return;
@@ -918,7 +1071,7 @@
     }catch(e){}
   }
 
-  /* language buttons */
+  /* language */
   const btnRu=document.getElementById('btn_ru');
   const btnEn=document.getElementById('btn_en');
   function syncLangButtons(){
@@ -930,10 +1083,10 @@
   btnRu?.addEventListener('click', ()=>{ lang='ru'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); updateWalletUI(); });
   btnEn?.addEventListener('click', ()=>{ lang='en'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); updateWalletUI(); });
 
-  /* tabs */
-  document.querySelectorAll('.tab').forEach(btn=>{
+  /* inner calculator tabs */
+  document.querySelectorAll('.subtab').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      document.querySelectorAll('.tab').forEach(tn=>tn.classList.remove('active'));
+      document.querySelectorAll('.subtab').forEach(tn=>tn.classList.remove('active'));
       btn.classList.add('active');
       const target=btn.dataset.tab;
       document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -942,7 +1095,7 @@
     });
   });
   function activeTab(){
-    const act=document.querySelector('.tab.active');
+    const act=document.querySelector('.subtab.active');
     return act?.dataset?.tab || 'dca';
   }
 
@@ -1060,7 +1213,6 @@
       }catch(e2){ return false; }
     }
   }
-
   function bindCopy(btn, getVal){
     if(!btn) return;
     btn.addEventListener('click', async ()=>{
@@ -1405,9 +1557,7 @@
       btnCard.className='mini';
       btnCard.type='button';
       btnCard.textContent='PNG';
-      btnCard.addEventListener('click', ()=>{
-        exportCardPNG({fromHistory:true, historyItem:it});
-      });
+      btnCard.addEventListener('click', ()=>{ exportCardPNG({fromHistory:true, historyItem:it}); });
 
       const btnCopy=document.createElement('button');
       btnCopy.className='mini';
@@ -1470,7 +1620,7 @@
     }
   }
 
-  /* links */
+  /* links/open */
   function openUrl(url){
     try{
       if(tg?.openLink) return tg.openLink(url);
@@ -1480,11 +1630,12 @@
   }
   document.getElementById('link_telegram')?.addEventListener('click', e=>{ e.preventDefault(); openUrl('https://t.me/InvestTraderTrade');});
   document.getElementById('link_youtube')?.addEventListener('click', e=>{ e.preventDefault(); openUrl('https://www.youtube.com/@TRADER_TRADE');});
-  document.getElementById('link_terms')?.addEventListener('click', e=>{ e.preventDefault(); openUrl(location.origin + '/terms.html');});
-  document.getElementById('link_privacy')?.addEventListener('click', e=>{ e.preventDefault(); openUrl(location.origin + '/privacy.html');});
-  document.getElementById('link_support')?.addEventListener('click', e=>{ e.preventDefault(); openUrl('https://t.me/popashadurov');});
 
-  /* trade card PNG */
+  document.getElementById('open_terms')?.addEventListener('click', ()=>openUrl(location.origin + '/terms.html'));
+  document.getElementById('open_privacy')?.addEventListener('click', ()=>openUrl(location.origin + '/privacy.html'));
+  document.getElementById('open_support')?.addEventListener('click', ()=>openUrl('https://t.me/popashadurov'));
+
+  /* card modal */
   const modalBackdrop=document.getElementById('modal_backdrop');
   const modalClose=document.getElementById('modal_close');
   const cardCanvas=document.getElementById('card_canvas');
@@ -1578,7 +1729,6 @@
         {k:'COST', v: dcaTotalCostEl.textContent},
       ];
 
-      // Fix: show DCA Goal as separate lines (instead of “GOAL NEED”)
       if(goal > 0) lines.push({k:'Goal AVG', v: fmt(goal, 10)});
       if(next > 0) lines.push({k:'Next Price', v: fmt(next, 10)});
       if(dcaNeedVol.textContent.trim() !== '—') lines.push({k:'Need VOL', v: dcaNeedVol.textContent});
@@ -1658,6 +1808,7 @@
   const TIP_AMOUNT_TON = 0.05;
 
   let tonConnectUI = null;
+
   function shortAddr(addr){
     if(!addr) return '';
     return addr.length > 12 ? (addr.slice(0,4) + '…' + addr.slice(-4)) : addr;
@@ -1681,21 +1832,21 @@
     const tipBtn = document.getElementById('tip_btn');
     if(!wBtn || !tipBtn) return;
 
-    const lbl = wBtn.querySelector('.lbl');
     if(!tonConnectUI){
       wBtn.disabled = true;
       tipBtn.disabled = true;
-      if(lbl) lbl.textContent = t('wallet');
+      wBtn.textContent = t('wallet');
+      tipBtn.textContent = t('tip');
       return;
     }
     wBtn.disabled = false;
 
     if(tonConnectUI.connected){
       const addr = tonConnectUI.account?.address || '';
-      if(lbl) lbl.textContent = shortAddr(addr) || t('wallet');
+      wBtn.textContent = shortAddr(addr) || t('wallet');
       tipBtn.disabled = false;
     }else{
-      if(lbl) lbl.textContent = t('wallet');
+      wBtn.textContent = t('wallet');
       tipBtn.disabled = true;
     }
   }
@@ -1791,42 +1942,19 @@
     if(ok){ showToast(t('toast.copied')); haptic('notify','success'); }
   });
 
-  /* analytics consent (Apps Center friendly) */
+  /* analytics consent */
   const CONSENT_KEY = 'tc_analytics_consent_v1';
   const consentBackdrop = document.getElementById('consent_backdrop');
   const consentAccept = document.getElementById('consent_accept');
   const consentDecline = document.getElementById('consent_decline');
 
-  function updateConsentText(){
-    const txt = document.getElementById('consent_text');
-    const links = document.getElementById('consent_links');
-    if(!txt || !links) return;
-
-    if(lang === 'ru'){
-      txt.textContent = 'Разрешить анонимную аналитику для улучшения приложения? (Можно отказаться — калькулятор будет работать.)';
-      links.textContent = 'Документы: Terms и Privacy доступны внизу приложения.';
-    }else{
-      txt.textContent = 'Allow anonymous analytics to improve the app? (You can decline — the calculator will still work.)';
-      links.textContent = 'Docs: Terms & Privacy are available in the footer.';
-    }
-  }
-
-  function showConsent(){
-    if(consentBackdrop) consentBackdrop.style.display = 'flex';
-  }
-  function hideConsent(){
-    if(consentBackdrop) consentBackdrop.style.display = 'none';
-  }
+  function showConsent(){ if(consentBackdrop) consentBackdrop.style.display = 'flex'; }
+  function hideConsent(){ if(consentBackdrop) consentBackdrop.style.display = 'none'; }
 
   function ensureConsent(){
     const v = localStorage.getItem(CONSENT_KEY);
-    if(v === 'yes'){
-      loadAnalyticsSdkOnce();
-      return;
-    }
-    if(v === 'no'){
-      return;
-    }
+    if(v === 'yes'){ loadAnalyticsSdkOnce(); return; }
+    if(v === 'no'){ return; }
     showConsent();
   }
 
