@@ -4,14 +4,14 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Trader Calculator</title>
+
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <script>
-  
   function initAnalytics() {
     try{
       if(!window.telegramAnalytics) return;
-      const token='REPLACE_WITH_YOUR_TG_ANALYTICS_TOKEN';
+      const token='eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=';
       const appName='REPLACE_WITH_YOUR_ANALYTICS_IDENTIFIER';
       if(token.startsWith('REPLACE_') || appName.startsWith('REPLACE_')) return;
       window.telegramAnalytics.init({ token, appName });
@@ -20,8 +20,8 @@
 </script>
 <script async src="https://tganalytics.xyz/index.js" onload="initAnalytics()" type="text/javascript"></script>
 
-
 <script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
+
 <style>
 :root{
   --bg:#000;
@@ -350,7 +350,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
         <span class="lbl" data-i18n="tip">Tip TON</span>
       </button>
 
-
       <button class="iconbtn" id="theme_toggle" type="button" aria-label="Theme">
         <span class="ico" id="theme_icon">🌙</span>
         <span class="lbl" id="theme_text">Dark</span>
@@ -610,7 +609,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
 
         </div>
       </section>
-
     </div>
 
     <!-- history -->
@@ -660,8 +658,14 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
   /* ---------- telegram init ---------- */
   const tg = window.Telegram?.WebApp || null;
   try{ tg?.expand?.(); }catch(e){}
-  try{ tg?.disableVerticalSwipes?.(); }catch(e){} // reduce accidental position changes in TWA
+  try{ tg?.disableVerticalSwipes?.(); }catch(e){}
   try{ tg?.ready?.(); }catch(e){}
+
+  /* =========================================================
+     CRITICAL FIX:
+     lastIndicators must exist BEFORE setTheme() touches it.
+     ========================================================= */
+  let lastIndicators = null;
 
   /* ---------- i18n ---------- */
   const locales = {
@@ -749,7 +753,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
         el.textContent = locales[lang][k];
       }
     });
-    // also update theme label
     updateThemeUI();
   }
 
@@ -777,6 +780,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem(THEME_KEY, theme);
     updateThemeUI();
+    // safe even if null
     drawAllIndicatorVisuals(lastIndicators);
   }
   function updateThemeUI(){
@@ -784,6 +788,8 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     const icon=document.getElementById('theme_icon');
     const text=document.getElementById('theme_text');
     const btn=document.getElementById('theme_toggle');
+    if(!icon || !text || !btn) return;
+
     if(theme==='light'){
       icon.textContent='☀️';
       text.textContent=t('theme.light');
@@ -795,7 +801,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     }
   }
   setTheme(getInitialTheme());
-  document.getElementById('theme_toggle').addEventListener('click', ()=>{
+  document.getElementById('theme_toggle')?.addEventListener('click', ()=>{
     const current=document.documentElement.getAttribute('data-theme')||'dark';
     setTheme(current==='dark'?'light':'dark');
   });
@@ -809,7 +815,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     const d = abs>=1000 ? 2 : (abs>=1 ? 6 : digits);
     return n.toLocaleString(undefined,{maximumFractionDigits:d});
   }
-  function now(){ return Date.now(); }
 
   function haptic(type='impact', style='light'){
     try{
@@ -823,13 +828,13 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
   const btnRu=document.getElementById('btn_ru');
   const btnEn=document.getElementById('btn_en');
   function syncLangButtons(){
+    if(!btnRu || !btnEn) return;
     if(lang==='ru'){ btnRu.classList.add('active'); btnEn.classList.remove('active'); }
     else { btnEn.classList.add('active'); btnRu.classList.remove('active'); }
   }
-  // Set the correct active state on first load
   syncLangButtons();
-  btnRu.addEventListener('click', ()=>{ lang='ru'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); (typeof updateWalletUI==='function') && updateWalletUI(); });
-  btnEn.addEventListener('click', ()=>{ lang='en'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); (typeof updateWalletUI==='function') && updateWalletUI(); });
+  btnRu?.addEventListener('click', ()=>{ lang='ru'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); (typeof updateWalletUI==='function') && updateWalletUI(); });
+  btnEn?.addEventListener('click', ()=>{ lang='en'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); (typeof updateWalletUI==='function') && updateWalletUI(); });
 
   /* ---------- tabs ---------- */
   document.querySelectorAll('.tab').forEach(btn=>{
@@ -839,7 +844,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
       const target=btn.dataset.tab;
       document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
       document.getElementById(target)?.classList.add('active');
-      if(target==='ind' && document.getElementById('tcap').textContent.trim()==='—') fetchIndicators();
+      if(target==='ind' && document.getElementById('tcap')?.textContent?.trim()==='—') fetchIndicators();
     });
   });
   function activeTab(){
@@ -925,11 +930,9 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     dcaTotalVolEl.textContent = fmt(totalVol, 8);
     dcaTotalCostEl.textContent = fmt(totalCost, 2);
 
-    // goal calc: find needed volume at next price to reach target average
     const target=safeNum(dcaGoal.value);
     const nextP=safeNum(dcaNext.value);
     if(target>0 && nextP>0 && nextP!==target){
-      // (totalCost + nextP*x) / (totalVol + x) = target  => x = (target*totalVol - totalCost) / (nextP - target)
       const x=(target*totalVol - totalCost) / (nextP - target);
       if(isFinite(x) && x>0){
         dcaNeedVol.textContent = fmt(x, 8);
@@ -939,8 +942,8 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     return {avg, totalVol, totalCost};
   }
 
-  document.getElementById('dca_add').addEventListener('click', ()=>addDcaRow());
-  document.getElementById('dca_clear').addEventListener('click', clearDCA);
+  document.getElementById('dca_add')?.addEventListener('click', ()=>addDcaRow());
+  document.getElementById('dca_clear')?.addEventListener('click', clearDCA);
   dcaGoal.addEventListener('input', calcDCA);
   dcaNext.addEventListener('input', calcDCA);
 
@@ -976,10 +979,8 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     });
   }
 
-  const dcaCopyBtn=document.getElementById('dca_copy');
-  const dcaNeedCopyBtn=document.getElementById('dca_need_copy');
-  bindCopy(dcaCopyBtn, ()=>dcaAvgEl.textContent);
-  bindCopy(dcaNeedCopyBtn, ()=>dcaNeedVol.textContent);
+  bindCopy(document.getElementById('dca_copy'), ()=>dcaAvgEl.textContent);
+  bindCopy(document.getElementById('dca_need_copy'), ()=>dcaNeedVol.textContent);
 
   /* ---------- RR ---------- */
   const rrEntry=document.getElementById('rr_entry');
@@ -1005,11 +1006,10 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     const gross=(reward/risk);
     rrGross.textContent = '1:' + gross.toFixed(2);
 
-    // net: approximate fees reduce reward and increase risk slightly
     const feeEntry = e*fee;
     const feeExit  = tp*fee;
     const netReward = Math.max(0, reward - (feeEntry+feeExit));
-    const net=(netReward / (risk + feeEntry)); // conservative
+    const net=(netReward / (risk + feeEntry));
     rrNet.textContent = '1:' + net.toFixed(2);
     return {gross, net};
   }
@@ -1054,14 +1054,12 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     }
 
     const riskUsd=dep*rp;
-    // price movement per 1 unit position, include fee estimate
-    const move=Math.abs(e-sl) + (e*fee); // entry fee increases effective risk
+    const move=Math.abs(e-sl) + (e*fee);
     const pos = riskUsd / move;
 
     capPos.textContent = fmt(pos, 8);
     capRiskUsd.textContent = fmt(riskUsd, 2);
 
-    // margin estimate (simplified): notional / leverage
     const notional = pos * e;
     capMargin.textContent = fmt(notional/lev, 2);
     return {pos};
@@ -1076,7 +1074,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
   const moodEl=document.getElementById('mood');
   const indNote=document.getElementById('ind_note');
 
-  let lastIndicators=null;
   const IND_CACHE_KEY='tc_ind_cache_v2';
 
   function saveIndicatorsCache(data){
@@ -1094,7 +1091,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
 
   function computeMood(fgValue, altDom){
     if(!isFinite(fgValue) || !isFinite(altDom)) return '—';
-    // simple heuristic
     if(fgValue>=70 && altDom<45) return lang==='ru'?'Риск-он (BTC фокус)':'Risk-on (BTC focus)';
     if(fgValue>=70 && altDom>=45) return lang==='ru'?'Альт-рост':'Alt rally';
     if(fgValue<=30 && altDom<45) return lang==='ru'?'Страх / защитный режим':'Fear / defensive';
@@ -1113,9 +1109,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
       const d=j?.data?.[0];
       fgVal = d ? Number(d.value) : null;
       fgClass = d?.value_classification || '—';
-    }catch(e){
-      // ignore
-    }
+    }catch(e){}
 
     try{
       const res2 = await fetch('https://api.coingecko.com/api/v3/global', {cache:'no-store'});
@@ -1123,11 +1117,8 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
       const j2 = await res2.json();
       totalMc = j2?.data?.total_market_cap?.usd ?? null;
       btcDom = j2?.data?.market_cap_percentage?.btc ?? null;
-    }catch(e){
-      // ignore
-    }
+    }catch(e){}
 
-    // apply
     if(isFinite(fgVal)){
       fgText.textContent = `${fgVal} · ${fgClass}`;
     }else{
@@ -1144,14 +1135,14 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     }else altText.textContent='—';
 
     moodEl.textContent = computeMood(fgVal ?? NaN, altDom ?? NaN);
+
     lastIndicators = { fgVal, fgClass, totalMc, btcDom, altDom };
     saveIndicatorsCache(lastIndicators);
 
     drawAllIndicatorVisuals(lastIndicators);
     indNote.textContent='';
   }
-
-  document.getElementById('refresh_ind').addEventListener('click', fetchIndicators);
+  document.getElementById('refresh_ind')?.addEventListener('click', fetchIndicators);
 
   /* visuals */
   function drawGauge(canvas, value){
@@ -1160,7 +1151,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     const w=canvas.width, h=canvas.height;
     ctx.clearRect(0,0,w,h);
 
-    // background arc
     const cx=w/2, cy=h*0.9;
     const r=Math.min(w*0.42, h*0.75);
     const start=Math.PI, end=0;
@@ -1168,7 +1158,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     ctx.lineWidth = Math.max(18, r*0.12);
     ctx.lineCap='round';
 
-    // base
     ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#222';
     ctx.beginPath();
     ctx.arc(cx,cy,r,start,end,false);
@@ -1179,13 +1168,11 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     const clamped=Math.max(0, Math.min(100, value));
     const angle = start + (end-start) * (clamped/100);
 
-    // active
     ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7CFC00';
     ctx.beginPath();
     ctx.arc(cx,cy,r,start,angle,false);
     ctx.stroke();
 
-    // needle
     ctx.save();
     ctx.translate(cx,cy);
     ctx.rotate(angle - Math.PI);
@@ -1198,7 +1185,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     ctx.fill();
     ctx.restore();
 
-    // center dot
     ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#fff';
     ctx.beginPath();
     ctx.arc(cx,cy,6,0,Math.PI*2);
@@ -1218,7 +1204,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     const accent=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7CFC00';
     const muted=getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() || '#999';
 
-    // base ring
     ctx.fillStyle = border;
     ctx.beginPath();
     ctx.arc(cx,cy,r,0,Math.PI*2);
@@ -1231,12 +1216,9 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     if(!isFinite(btcDom)) return;
 
     const btc = Math.max(0, Math.min(100, btcDom));
-    const alt = 100 - btc;
-
     const a0=-Math.PI/2;
     const aB = a0 + (Math.PI*2)*(btc/100);
 
-    // BTC slice
     ctx.fillStyle = accent;
     ctx.beginPath();
     ctx.moveTo(cx,cy);
@@ -1244,7 +1226,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     ctx.closePath();
     ctx.fill();
 
-    // ALT slice
     ctx.fillStyle = muted;
     ctx.beginPath();
     ctx.moveTo(cx,cy);
@@ -1252,7 +1233,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     ctx.closePath();
     ctx.fill();
 
-    // inner cutout
     ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--panel').trim() || '#0b0b0b';
     ctx.beginPath();
     ctx.arc(cx,cy,inner,0,Math.PI*2);
@@ -1286,7 +1266,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     }
   }
 
-  // initial cache
   const cached=loadIndicatorsCache();
   if(cached?.data){
     lastIndicators=cached.data;
@@ -1321,7 +1300,7 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
       list.appendChild(el);
       return;
     }
-    arr.forEach((it, idx)=>{
+    arr.forEach((it)=>{
       const node=document.createElement('div');
       node.className='hist-item';
       const dt=new Date(it.t).toLocaleString();
@@ -1355,12 +1334,11 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
       list.appendChild(node);
     });
   }
-  document.getElementById('clear_history').addEventListener('click', ()=>{
+  document.getElementById('clear_history')?.addEventListener('click', ()=>{
     localStorage.removeItem(HISTORY_KEY);
     renderHistory();
   });
 
-  // history push throttled (avoid spam on every keystroke)
   let lastPushAt=0;
   function pushHistoryIfReady(){
     const tnow=Date.now();
@@ -1408,8 +1386,8 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     }catch(e){}
     window.open(url,'_blank');
   }
-  document.getElementById('link_telegram').addEventListener('click', e=>{ e.preventDefault(); openUrl('https://t.me/InvestTraderTrade');});
-  document.getElementById('link_youtube').addEventListener('click', e=>{ e.preventDefault(); openUrl('https://www.youtube.com/@TRADER_TRADE');});
+  document.getElementById('link_telegram')?.addEventListener('click', e=>{ e.preventDefault(); openUrl('https://t.me/InvestTraderTrade');});
+  document.getElementById('link_youtube')?.addEventListener('click', e=>{ e.preventDefault(); openUrl('https://www.youtube.com/@TRADER_TRADE');});
 
   /* ---------- trade card PNG ---------- */
   const modalBackdrop=document.getElementById('modal_backdrop');
@@ -1420,8 +1398,19 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
 
   function openModal(){ modalBackdrop.style.display='flex'; }
   function closeModal(){ modalBackdrop.style.display='none'; }
-  modalClose.addEventListener('click', closeModal);
-  modalBackdrop.addEventListener('click', (e)=>{ if(e.target===modalBackdrop) closeModal(); });
+  modalClose?.addEventListener('click', closeModal);
+  modalBackdrop?.addEventListener('click', (e)=>{ if(e.target===modalBackdrop) closeModal(); });
+
+  function roundRect(ctx,x,y,w,h,r){
+    const rr = Math.min(r, w/2, h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rr,y);
+    ctx.arcTo(x+w,y,x+w,y+h,rr);
+    ctx.arcTo(x+w,y+h,x,y+h,rr);
+    ctx.arcTo(x,y+h,x,y,rr);
+    ctx.arcTo(x,y,x+w,y,rr);
+    ctx.closePath();
+  }
 
   function drawCard({title, lines}){
     const ctx=cardCanvas.getContext('2d');
@@ -1436,11 +1425,9 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     const muted = theme==='light' ? '#5f6675' : '#a8a8a8';
     const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || (theme==='light' ? '#2d8cff' : '#7CFC00');
 
-    // bg
     ctx.fillStyle=bg;
     ctx.fillRect(0,0,w,h);
 
-    // panel
     const pad=30;
     const r=24;
     roundRect(ctx, pad, pad, w-pad*2, h-pad*2, r);
@@ -1450,7 +1437,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     ctx.strokeStyle=border;
     ctx.stroke();
 
-    // header
     ctx.fillStyle=text;
     ctx.font='800 44px Inter, Arial';
     ctx.fillText('Trader Calculator', pad+28, pad+64);
@@ -1459,7 +1445,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     ctx.fillStyle=accent;
     ctx.fillText(title, pad+28, pad+118);
 
-    // lines
     ctx.fillStyle=text;
     ctx.font='800 30px Inter, Arial';
     let y=pad+175;
@@ -1473,21 +1458,9 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
       y+=46;
     });
 
-    // footer tag
     ctx.fillStyle=muted;
     ctx.font='900 22px Inter, Arial';
     ctx.fillText('AIRDROP · NEWS · TRADING', pad+28, h-pad-22);
-  }
-
-  function roundRect(ctx,x,y,w,h,r){
-    const rr = Math.min(r, w/2, h/2);
-    ctx.beginPath();
-    ctx.moveTo(x+rr,y);
-    ctx.arcTo(x+w,y,x+w,y+h,rr);
-    ctx.arcTo(x+w,y+h,x,y+h,rr);
-    ctx.arcTo(x,y+h,x,y,rr);
-    ctx.arcTo(x,y,x+w,y,rr);
-    ctx.closePath();
   }
 
   function buildCardData({fromHistory, historyItem}){
@@ -1502,34 +1475,25 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     }
     const tab=activeTab();
     if(tab==='dca'){
-      return {
-        title:'DCA',
-        lines:[
-          {k:'AVG', v: dcaAvgEl.textContent},
-          {k:'VOL', v: dcaTotalVolEl.textContent},
-          {k:'COST', v: dcaTotalCostEl.textContent},
-          {k:'GOAL NEED', v: dcaNeedVol.textContent}
-        ]
-      };
+      return { title:'DCA', lines:[
+        {k:'AVG', v: dcaAvgEl.textContent},
+        {k:'VOL', v: dcaTotalVolEl.textContent},
+        {k:'COST', v: dcaTotalCostEl.textContent},
+        {k:'GOAL NEED', v: dcaNeedVol.textContent}
+      ]};
     }
     if(tab==='rr'){
-      return {
-        title:'R/R',
-        lines:[
-          {k:'Gross', v: rrGross.textContent},
-          {k:'Net', v: rrNet.textContent}
-        ]
-      };
+      return { title:'R/R', lines:[
+        {k:'Gross', v: rrGross.textContent},
+        {k:'Net', v: rrNet.textContent}
+      ]};
     }
     if(tab==='cap'){
-      return {
-        title:'Capital',
-        lines:[
-          {k:'POS', v: capPos.textContent},
-          {k:'Risk $', v: capRiskUsd.textContent},
-          {k:'Margin $', v: capMargin.textContent}
-        ]
-      };
+      return { title:'Capital', lines:[
+        {k:'POS', v: capPos.textContent},
+        {k:'Risk $', v: capRiskUsd.textContent},
+        {k:'Margin $', v: capMargin.textContent}
+      ]};
     }
     return {title:'Trader', lines:[{k:'—',v:'—'}]};
   }
@@ -1569,25 +1533,22 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     openModal();
   }
 
-  btnDownload.addEventListener('click', downloadPng);
-  btnCopyImg.addEventListener('click', async ()=>{
+  btnDownload?.addEventListener('click', downloadPng);
+  btnCopyImg?.addEventListener('click', async ()=>{
     const ok = await tryCopyImage();
     if(ok){
       showToast(t('toast.copied'));
       haptic('notify','success');
     }else{
-      // fallback to download
       await downloadPng();
     }
   });
 
-  document.getElementById('card_btn').addEventListener('click', ()=>{ exportCardPNG({fromHistory:false}); });
+  document.getElementById('card_btn')?.addEventListener('click', ()=>{ exportCardPNG({fromHistory:false}); });
 
-  /* ---------- TON Connect (TON-only wallet via TON Connect SDK) ---------- */
-  // 1) Create https://YOUR_DOMAIN/tonconnect-manifest.json (see manifest template below).
-  // 2) Put the manifest URL here:
+  /* ---------- TON Connect ---------- */
+  // Best practice: keep manifest in root: https://yourdomain/tonconnect-manifest.json
   const TONCONNECT_MANIFEST_URL = 'https://YOUR_DOMAIN/tonconnect-manifest.json';
-  // Optional: TON tip settings (set your TON address)
   const TIP_ADDRESS = 'REPLACE_WITH_YOUR_TON_ADDRESS';
   const TIP_AMOUNT_TON = 0.05;
 
@@ -1649,13 +1610,11 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
         manifestUrl: TONCONNECT_MANIFEST_URL
       });
 
-      // React to connect/disconnect
       tonConnectUI.onStatusChange(() => {
         updateWalletUI();
         haptic('notify','success');
       });
 
-      // Restore previous session if any
       tonConnectUI.connectionRestored?.then(() => updateWalletUI()).catch(() => {});
       updateWalletUI();
     }catch(e){
@@ -1679,10 +1638,8 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
         }
       }else{
         await tonConnectUI.openModal();
-        // UI will update via onStatusChange
       }
     }catch(e){
-      // some abort errors are uncaught by sdk on certain wallets; keep UI stable
       updateWalletUI();
     }
   });
@@ -1713,9 +1670,8 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
 
   initTonConnect();
 
-
-  /* ---------- Share text (clipboard / share sheet) ---------- */
-  document.getElementById('share_btn').addEventListener('click', async ()=>{
+  /* ---------- Share text ---------- */
+  document.getElementById('share_btn')?.addEventListener('click', async ()=>{
     const tab=activeTab();
     let text='📊 Trader Calculator\n';
     if(tab==='dca'){
@@ -1729,7 +1685,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
       text += `POS: ${capPos.textContent}\nRisk$: ${capRiskUsd.textContent}\nMargin$: ${capMargin.textContent}\n`;
     }
 
-    // try share sheet in Telegram / Web
     try{
       if(navigator.share){
         await navigator.share({text});
@@ -1743,7 +1698,6 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
 
   /* ---------- init ---------- */
   function refreshAll(){
-    // ensure labels in dynamic DCA rows match language (simple update)
     dcaRows.forEach(r=>{
       const labels=r.el.querySelectorAll('label');
       if(labels[0]) labels[0].textContent = (lang==='ru'?'Цена':'Price');
@@ -1755,31 +1709,24 @@ html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02)
     drawAllIndicatorVisuals(lastIndicators);
   }
 
-  // initial content
   translateAll();
-  clearDCA(); // creates 2 rows
+  clearDCA();
   calcRR(); calcCap();
   renderHistory();
 
-  // gentle first refresh after render
   setTimeout(()=>{ try{ refreshAll(); }catch(e){} }, 60);
 
-  // auto refresh indicators when opening Indicators tab first time
   document.addEventListener('visibilitychange', ()=>{
     if(document.visibilityState==='visible'){
-      // optional: refresh cached visuals
       drawAllIndicatorVisuals(lastIndicators);
     }
   });
 
-  window.refreshAll = refreshAll; // for safety
+  window.refreshAll = refreshAll;
   window.addEventListener('resize', ()=>{ drawAllIndicatorVisuals(lastIndicators); });
 
-  // If opened directly in browser, you can still use app.
-  // In Telegram, keep stable layout
   try{
     tg?.onEvent?.('viewportChanged', ()=>{
-      // prevent layout jumps
       setTimeout(()=>drawAllIndicatorVisuals(lastIndicators), 150);
     });
   }catch(e){}
