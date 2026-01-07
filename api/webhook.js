@@ -1,7 +1,6 @@
 const { bot } = require("../support-bot");
 
 module.exports = async (req, res) => {
-  // Healthcheck
   if (req.method === "GET") {
     res.status(200).send("OK");
     return;
@@ -13,7 +12,6 @@ module.exports = async (req, res) => {
   }
 
   try {
-  
     const chunks = [];
     for await (const c of req) chunks.push(c);
     const raw = Buffer.concat(chunks).toString("utf8");
@@ -22,6 +20,8 @@ module.exports = async (req, res) => {
     bot.processUpdate(update);
     res.status(200).send("ok");
   } catch (e) {
-    res.status(200).send("ok"); 
+    console.error("webhook error:", e);
+    // Telegram должен получить 200, иначе будут ретраи
+    res.status(200).send("ok");
   }
 };
