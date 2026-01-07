@@ -1,11 +1,4 @@
 // support-bot.js
-// Fast + resilient Telegram support bot for Vercel webhook runtime.
-// - Language selection via buttons (RU/EN)
-// - Main actions via buttons (New ticket / Status / Close / Help / Change language)
-// - Forum topics in support group (fallback if forum disabled)
-// - Robust retries for "socket hang up"/ECONNRESET + timeouts + keep-alive
-// - No duplicate handlers, no spammy rate-limit replies
-
 const TelegramBot = require("node-telegram-bot-api");
 const store = require("./store");
 const https = require("https");
@@ -21,7 +14,6 @@ if (!BOT_TOKEN) throw new Error("SUPPORT_BOT_TOKEN is not set");
 const SUPPORT_GROUP_ID = Number(process.env.SUPPORT_GROUP_ID);
 if (!Number.isFinite(SUPPORT_GROUP_ID)) throw new Error("SUPPORT_GROUP_ID must be a number");
 
-// Optional: comma-separated admin user IDs. If empty -> everyone in group is treated as admin.
 const ADMIN_USER_IDS = (process.env.ADMIN_USER_IDS || "")
   .split(",")
   .map((x) => x.trim())
@@ -59,14 +51,13 @@ const I18N = {
     btnLang: "🌐 Language",
     help:
       "Send your question here — I will forward it to support and you will receive the reply here.\n\nTips:\n• One ticket = one conversation thread.\n• If you send many messages too fast, I may ask you to slow down.",
-    noLang: "Please choose language first.",
-    created: (n) => `✅ New ticket created. Ticket #${n}\nNow send your message.`,
-    sent: (n) => `✅ Sent to support. Ticket #${n}`,
     busy: "⚠️ Support channel is busy right now. Try again in a few seconds.",
     tooFast: (sec) => `⏳ Too fast. Wait ${sec}s and send again.`,
     statusNone: "You have no open ticket right now.",
     statusOpen: (n, since, last) =>
       `📌 Ticket #${n}\nCreated: ${since}\nLast activity: ${last}\n\nSend a message to continue.`,
+    created: (n) => `✅ New ticket created. Ticket #${n}\nNow send your message.`,
+    sent: (n) => `✅ Sent to support. Ticket #${n}`,
     closed: (n) => `🧾 Ticket #${n}: CLOSED`,
     closedNone: "You don't have an open ticket to close.",
     langSet: (lng) => `✅ Language set: ${lng === "ru" ? "Русский" : "English"}`,
@@ -82,14 +73,13 @@ const I18N = {
     btnLang: "🌐 Язык",
     help:
       "Отправь вопрос сюда — я передам его в поддержку, а ответ придёт сюда же.\n\nПодсказки:\n• Один тикет = один диалог.\n• Если отправляешь слишком часто, я попрошу замедлиться.",
-    noLang: "Сначала выбери язык.",
-    created: (n) => `✅ Создан новый тикет. Тикет #${n}\nТеперь отправь сообщение.`,
-    sent: (n) => `✅ Отправлено в поддержку. Тикет #${n}`,
     busy: "⚠️ Канал поддержки сейчас перегружен. Попробуй ещё раз через несколько секунд.",
     tooFast: (sec) => `⏳ Слишком часто. Подожди ${sec}с и отправь снова.`,
     statusNone: "У тебя сейчас нет открытого тикета.",
     statusOpen: (n, since, last) =>
       `📌 Тикет #${n}\nСоздан: ${since}\nПоследняя активность: ${last}\n\nОтправь сообщение, чтобы продолжить.`,
+    created: (n) => `✅ Создан новый тикет. Тикет #${n}\nТеперь отправь сообщение.`,
+    sent: (n) => `✅ Отправлено в поддержку. Тикет #${n}`,
     closed: (n) => `🧾 Тикет #${n}: ЗАКРЫТ`,
     closedNone: "У тебя нет открытого тикета, который можно закрыть.",
     langSet: (lng) => `✅ Язык установлен: ${lng === "ru" ? "Русский" : "English"}`,
@@ -108,11 +98,10 @@ function t(lang, key, ...args) {
   return typeof v === "function" ? v(...args) : v;
 }
 
-/* ----------------- store helpers (robust JSON) ----------------- */
+/* ----------------- store helpers ----------------- */
 async function getAny(key) {
   return await store.get(key);
 }
-
 async function getJSON(key) {
   const v = await getAny(key);
   if (v == null) return null;
@@ -120,32 +109,28 @@ async function getJSON(key) {
     try {
       return JSON.parse(v);
     } catch {
-      return v; // string raw
+      return v;
     }
   }
-  return v; // object/number/etc
+  return v;
 }
-
 async function setJSON(key, val) {
-  // Upstash SDK usually serializes objects fine, but we keep it safe.
-  // For in-memory Map, object is perfect.
   await store.set(key, val);
 }
-
 async function delKey(key) {
   await store.del(key);
 }
 
 /* ----------------- keys ----------------- */
 const kUser = (uid) => `user:${uid}`;
-const kTicket = (uid) => `ticket:${uid}`; // open ticket pointer
+const kTicket = (uid) => `ticket:${uid}`;
 const kTopicToUser = (topicId) => `topic:${topicId}`;
 const kMap = (chatId, msgId) => `map:${chatId}:${msgId}`;
 const kSeq = `ticketSeq`;
 const kRL = (uid) => `rl:${uid}`;
 const kRLWarn = (uid) => `rlw:${uid}`;
 const kAck = (uid) => `ack:${uid}`;
-const kForumFlag = `forum_ok`; // boolean
+const kForumFlag = `forum_ok`;
 
 /* ----------------- formatting ----------------- */
 function safeUsername(u) {
@@ -154,7 +139,6 @@ function safeUsername(u) {
   const name = [u.first_name, u.last_name].filter(Boolean).join(" ").trim();
   return name || "";
 }
-
 function fmtTime(ts) {
   try {
     return new Date(ts).toLocaleString();
@@ -168,9 +152,7 @@ function isSocketHangup(e) {
   const msg = String(e?.message || "");
   return e?.code === "ECONNRESET" || msg.includes("socket hang up") || msg.includes("ETIMEDOUT");
 }
-
 function parseRetryAfter(e) {
-  // Telegram 429: e.response.body.parameters.retry_after
   const ra = e?.response?.body?.parameters?.retry_after;
   const n = Number(ra);
   return Number.isFinite(n) ? n : null;
@@ -189,13 +171,10 @@ async function withRetry(fn, tries = 4) {
         await new Promise((r) => setTimeout(r, Math.min(8000, retryAfter * 1000)));
         continue;
       }
-
       if (isSocketHangup(e)) {
         await new Promise((r) => setTimeout(r, 200 * (i + 1)));
         continue;
       }
-
-      // other errors -> don't hammer
       await new Promise((r) => setTimeout(r, 120 * (i + 1)));
     }
   }
@@ -215,8 +194,8 @@ function langKeyboard() {
 }
 
 async function menuKeyboard(uid, lang) {
-  const ticket = await getJSON(kTicket(uid));
-  const hasOpen = !!ticket?.open;
+  const ptr = await getJSON(kTicket(uid));
+  const hasOpen = !!ptr?.open;
 
   const row1 = [
     { text: t(lang, "btnNew"), callback_data: "act:new" },
@@ -241,15 +220,12 @@ async function sendLangPicker(chatId, lang) {
 }
 
 async function sendMenu(chatId, uid, lang) {
-  await withRetry(() =>
-    bot.sendMessage(chatId, `${t(lang, "menuTitle")}`, {
-      reply_markup: await menuKeyboard(uid, lang),
-    })
-  );
+  const rm = await menuKeyboard(uid, lang);
+  await withRetry(() => bot.sendMessage(chatId, t(lang, "menuTitle"), { reply_markup: rm }));
 }
 
-/* ----------------- rate limit (no spam replies) ----------------- */
-const RL_MS = 900; // fast, but avoids flood; tune as needed
+/* ----------------- rate limit ----------------- */
+const RL_MS = 900;
 
 async function rateLimit(uid) {
   const now = Date.now();
@@ -261,7 +237,6 @@ async function rateLimit(uid) {
 }
 
 async function maybeWarnRateLimited(chatId, uid, lang, waitMs) {
-  // warn at most once per ~2 seconds
   const now = Date.now();
   const prev = Number(await getAny(kRLWarn(uid))) || 0;
   if (now - prev < 1900) return;
@@ -284,10 +259,8 @@ async function ensureForumAllowed() {
   const v = await getJSON(kForumFlag);
   if (v === false) return false;
   if (v === true) return true;
-  // unknown -> assume true until first failure
   return true;
 }
-
 async function markForumAllowed(ok) {
   await setJSON(kForumFlag, !!ok);
 }
@@ -304,9 +277,8 @@ async function createTopicIfPossible(ticketNo, user) {
     await markForumAllowed(true);
     return created?.message_thread_id || null;
   } catch (e) {
-    // If group is not a forum or forbidden, stop trying later
     const msg = String(e?.message || "");
-    if (msg.includes("CHAT_NOT_FORUM") || msg.includes("not a forum") || msg.includes("TOPIC")) {
+    if (msg.includes("CHAT_NOT_FORUM") || msg.includes("not a forum")) {
       await markForumAllowed(false);
     }
     return null;
@@ -346,11 +318,8 @@ async function ensureTicket(uid, user, { forceNew = false } = {}) {
   }
 
   const ticketNo = await nextTicketNo();
-  const lang = await getUserLang(uid, user);
-
   const topicId = await createTopicIfPossible(ticketNo, user);
 
-  // Save open ticket pointer
   const ticket = {
     ticketNo,
     topicId: topicId || null,
@@ -363,30 +332,31 @@ async function ensureTicket(uid, user, { forceNew = false } = {}) {
       last_name: user?.last_name || null,
     },
   };
+
   await setOpenTicket(uid, ticket);
 
   if (topicId) await setJSON(kTopicToUser(topicId), uid);
 
-  // Header in support group (topic if available)
   const headerText = `🆕 New ticket #${ticketNo}\nUser: ${safeUsername(user)}\nID: ${uid}`;
-
   const header = await withRetry(() =>
-    bot.sendMessage(SUPPORT_GROUP_ID, headerText, topicId ? { message_thread_id: topicId } : undefined)
+    bot.sendMessage(
+      SUPPORT_GROUP_ID,
+      headerText,
+      topicId ? { message_thread_id: topicId } : undefined
+    )
   );
 
-  // Map header message -> user (so admins can reply to it)
   if (header?.message_id) await setJSON(kMap(SUPPORT_GROUP_ID, header.message_id), uid);
 
   return ticket;
 }
 
-async function closeTicket(uid, lang, { byAdmin = false, topicId = null } = {}) {
+async function closeTicket(uid, lang, { byAdmin = false } = {}) {
   const ticket = await getOpenTicket(uid);
   if (!ticket) return { ok: false, ticketNo: null };
 
   await clearOpenTicket(uid);
 
-  // close forum topic if possible
   if (ticket.topicId) {
     try {
       await withRetry(() => bot.closeForumTopic(SUPPORT_GROUP_ID, ticket.topicId), 2);
@@ -396,10 +366,8 @@ async function closeTicket(uid, lang, { byAdmin = false, topicId = null } = {}) 
 
   const msgText = t(lang, "closed", ticket.ticketNo);
 
-  // notify user
-  await withRetry(() => bot.sendMessage(uid, msgText, { reply_markup: undefined })).catch(() => {});
+  await withRetry(() => bot.sendMessage(uid, msgText)).catch(() => {});
 
-  // notify group (in same topic if possible)
   try {
     await withRetry(() =>
       bot.sendMessage(
@@ -410,7 +378,7 @@ async function closeTicket(uid, lang, { byAdmin = false, topicId = null } = {}) 
     );
   } catch {}
 
-  return { ok: true, ticketNo: ticket.ticketNo, topicId: ticket.topicId || topicId || null };
+  return { ok: true, ticketNo: ticket.ticketNo };
 }
 
 /* ----------------- copy user msg -> support ----------------- */
@@ -425,7 +393,6 @@ async function copyUserMessageToSupport(uid, msg, ticket) {
   const newMessageId = copied?.message_id;
   if (newMessageId) await setJSON(kMap(SUPPORT_GROUP_ID, newMessageId), uid);
 
-  // bump lastAt
   const open = await getOpenTicket(uid);
   if (open?.ticketNo) {
     open.lastAt = Date.now();
@@ -439,12 +406,12 @@ async function copyUserMessageToSupport(uid, msg, ticket) {
 async function maybeAckSent(chatId, uid, lang, ticketNo) {
   const now = Date.now();
   const prev = Number(await getAny(kAck(uid))) || 0;
-  if (now - prev < 25000) return; // no ack spam (once / 25s)
+  if (now - prev < 25000) return;
   await store.set(kAck(uid), String(now));
   await withRetry(() => bot.sendMessage(chatId, t(lang, "sent", ticketNo)));
 }
 
-/* ----------------- handlers ----------------- */
+/* ----------------- handlers wrapper ----------------- */
 function safe(fn) {
   return async (...args) => {
     try {
@@ -460,14 +427,12 @@ bot.on(
   "callback_query",
   safe(async (q) => {
     const data = String(q.data || "");
-    const msg = q.message;
     const from = q.from;
-    if (!msg || !from) return;
+    if (!from) return;
 
     const uid = from.id;
     let lang = await getUserLang(uid, from);
 
-    // always answer callback quickly
     try {
       await bot.answerCallbackQuery(q.id);
     } catch {}
@@ -489,27 +454,30 @@ bot.on(
     }
 
     if (data === "act:help") {
-      await withRetry(() => bot.sendMessage(uid, t(lang, "help"), { reply_markup: await menuKeyboard(uid, lang) }));
+      const rm = await menuKeyboard(uid, lang);
+      await withRetry(() => bot.sendMessage(uid, t(lang, "help"), { reply_markup: rm }));
       return;
     }
 
     if (data === "act:new") {
       const ticket = await ensureTicket(uid, from, { forceNew: true });
-      await withRetry(() => bot.sendMessage(uid, t(lang, "created", ticket.ticketNo), { reply_markup: await menuKeyboard(uid, lang) }));
+      const rm = await menuKeyboard(uid, lang);
+      await withRetry(() => bot.sendMessage(uid, t(lang, "created", ticket.ticketNo), { reply_markup: rm }));
       return;
     }
 
     if (data === "act:status") {
       const ticket = await getOpenTicket(uid);
+      const rm = await menuKeyboard(uid, lang);
       if (!ticket) {
-        await withRetry(() => bot.sendMessage(uid, t(lang, "statusNone"), { reply_markup: await menuKeyboard(uid, lang) }));
+        await withRetry(() => bot.sendMessage(uid, t(lang, "statusNone"), { reply_markup: rm }));
         return;
       }
       await withRetry(() =>
         bot.sendMessage(
           uid,
           t(lang, "statusOpen", ticket.ticketNo, fmtTime(ticket.createdAt), fmtTime(ticket.lastAt)),
-          { reply_markup: await menuKeyboard(uid, lang) }
+          { reply_markup: rm }
         )
       );
       return;
@@ -518,7 +486,8 @@ bot.on(
     if (data === "act:close") {
       const ticket = await getOpenTicket(uid);
       if (!ticket) {
-        await withRetry(() => bot.sendMessage(uid, t(lang, "closedNone"), { reply_markup: await menuKeyboard(uid, lang) }));
+        const rm = await menuKeyboard(uid, lang);
+        await withRetry(() => bot.sendMessage(uid, t(lang, "closedNone"), { reply_markup: rm }));
         return;
       }
       await closeTicket(uid, lang, { byAdmin: false });
@@ -528,17 +497,16 @@ bot.on(
   })
 );
 
-/* ===== /start (kept for compatibility; UX uses buttons) ===== */
+/* ===== /start ===== */
 bot.onText(
   /^\/start(?:\s+(.+))?$/,
   safe(async (msg) => {
     if (msg.chat.type !== "private") return;
 
     const uid = msg.from.id;
-    const lang = await getUserLang(uid, msg.from);
     const u = await getJSON(kUser(uid));
+    const lang = await getUserLang(uid, msg.from);
 
-    // If language wasn't chosen before, show picker first
     if (!u?.lang) {
       await sendLangPicker(msg.chat.id, lang);
       return;
@@ -549,16 +517,15 @@ bot.onText(
   })
 );
 
-/* ===== optional admin helper in group: /id ===== */
+/* ===== debug /id ===== */
 bot.onText(
   /^\/id$/,
   safe(async (msg) => {
-    // works anywhere, but mainly for group debug
     await withRetry(() => bot.sendMessage(msg.chat.id, `chat.id = ${msg.chat.id}`));
   })
 );
 
-/* ===== optional: /status (kept, but UI buttons are primary) ===== */
+/* ===== optional /status ===== */
 bot.onText(
   /^\/status$/,
   safe(async (msg) => {
@@ -566,19 +533,21 @@ bot.onText(
     const uid = msg.from.id;
     const lang = await getUserLang(uid, msg.from);
     const ticket = await getOpenTicket(uid);
+    const rm = await menuKeyboard(uid, lang);
+
     if (!ticket) {
-      await withRetry(() => bot.sendMessage(uid, t(lang, "statusNone"), { reply_markup: await menuKeyboard(uid, lang) }));
+      await withRetry(() => bot.sendMessage(uid, t(lang, "statusNone"), { reply_markup: rm }));
       return;
     }
     await withRetry(() =>
       bot.sendMessage(uid, t(lang, "statusOpen", ticket.ticketNo, fmtTime(ticket.createdAt), fmtTime(ticket.lastAt)), {
-        reply_markup: await menuKeyboard(uid, lang),
+        reply_markup: rm,
       })
     );
   })
 );
 
-/* ===== optional: /new (kept) ===== */
+/* ===== optional /new ===== */
 bot.onText(
   /^\/new$/,
   safe(async (msg) => {
@@ -586,11 +555,12 @@ bot.onText(
     const uid = msg.from.id;
     const lang = await getUserLang(uid, msg.from);
     const ticket = await ensureTicket(uid, msg.from, { forceNew: true });
-    await withRetry(() => bot.sendMessage(uid, t(lang, "created", ticket.ticketNo), { reply_markup: await menuKeyboard(uid, lang) }));
+    const rm = await menuKeyboard(uid, lang);
+    await withRetry(() => bot.sendMessage(uid, t(lang, "created", ticket.ticketNo), { reply_markup: rm }));
   })
 );
 
-/* ===== admin: /close in topic (kept) ===== */
+/* ===== admin /close inside topic ===== */
 bot.onText(
   /^\/close$/,
   safe(async (msg) => {
@@ -603,8 +573,8 @@ bot.onText(
     const uid = await getJSON(kTopicToUser(topicId));
     if (!uid) return;
 
-    const lang = await getUserLang(uid, null);
-    await closeTicket(Number(uid), lang, { byAdmin: true, topicId });
+    const lang = await getUserLang(Number(uid), null);
+    await closeTicket(Number(uid), lang, { byAdmin: true });
   })
 );
 
@@ -612,59 +582,54 @@ bot.onText(
 bot.on(
   "message",
   safe(async (msg) => {
-    // 1) Private user messages -> forward to support
+    // user private messages
     if (msg.chat.type === "private") {
       const uid = msg.from?.id;
       if (!uid) return;
 
-      // ignore commands (we keep them for compatibility)
       if (msg.text && msg.text.startsWith("/")) return;
 
-      // If user didn't pick language yet -> show picker and stop
       const u = await getJSON(kUser(uid));
       const lang = await getUserLang(uid, msg.from);
+
       if (!u?.lang) {
         await sendLangPicker(uid, lang);
         return;
       }
 
-      // rate limit (no spam)
       const waitMs = await rateLimit(uid);
       if (waitMs > 0) {
         await maybeWarnRateLimited(uid, uid, lang, waitMs);
         return;
       }
 
-      // ensure/open ticket
       let ticket;
       try {
         ticket = await ensureTicket(uid, msg.from, { forceNew: false });
       } catch (e) {
         console.error("ensureTicket error:", e?.message || e);
-        await withRetry(() => bot.sendMessage(uid, t(lang, "busy"), { reply_markup: await menuKeyboard(uid, lang) }));
+        const rm = await menuKeyboard(uid, lang);
+        await withRetry(() => bot.sendMessage(uid, t(lang, "busy"), { reply_markup: rm }));
         return;
       }
 
-      // forward (copy) to support
       try {
         await copyUserMessageToSupport(uid, msg, ticket);
         await maybeAckSent(uid, uid, lang, ticket.ticketNo);
       } catch (e) {
         console.error("copyUserMessageToSupport error:", e?.message || e);
-        await withRetry(() => bot.sendMessage(uid, t(lang, "busy"), { reply_markup: await menuKeyboard(uid, lang) }));
+        const rm = await menuKeyboard(uid, lang);
+        await withRetry(() => bot.sendMessage(uid, t(lang, "busy"), { reply_markup: rm }));
       }
-
       return;
     }
 
-    // 2) Support group messages -> deliver admin replies back to user
+    // support group replies -> user
     if (msg.chat.id === SUPPORT_GROUP_ID) {
       if (!msg.from || !isAdmin(msg.from.id)) return;
 
-      // ignore commands in group
       if (msg.text && msg.text.startsWith("/")) return;
 
-      // only process replies
       const replyTo = msg.reply_to_message;
       if (!replyTo) return;
 
@@ -674,17 +639,13 @@ bot.on(
       const userId = Number(uid);
       if (!Number.isFinite(userId)) return;
 
-      const lang = await getUserLang(userId, null);
-
       try {
         if (msg.text) {
           await withRetry(() => bot.sendMessage(userId, `💬 Support:\n\n${msg.text}`), 4);
         } else {
-          // copy any attachment/other content
           await withRetry(() => bot.copyMessage(userId, SUPPORT_GROUP_ID, msg.message_id), 4);
         }
 
-        // bump lastAt
         const open = await getOpenTicket(userId);
         if (open?.ticketNo) {
           open.lastAt = Date.now();
@@ -692,7 +653,6 @@ bot.on(
         }
       } catch (e) {
         console.error("deliver to user error:", e?.message || e);
-        // notify admin in-thread if possible
         try {
           await withRetry(
             () =>
@@ -704,12 +664,7 @@ bot.on(
             2
           );
         } catch {}
-        // also notify user (optional, minimal)
-        try {
-          await withRetry(() => bot.sendMessage(userId, t(lang, "busy")), 2);
-        } catch {}
       }
-
       return;
     }
   })
