@@ -1,13 +1,9 @@
 {
-  "name": "trade-support-bot",
+  "name": "trade-calculator",
   "version": "1.0.0",
   "type": "commonjs",
-  "main": "api/webhook.js",
-  "scripts": {
-    "dev": "node -e \"console.log('Use Vercel + webhook. Local polling not included here.')\""
-  },
   "dependencies": {
-    "@upstash/redis": "^1.34.0",
-    "node-telegram-bot-api": "^0.67.0"
+    "node-telegram-bot-api": "^0.67.0",
+    "@upstash/redis": "^1.34.0"
   }
 }
