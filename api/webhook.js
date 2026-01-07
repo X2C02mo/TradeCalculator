@@ -2,14 +2,29 @@
 const { bot } = require("../support-bot");
 
 module.exports = async (req, res) => {
-  // Telegram должен получить ответ мгновенно
-  res.status(200).send("OK");
-
   try {
-    if (req.method !== "POST") return;
-    const update = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    if (req.method !== "POST") {
+      res.status(200).send("ok");
+      return;
+    }
+
+
+    const secretExpected = process.env.WEBHOOK_SECRET;
+    if (secretExpected) {
+      const secretGot = req.headers["x-telegram-bot-api-secret-token"];
+      if (secretGot !== secretExpected) {
+        res.status(401).send("unauthorized");
+        return;
+      }
+    }
+
+    // быстро принять update
+    const update = req.body;
     bot.processUpdate(update);
+
+    res.status(200).send("ok");
   } catch (e) {
-    console.error("[api/webhook] error:", e);
+
+    res.status(200).send("ok");
   }
 };
