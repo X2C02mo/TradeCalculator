@@ -1,10 +1,9 @@
 {
-  "name": "trade-calculator",
+  "name": "trade-support-bot",
   "private": true,
   "version": "1.0.0",
-  "type": "commonjs",
   "dependencies": {
-    "@upstash/redis": "^1.35.3",
+    "@upstash/redis": "^1.34.0",
     "node-telegram-bot-api": "^0.66.0"
   }
 }
