@@ -1,4 +1,4 @@
-// lib/store.js
+// store.js
 const { Redis } = require("@upstash/redis");
 
 const hasUpstash =
@@ -11,18 +11,26 @@ const redis = hasUpstash
     })
   : null;
 
-// fallback (НЕ для продакшена) — слетает при рестартах
+// fallback (для тестов). На Vercel может сбрасываться при холодном старте.
 const mem = new Map();
 
+function encode(v) {
+  return JSON.stringify(v);
+}
+function decode(v) {
+  if (v === null || v === undefined) return null;
+  if (typeof v !== "string") return v;
+  try { return JSON.parse(v); } catch { return v; }
+}
+
 async function get(key) {
-  if (redis) return await redis.get(key);
+  if (redis) return decode(await redis.get(key));
   return mem.has(key) ? mem.get(key) : null;
 }
 
 async function set(key, value) {
   if (redis) {
-    // храним JSON
-    await redis.set(key, value);
+    await redis.set(key, encode(value));
     return;
   }
   mem.set(key, value);
