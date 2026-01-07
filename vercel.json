@@ -1,8 +1,9 @@
 {
+  "version": 2,
+  "regions": ["fra1"],
   "functions": {
     "api/webhook.js": {
-      "runtime": "nodejs20.x",
-      "regions": ["fra1"]
+      "maxDuration": 10
     }
   }
 }
