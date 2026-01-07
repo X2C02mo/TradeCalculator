@@ -1,4 +1,4 @@
-// support-bot.js
+
 const TelegramBot = require("node-telegram-bot-api");
 const store = require("./store");
 
@@ -11,9 +11,9 @@ function mustInt(name, v) {
 const BOT_TOKEN = process.env.SUPPORT_BOT_TOKEN;
 if (!BOT_TOKEN) throw new Error("SUPPORT_BOT_TOKEN is not set");
 
+
 const SUPPORT_GROUP_ID = mustInt("SUPPORT_GROUP_ID", process.env.SUPPORT_GROUP_ID);
 
-// optional: "123,456"
 const ADMIN_USER_IDS = (process.env.ADMIN_USER_IDS || "")
   .split(",")
   .map((x) => x.trim())
@@ -26,354 +26,454 @@ function isAdmin(userId) {
   return ADMIN_USER_IDS.includes(Number(userId));
 }
 
-// UX / speed knobs
-const RATE_LIMIT_MS = Number(process.env.RATE_LIMIT_MS || 1200);
-const RATE_WARN_MS = Number(process.env.RATE_WARN_MS || 6000);
-const ACK_COOLDOWN_MS = Number(process.env.ACK_COOLDOWN_MS || 15000);
-const CLOCK_SKEW_RESET_MS = 30000;
 
-// IMPORTANT: webhook mode
 const bot = new TelegramBot(BOT_TOKEN, { polling: false });
 
-// ---- wrapper to prevent crashes ----
-const wrap = (fn) => async (...args) => {
-  try {
-    await fn(...args);
-  } catch (e) {
-    console.error("HANDLER_ERROR:", e?.message || e, e?.stack || "");
+/* ---------------- i18n ---------------- */
+const I18N = {
+  en: {
+    chooseLang: "Choose support language:",
+    langSaved: "Done. Language: English.\n\nSend your question as a message — I will forward it to support.\nCommands: /new /status",
+    welcome: "Send your question as a message — I will forward it to support.\nCommands: /new /status",
+    rate: "⏳ Too fast. Wait ~2 seconds and send again.",
+    newTicket: (n) => `✅ New ticket created. Ticket #${n}\nSend your message.`,
+    sent: (n) => `✅ Sent to support. Ticket #${n}`,
+    noTicket: "No active tickets.",
+    statusOpen: (n, last) => `🧾 Ticket #${n}: OPEN\nLast message: ${last}`,
+    statusClosed: (n) => `🧾 Ticket #${n}: CLOSED`,
+    errSend: "⚠️ Failed to forward. Try again.",
+    misconfig: "⚠️ Support chat is misconfigured (topics/forum). Message forwarded without topic.",
+    adminOnly: "⚠️ Admin only.",
+    unknownCmd: "Unknown command. Available: /new /status",
+    closedBySupport: (n) => `🧾 Ticket #${n} was closed by support. Use /new to open a new one.`
+  },
+  ru: {
+    chooseLang: "Выбери язык поддержки:",
+    langSaved: "Готово. Язык: Русский.\n\nОтправь вопрос сообщением — я передам в поддержку.\nКоманды: /new /status",
+    welcome: "Отправь вопрос сообщением — я передам в поддержку.\nКоманды: /new /status",
+    rate: "⏳ Слишком часто. Подожди ~2 секунды и отправь снова.",
+    newTicket: (n) => `✅ Создан новый тикет. Тикет #${n}\nОтправь сообщение.`,
+    sent: (n) => `✅ Отправлено в поддержку. Тикет #${n}`,
+    noTicket: "Активных тикетов нет.",
+    statusOpen: (n, last) => `🧾 Тикет #${n}: ОТКРЫТ\nПоследнее сообщение: ${last}`,
+    statusClosed: (n) => `🧾 Тикет #${n}: ЗАКРЫТ`,
+    errSend: "⚠️ Не получилось отправить в поддержку. Попробуй ещё раз.",
+    misconfig: "⚠️ Чат поддержки настроен без Topics/форума. Сообщение отправлено без темы.",
+    adminOnly: "⚠️ Только для админов.",
+    unknownCmd: "Неизвестная команда. Доступно: /new /status",
+    closedBySupport: (n) => `🧾 Тикет #${n} закрыт поддержкой. Используй /new чтобы открыть новый.`
   }
 };
 
-// ---------- keys ----------
-const kTicket = (userId) => `ticket:${userId}`;
-const kTopic = (topicId) => `topic:${topicId}`;
-const kMap = (chatId, messageId) => `map:${chatId}:${messageId}`;
-const kLang = (userId) => `lang:${userId}`;
-const kLastOk = (userId) => `rlok:${userId}`;
-const kLastWarn = (userId) => `rlw:${userId}`;
-const kLastAck = (userId) => `ack:${userId}`;
+const LANG_KEY = (userId) => `lang:${userId}`;
+const PENDING_START_KEY = (userId) => `startp:${userId}`;
 
-// ---------- helpers ----------
+// маленький кэш в памяти для скорости
+const langCache = new Map(); // userId -> { lang, exp }
+async function getLang(userId) {
+  const now = Date.now();
+  const c = langCache.get(userId);
+  if (c && c.exp > now) return c.lang;
+
+  const v = await store.get(LANG_KEY(userId));
+  const lang = v === "ru" ? "ru" : v === "en" ? "en" : null;
+  if (lang) langCache.set(userId, { lang, exp: now + 10 * 60 * 1000 });
+  return lang;
+}
+async function setLang(userId, lang) {
+  const v = lang === "ru" ? "ru" : "en";
+  await store.set(LANG_KEY(userId), v);
+  langCache.set(userId, { lang: v, exp: Date.now() + 10 * 60 * 1000 });
+  return v;
+}
+
+function langKeyboard() {
+  return {
+    inline_keyboard: [[
+      { text: "English", callback_data: "lang:en" },
+      { text: "Русский", callback_data: "lang:ru" }
+    ]]
+  };
+}
+
 function safeUsername(u) {
   if (!u) return "";
   if (u.username) return `@${u.username}`;
   const name = [u.first_name, u.last_name].filter(Boolean).join(" ").trim();
-  return name || "";
+  return name ? name : "";
 }
 
-function detectDefaultLang(user) {
-  const code = (user?.language_code || "").toLowerCase();
-  if (/^ru|uk|be/.test(code)) return "ru";
-  return "en";
-}
+/* ---------------- tickets ---------------- */
+const ticketKey = (userId) => `ticket:${userId}`;
+const topicKey = (topicId) => `topic:${topicId}`;
+const mapKey = (chatId, messageId) => `map:${chatId}:${messageId}`;
+const seqKey = `ticket:seq`;
 
-function t(lang, key) {
-  const dict = {
-    ru: {
-      chooseLang: "Выбери язык общения:",
-      needLang: "Сначала выбери язык кнопками ниже.",
-      ready: "Готово. Отправь вопрос сообщением — я передам в поддержку.\nКоманды: /new /status",
-      startText:
-        "👋 Trade Support\n\nОтправь сюда вопрос — я создам тикет и передам в поддержку. Ответ придёт сюда же.\n\nКоманды: /new /status",
-      tooFast: "⏳ Слишком часто. Подожди пару секунд и отправь снова.",
-      accepted: "✅ Принято. Передал в поддержку.",
-      newTicket: "✅ Создан новый тикет. Отправь сообщение.\nTicket: #",
-      statusNone: "У тебя нет активных заявок. Нажми /new или просто отправь сообщение.",
-      statusOpen: "📌 Твой тикет активен",
-      errForumOff:
-        "⚠️ В группе поддержки выключены Темы (Forum topics) или боту не дали право создавать темы.\nАдмину: включить Topics и дать боту права.",
-      errBusy: "⚠️ Поддержка сейчас перегружена. Попробуй чуть позже."
-    },
-    en: {
-      chooseLang: "Choose language:",
-      needLang: "Please choose language using buttons below first.",
-      ready: "Done. Send your question as a message — I’ll forward it to support.\nCommands: /new /status",
-      startText:
-        "👋 Trade Support\n\nSend your question here — I’ll create a ticket and forward it to support. Reply will come here.\n\nCommands: /new /status",
-      tooFast: "⏳ Too fast. Wait a moment and send again.",
-      accepted: "✅ Received. Forwarded to support.",
-      newTicket: "✅ New ticket created. Send a message.\nTicket: #",
-      statusNone: "No active tickets. Use /new or just send a message.",
-      statusOpen: "📌 Your ticket is active",
-      errForumOff:
-        "⚠️ Support group has Topics disabled, or bot lacks permissions.\nAdmin: enable Topics and allow the bot to manage topics.",
-      errBusy: "⚠️ Support is busy right now. Try again later."
-    }
-  };
-  return dict[lang]?.[key] || key;
-}
+async function closeTicketForUser(userId, reason = "closed") {
+  const t = await store.get(ticketKey(userId));
+  if (!t) return;
 
-async function getUserLang(userId, userObjForDetect = null) {
-  const saved = await store.get(kLang(userId));
-  if (saved === "ru" || saved === "en") return saved;
-  return detectDefaultLang(userObjForDetect);
-}
+  t.status = reason;
+  t.closedAt = Date.now();
+  await store.set(ticketKey(userId), t);
 
-async function setUserLang(userId, lang) {
-  if (lang !== "ru" && lang !== "en") return;
-  await store.set(kLang(userId), lang);
-}
-
-// rate limit: returns { limited, warn }
-async function rateLimit(userId) {
-  const now = Date.now();
-  const lastOkRaw = await store.get(kLastOk(userId));
-  let lastOk = Number(lastOkRaw || 0);
-
-  if (lastOk > now + CLOCK_SKEW_RESET_MS) {
-    lastOk = 0;
-    await store.set(kLastOk(userId), 0);
+  if (t.topicId) {
+    try {
+      await bot.closeForumTopic(SUPPORT_GROUP_ID, t.topicId);
+    } catch {}
   }
-
-  if (now - lastOk < RATE_LIMIT_MS) {
-    const lastWarnRaw = await store.get(kLastWarn(userId));
-    const lastWarn = Number(lastWarnRaw || 0);
-    const shouldWarn = now - lastWarn >= RATE_WARN_MS;
-    if (shouldWarn) await store.set(kLastWarn(userId), now);
-    return { limited: true, warn: shouldWarn };
-  }
-
-  await store.set(kLastOk(userId), now);
-  return { limited: false, warn: false };
 }
 
-async function maybeAck(userId) {
-  const now = Date.now();
-  const lastAckRaw = await store.get(kLastAck(userId));
-  const lastAck = Number(lastAckRaw || 0);
-  if (now - lastAck >= ACK_COOLDOWN_MS) {
-    await store.set(kLastAck(userId), now);
-    return true;
-  }
-  return false;
-}
-
-async function getTicket(userId) {
-  return await store.get(kTicket(userId));
-}
-
-async function setTicket(userId, data) {
-  await store.set(kTicket(userId), data);
-}
-
-async function ensureTicket(user, lang) {
+async function ensureTicket(user) {
   const userId = user.id;
-  const existing = await getTicket(userId);
-  if (existing?.topicId && existing?.status === "open") return existing.topicId;
+  const existing = await store.get(ticketKey(userId));
+  if (existing && existing.status === "open") {
+    return { ...existing, isNew: false };
+  }
 
-  const titleRaw = `u${userId} ${safeUsername(user)}`.trim();
+  const ticketNo = await store.incr(seqKey);
+
+  // пробуем создать Topic
+  let topicId = null;
+  let forumOk = true;
+
+  const titleRaw = `#${ticketNo} u${userId} ${safeUsername(user)}`.trim();
   const title = titleRaw.length > 120 ? titleRaw.slice(0, 120) : titleRaw;
 
-  const created = await bot.createForumTopic(SUPPORT_GROUP_ID, title);
-  const topicId = created.message_thread_id;
+  try {
+    const created = await bot.createForumTopic(SUPPORT_GROUP_ID, title);
+    topicId = created.message_thread_id;
+  } catch (e) {
+    forumOk = false;
+  }
 
   const ticket = {
-    topicId,
+    ticketNo,
+    topicId,               // null если форум не доступен
+    status: "open",
     createdAt: Date.now(),
-    lastUserMsgAt: null,
-    lastSupportMsgAt: null,
-    status: "open"
+    lastUserMsgAt: Date.now(),
+    user: {
+      id: userId,
+      username: user.username || null,
+      first_name: user.first_name || null,
+      last_name: user.last_name || null
+    }
   };
 
-  await setTicket(userId, ticket);
-  await store.set(kTopic(topicId), userId);
+  await store.set(ticketKey(userId), ticket);
+  if (topicId) await store.set(topicKey(topicId), userId);
 
-  const header = await bot.sendMessage(
-    SUPPORT_GROUP_ID,
-    `🆕 New ticket\nUser: ${safeUsername(user)}\nID: ${userId}`,
-    { message_thread_id: topicId }
-  );
+  // Заголовок в поддержку (и маппинг reply -> user)
+  const userTag = safeUsername(user);
+  const userLine = userTag ? `${userTag} (id ${userId})` : `id ${userId}`;
 
-  await store.set(kMap(SUPPORT_GROUP_ID, header.message_id), userId);
-  return topicId;
-}
+  const headerText = `🆕 Ticket #${ticketNo}\nUser: ${userLine}`;
 
-async function copyUserMessageToTopic(msg, topicId) {
-  const copied = await bot.copyMessage(SUPPORT_GROUP_ID, msg.chat.id, msg.message_id, {
-    message_thread_id: topicId
-  });
-
-  await store.set(kMap(SUPPORT_GROUP_ID, copied.message_id), msg.from.id);
-
-  const ticket = await getTicket(msg.from.id);
-  if (ticket) {
-    ticket.lastUserMsgAt = Date.now();
-    await setTicket(msg.from.id, ticket);
-  }
-}
-
-// ---------- /start with language choice ----------
-bot.onText(/^\/start(?:\s+(.+))?$/, wrap(async (msg) => {
-  if (msg.chat.type !== "private") return;
-
-  const userId = msg.from.id;
-  const saved = await store.get(kLang(userId));
-
-  if (saved === "ru" || saved === "en") {
-    await bot.sendMessage(msg.chat.id, t(saved, "startText"));
-    return;
-  }
-
-  const d = detectDefaultLang(msg.from);
-  await bot.sendMessage(msg.chat.id, t(d, "chooseLang"), {
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: "1) English", callback_data: "lang:en" }],
-        [{ text: "2) Русский", callback_data: "lang:ru" }]
-      ]
-    }
-  });
-}));
-
-bot.on("callback_query", wrap(async (cq) => {
-  const data = cq.data || "";
-  const chatId = cq.message?.chat?.id;
-  const userId = cq.from?.id;
-  if (!chatId || !userId) return;
-
-  if (data === "lang:ru" || data === "lang:en") {
-    const lang = data.split(":")[1];
-    await setUserLang(userId, lang);
-
-    await bot.answerCallbackQuery(cq.id, { text: "OK" });
-
-    // безопасно: edit может упасть, не страшно
-    try {
-      await bot.editMessageText(t(lang, "ready"), {
-        chat_id: chatId,
-        message_id: cq.message.message_id
-      });
-    } catch {
-      await bot.sendMessage(chatId, t(lang, "ready"));
-    }
-    return;
-  }
-
-  await bot.answerCallbackQuery(cq.id).catch(() => {});
-}));
-
-bot.onText(/^\/new$/, wrap(async (msg) => {
-  if (msg.chat.type !== "private") return;
-
-  const userId = msg.from.id;
-  const lang = await getUserLang(userId, msg.from);
-
-  const old = await getTicket(userId);
-  if (old?.topicId) {
-    await store.del(kTicket(userId));
-    await store.del(kTopic(old.topicId));
-  }
-
+  let headerMsg;
   try {
-    const topicId = await ensureTicket(msg.from, lang);
-    await bot.sendMessage(msg.chat.id, t(lang, "newTicket") + String(topicId));
-  } catch {
-    await bot.sendMessage(msg.chat.id, t(lang, "errForumOff"));
-  }
-}));
+    headerMsg = await bot.sendMessage(
+      SUPPORT_GROUP_ID,
+      headerText,
+      topicId ? { message_thread_id: topicId } : undefined
+    );
+    await store.set(mapKey(SUPPORT_GROUP_ID, headerMsg.message_id), userId, { ex: 60 * 60 * 24 * 30 });
+  } catch {}
 
-bot.onText(/^\/status$/, wrap(async (msg) => {
+  return { ...ticket, isNew: true, forumOk };
+}
+
+async function forwardUserMessageToSupport(msg, ticket) {
+  const userId = msg.from.id;
+  const topicId = ticket.topicId || null;
+
+  // Обновляем lastUserMsgAt
+  ticket.lastUserMsgAt = Date.now();
+  await store.set(ticketKey(userId), ticket);
+
+  // Текст — быстрее слать sendMessage (и читаемо), медиа — copyMessage
+  try {
+    let sent;
+
+    if (msg.text) {
+      const userTag = safeUsername(msg.from);
+      const prefix = userTag ? `${userTag} (id ${userId})` : `id ${userId}`;
+      const text = `👤 ${prefix}\n\n${msg.text}`;
+      sent = await bot.sendMessage(
+        SUPPORT_GROUP_ID,
+        text,
+        topicId ? { message_thread_id: topicId } : undefined
+      );
+    } else {
+      sent = await bot.copyMessage(
+        SUPPORT_GROUP_ID,
+        msg.chat.id,
+        msg.message_id,
+        topicId ? { message_thread_id: topicId } : undefined
+      );
+    }
+
+    // sent может быть {message_id} или полноценное сообщение
+    const mid = sent?.message_id;
+    if (mid) {
+      await store.set(mapKey(SUPPORT_GROUP_ID, mid), userId, { ex: 60 * 60 * 24 * 30 });
+    }
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/* ---------------- anti-spam (без спама ботом) ---------------- */
+const RL_MS = 1800;         // “~2 секунды”
+const RL_NOTIFY_MS = 6000;  // предупреждать не чаще раза в 6 сек
+
+async function rateLimitCheck(userId) {
+  const now = Date.now();
+  const k = `rl:${userId}`;
+  const nk = `rln:${userId}`;
+
+  const last = await store.get(k);
+  if (last && now - Number(last) < RL_MS) {
+    const lastN = await store.get(nk);
+    const shouldNotify = !lastN || now - Number(lastN) > RL_NOTIFY_MS;
+    if (shouldNotify) await store.set(nk, String(now), { ex: 60 });
+    return { limited: true, notify: shouldNotify };
+  }
+
+  await store.set(k, String(now), { ex: 60 });
+  return { limited: false, notify: false };
+}
+
+// “✅ отправлено” не спамим каждое сообщение
+async function shouldAck(userId) {
+  const k = `ack:${userId}`;
+  const v = await store.get(k);
+  if (v) return false;
+  await store.set(k, "1", { ex: 12 }); // не чаще, чем раз в 12 секунд
+  return true;
+}
+
+/* ---------------- /start language picker ---------------- */
+bot.onText(/^\/start(?:\s+(.+))?$/, async (msg, match) => {
   if (msg.chat.type !== "private") return;
 
-  const userId = msg.from.id;
-  const lang = await getUserLang(userId, msg.from);
+  const param = (match && match[1]) ? String(match[1]) : "";
+  if (param) await store.set(PENDING_START_KEY(msg.from.id), param, { ex: 3600 });
 
-  const ticket = await getTicket(userId);
-  if (!ticket?.topicId || ticket.status !== "open") {
-    await bot.sendMessage(msg.chat.id, t(lang, "statusNone"));
+  const lang = await getLang(msg.from.id);
+  if (!lang) {
+    await bot.sendMessage(msg.chat.id, I18N.en.chooseLang, {
+      reply_markup: langKeyboard()
+    });
     return;
   }
 
-  const created = new Date(ticket.createdAt).toLocaleString();
-  const updated = ticket.lastUserMsgAt ? new Date(ticket.lastUserMsgAt).toLocaleString() : "—";
+  await bot.sendMessage(msg.chat.id, I18N[lang].welcome);
+});
 
-  await bot.sendMessage(
-    msg.chat.id,
-    `${t(lang, "statusOpen")}\nTicket: #${ticket.topicId}\nCreated: ${created}\nLast: ${updated}`
-  );
-}));
+bot.on("callback_query", async (q) => {
+  try {
+    const data = q.data || "";
+    if (!data.startsWith("lang:")) return;
 
-// ---------- single message router ----------
-bot.on("message", wrap(async (msg) => {
-  if (!msg?.chat) return;
+    const userId = q.from.id;
+    const chosen = data.endsWith("ru") ? "ru" : "en";
+    const lang = await setLang(userId, chosen);
 
-  // USER PRIVATE
-  if (msg.chat.type === "private") {
-    if (!msg.from) return;
+    // Ответим на callback (чтобы Telegram не крутил “loading”)
+    try { await bot.answerCallbackQuery(q.id); } catch {}
 
-    // команды игнорируем тут (onText обработает)
-    if (msg.text && msg.text.startsWith("/")) return;
+    // Обновим сообщение или просто отправим новое
+    const chatId = q.message?.chat?.id;
+    if (chatId) {
+      await bot.sendMessage(chatId, I18N[lang].langSaved);
+    }
+  } catch (e) {}
+});
 
-    const userId = msg.from.id;
-    const saved = await store.get(kLang(userId));
-    const lang = (saved === "ru" || saved === "en") ? saved : null;
+/* ---------------- user commands ---------------- */
+bot.onText(/^\/new$/, async (msg) => {
+  if (msg.chat.type !== "private") return;
 
-    if (!lang) {
-      const d = detectDefaultLang(msg.from);
-      await bot.sendMessage(msg.chat.id, t(d, "needLang"), {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "1) English", callback_data: "lang:en" }],
-            [{ text: "2) Русский", callback_data: "lang:ru" }]
-          ]
+  const lang = await getLang(msg.from.id);
+  if (!lang) {
+    await bot.sendMessage(msg.chat.id, I18N.en.chooseLang, { reply_markup: langKeyboard() });
+    return;
+  }
+
+  await closeTicketForUser(msg.from.id, "closed_by_user");
+  const ticket = await ensureTicket(msg.from);
+
+  await bot.sendMessage(msg.chat.id, I18N[lang].newTicket(ticket.ticketNo));
+});
+
+bot.onText(/^\/status$/, async (msg) => {
+  if (msg.chat.type !== "private") return;
+
+  const lang = (await getLang(msg.from.id)) || "en";
+  const t = await store.get(ticketKey(msg.from.id));
+  if (!t) {
+    await bot.sendMessage(msg.chat.id, I18N[lang].noTicket);
+    return;
+  }
+
+  const last = t.lastUserMsgAt ? new Date(t.lastUserMsgAt).toLocaleString() : "—";
+  if (t.status === "open") {
+    await bot.sendMessage(msg.chat.id, I18N[lang].statusOpen(t.ticketNo, last));
+  } else {
+    await bot.sendMessage(msg.chat.id, I18N[lang].statusClosed(t.ticketNo));
+  }
+});
+
+/* ---------------- main message router ---------------- */
+bot.on("message", async (msg) => {
+  // 1) support group side
+  if (msg.chat && msg.chat.id === SUPPORT_GROUP_ID) {
+    // /id в группе
+    if (msg.text === "/id") {
+      await bot.sendMessage(
+        msg.chat.id,
+        `chat.id = ${msg.chat.id}\nthread = ${msg.message_thread_id || "—"}`
+      );
+      return;
+    }
+
+    // /close внутри темы
+    if (msg.text === "/close") {
+      if (!msg.from || !isAdmin(msg.from.id)) {
+        await bot.sendMessage(msg.chat.id, I18N.en.adminOnly);
+        return;
+      }
+      const topicId = msg.message_thread_id;
+      if (!topicId) return;
+
+      const userId = await store.get(topicKey(topicId));
+      if (userId) {
+        const t = await store.get(ticketKey(userId));
+        if (t) {
+          t.status = "closed_by_support";
+          t.closedAt = Date.now();
+          await store.set(ticketKey(userId), t);
+          try {
+            await bot.sendMessage(Number(userId), I18N[(await getLang(userId)) || "en"].closedBySupport(t.ticketNo));
+          } catch {}
         }
-      });
+        await store.del(topicKey(topicId));
+      }
+
+      try { await bot.closeForumTopic(SUPPORT_GROUP_ID, topicId); } catch {}
       return;
     }
 
-    const rl = await rateLimit(userId);
-    if (rl.limited) {
-      if (rl.warn) await bot.sendMessage(msg.chat.id, t(lang, "tooFast"));
+    // /reply <userId> <text>
+    if (msg.text && msg.text.startsWith("/reply")) {
+      if (!msg.from || !isAdmin(msg.from.id)) {
+        await bot.sendMessage(msg.chat.id, I18N.en.adminOnly);
+        return;
+      }
+      const m = msg.text.match(/^\/reply\s+(\d+)\s+([\s\S]+)/);
+      if (!m) return;
+      const userId = Number(m[1]);
+      const text = String(m[2]).trim();
+      if (!text) return;
+
+      await bot.sendMessage(userId, `💬 Support:\n\n${text}`);
       return;
     }
 
-    let topicId;
-    try {
-      topicId = await ensureTicket(msg.from, lang);
-    } catch {
-      await bot.sendMessage(msg.chat.id, t(lang, "errForumOff"));
-      return;
-    }
-
-    try {
-      await copyUserMessageToTopic(msg, topicId);
-    } catch {
-      await bot.sendMessage(msg.chat.id, t(lang, "errBusy"));
-      return;
-    }
-
-    if (await maybeAck(userId)) {
-      await bot.sendMessage(msg.chat.id, t(lang, "accepted"));
-    }
-
-    return;
-  }
-
-  // SUPPORT GROUP
-  if (msg.chat.id === SUPPORT_GROUP_ID) {
+    // reply в теме -> пользователю
     if (!msg.from || !isAdmin(msg.from.id)) return;
-
-    // reply-router: только reply и не команды
-    if (msg.text && msg.text.startsWith("/")) return;
+    if (msg.text && msg.text.startsWith("/")) return; // команды не пересылаем
 
     const replyTo = msg.reply_to_message;
     if (!replyTo) return;
 
-    const userId = await store.get(kMap(SUPPORT_GROUP_ID, replyTo.message_id));
+    const userId = await store.get(mapKey(SUPPORT_GROUP_ID, replyTo.message_id));
     if (!userId) return;
 
-    if (msg.text) {
-      await bot.sendMessage(Number(userId), `💬 Support:\n\n${msg.text}`);
-    } else {
-      await bot.copyMessage(Number(userId), SUPPORT_GROUP_ID, msg.message_id);
+    try {
+      if (msg.text) {
+        await bot.sendMessage(Number(userId), `💬 Support:\n\n${msg.text}`);
+      } else {
+        await bot.copyMessage(Number(userId), SUPPORT_GROUP_ID, msg.message_id);
+      }
+    } catch (e) {
+      // ничего
     }
+    return;
+  }
 
-    const ticket = await getTicket(Number(userId));
-    if (ticket) {
-      ticket.lastSupportMsgAt = Date.now();
-      await setTicket(Number(userId), ticket);
+  // 2) private user side
+  if (!msg.chat || msg.chat.type !== "private") return;
+  if (!msg.from) return;
+
+  // /id в личке тоже полезен
+  if (msg.text === "/id") {
+    await bot.sendMessage(msg.chat.id, `chat.id = ${msg.chat.id}`);
+    return;
+  }
+
+  // неизвестные команды
+  if (msg.text && msg.text.startsWith("/")) {
+    const known = ["/start", "/new", "/status", "/id"];
+    if (!known.includes(msg.text.split(" ")[0])) {
+      const lang = (await getLang(msg.from.id)) || "en";
+      await bot.sendMessage(msg.chat.id, I18N[lang].unknownCmd);
+    }
+    return;
+  }
+
+  const lang = await getLang(msg.from.id);
+  if (!lang) {
+    await bot.sendMessage(msg.chat.id, I18N.en.chooseLang, { reply_markup: langKeyboard() });
+    return;
+  }
+
+  const rl = await rateLimitCheck(msg.from.id);
+  if (rl.limited) {
+    if (rl.notify) await bot.sendMessage(msg.chat.id, I18N[lang].rate);
+    return;
+  }
+
+  const ticket = await ensureTicket(msg.from);
+
+  const ok = await forwardUserMessageToSupport(msg, ticket);
+  if (!ok) {
+    await bot.sendMessage(msg.chat.id, I18N[lang].errSend);
+    return;
+  }
+
+  // если Topics не создались — предупредим один раз
+  if (ticket.isNew && ticket.topicId == null) {
+    await bot.sendMessage(msg.chat.id, I18N[lang].misconfig);
+  }
+
+  // подтверждение — не спамим каждое сообщение
+  if (ticket.isNew) {
+    await bot.sendMessage(msg.chat.id, I18N[lang].newTicket(ticket.ticketNo));
+  } else {
+    if (await shouldAck(msg.from.id)) {
+      await bot.sendMessage(msg.chat.id, I18N[lang].sent(ticket.ticketNo));
     }
   }
-}));
+});
 
-module.exports = { bot };
+/* ---------------- webhook entry ----------------
+   ВАЖНО: это то, чего не хватало — handleUpdate экспортируется
+   и webhook.js больше не падает.
+------------------------------------------------- */
+async function handleUpdate(update) {
+  if (!update || typeof update !== "object") return;
+
+  // дедупликация апдейтов (на случай ретраев Telegram при 500)
+  if (typeof update.update_id === "number") {
+    const key = `upd:${update.update_id}`;
+    const r = await store.set(key, "1", { nx: true, ex: 600 });
+    if (r === null) return; // уже обрабатывали
+  }
+
+  await bot.processUpdate(update);
+}
+
+module.exports = { bot, handleUpdate };
