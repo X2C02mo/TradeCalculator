@@ -1,28 +1,52 @@
 // api/webhook.js
-const { handleUpdate } = require("../support-bot");
+const { bot } = require("../support-bot.js");
 
-async function readJson(req) {
-  const chunks = [];
-  for await (const c of req) chunks.push(c);
-  const raw = Buffer.concat(chunks).toString("utf8");
-  if (!raw) return {};
-  try { return JSON.parse(raw); } catch { return {}; }
+function readRaw(req) {
+  return new Promise((resolve) => {
+    let data = "";
+    req.on("data", (chunk) => (data += chunk));
+    req.on("end", () => resolve(data));
+    req.on("error", () => resolve(""));
+  });
 }
 
 module.exports = async (req, res) => {
+  // Быстрый ответ Telegram — даже если внутри ошибка
   try {
-    if (req.method === "GET") return res.status(200).send("ok");
-    if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
+    if (req.method === "GET") {
+      res.status(200).send("OK");
+      return;
+    }
 
-    const update = await readJson(req);
+    if (req.method !== "POST") {
+      res.status(405).send("Method Not Allowed");
+      return;
+    }
 
-    // ВАЖНО: дождаться обработки, но при этом держать её лёгкой.
-    await handleUpdate(update);
+    // Vercel иногда даёт уже распарсенный body, иногда нет — делаем безопасно
+    let update = req.body;
 
-    return res.status(200).send("OK");
+    if (!update || typeof update !== "object") {
+      const raw = await readRaw(req);
+      if (raw) {
+        try {
+          update = JSON.parse(raw);
+        } catch (e) {
+          update = null;
+        }
+      }
+    }
+
+    if (!update) {
+      res.status(200).send("OK");
+      return;
+    }
+
+    // обработку запускаем, и сразу отвечаем
+    bot.processUpdate(update);
+    res.status(200).send("OK");
   } catch (e) {
-    // Telegram должен получить 200, иначе будет долбить ретраями
-    console.error("webhook error:", e);
-    return res.status(200).send("OK");
+    // Telegram не должен получать 500
+    res.status(200).send("OK");
   }
 };
