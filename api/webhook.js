@@ -1,30 +1,21 @@
-
+// api/webhook.js
 const { bot } = require("../support-bot");
 
 module.exports = async (req, res) => {
   try {
+    if (req.method === "GET") {
+      return res.status(200).send("ok");
+    }
+
     if (req.method !== "POST") {
-      res.status(200).send("ok");
-      return;
+      return res.status(405).send("Method Not Allowed");
     }
 
-
-    const secretExpected = process.env.WEBHOOK_SECRET;
-    if (secretExpected) {
-      const secretGot = req.headers["x-telegram-bot-api-secret-token"];
-      if (secretGot !== secretExpected) {
-        res.status(401).send("unauthorized");
-        return;
-      }
-    }
-
-    // быстро принять update
-    const update = req.body;
+    const update = req.body || {};
     bot.processUpdate(update);
 
-    res.status(200).send("ok");
+    return res.status(200).send("OK");
   } catch (e) {
-
-    res.status(200).send("ok");
+    return res.status(200).send("OK"); // Telegram важнее получить 200 быстро
   }
 };
