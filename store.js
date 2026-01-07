@@ -11,52 +11,57 @@ const redis = hasUpstash
     })
   : null;
 
-// fallback (не прод): слетает при рестартах
+// fallback (не прод)
 const mem = new Map();
 
-function jparse(v) {
+function safeParse(v) {
   if (v === null || v === undefined) return null;
-  if (typeof v === "object") return v; // Upstash иногда возвращает объект
+  if (typeof v !== "string") return v; // если библиотека уже вернула объект
   try {
     return JSON.parse(v);
   } catch {
-    return null;
+    return v;
   }
 }
-function jstring(v) {
-  return JSON.stringify(v);
-}
 
-async function getJSON(key) {
-  if (redis) return jparse(await redis.get(key));
+async function get(key) {
+  if (redis) return safeParse(await redis.get(key));
   return mem.has(key) ? mem.get(key) : null;
 }
 
-async function setJSON(key, value, opts = {}) {
+async function set(key, value, ttlSec = null) {
   if (redis) {
-    // opts: { ex, nx }
-    return await redis.set(key, jstring(value), opts);
+    const payload = JSON.stringify(value);
+    if (ttlSec) {
+      await redis.set(key, payload, { ex: ttlSec });
+    } else {
+      await redis.set(key, payload);
+    }
+    return;
   }
   mem.set(key, value);
-  return "OK";
 }
 
 async function del(key) {
-  if (redis) return await redis.del(key);
+  if (redis) {
+    await redis.del(key);
+    return;
+  }
   mem.delete(key);
 }
 
-async function setNXEX(key, value, exSeconds) {
+// атомарный rate limit: SET key 1 NX EX ttl
+async function setNX(key, value, ttlSec) {
   if (redis) {
-    // one-call rate limit / lock
-    const res = await redis.set(key, value, { nx: true, ex: exSeconds });
-    return !!res; // true if lock acquired
+    const payload = JSON.stringify(value);
+    const ok = await redis.set(key, payload, { nx: true, ex: ttlSec });
+    // Upstash возвращает "OK" или null
+    return ok === "OK";
   }
-  const now = Date.now();
-  const prev = mem.get(key);
-  if (prev && now < prev.expiresAt) return false;
-  mem.set(key, { value, expiresAt: now + exSeconds * 1000 });
+  if (mem.has(key)) return false;
+  mem.set(key, value);
+  setTimeout(() => mem.delete(key), (ttlSec || 1) * 1000);
   return true;
 }
 
-module.exports = { hasUpstash, getJSON, setJSON, del, setNXEX };
+module.exports = { get, set, del, setNX, hasUpstash };
