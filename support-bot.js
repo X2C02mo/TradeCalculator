@@ -1,4 +1,4 @@
-// support-bot.js
+
 const TelegramBot = require("node-telegram-bot-api");
 const store = require("./store");
 
