@@ -1,13 +1,13 @@
 {
-  "name": "trader-calculator-bot",
+  "name": "trade-support-bot",
   "version": "1.0.0",
-  "description": "Telegram bot for Trader Calculator mini app",
-  "main": "index.js",
   "type": "commonjs",
+  "main": "api/webhook.js",
   "scripts": {
-    "start": "node index.js"
+    "dev": "node -e \"console.log('Use Vercel + webhook. Local polling not included here.')\""
   },
   "dependencies": {
+    "@upstash/redis": "^1.34.0",
     "node-telegram-bot-api": "^0.67.0"
   }
 }
