@@ -1,7 +1,8 @@
+
 const { bot } = require("../support-bot");
 
 module.exports = async (req, res) => {
-  // отвечаем мгновенно
+  // Telegram должен получить ответ мгновенно
   res.status(200).send("OK");
 
   try {
