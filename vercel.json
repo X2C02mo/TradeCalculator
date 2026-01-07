@@ -3,7 +3,6 @@
   "regions": ["fra1"],
   "functions": {
     "api/webhook.js": {
-      "maxDuration": 10
     }
   }
 }
