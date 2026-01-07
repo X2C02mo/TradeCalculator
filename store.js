@@ -11,47 +11,47 @@ const redis = hasUpstash
     })
   : null;
 
-// fallback (не прод) — слетает при рестартах
+// fallback (не продакшен): слетает на рестартах/на серверлесах
 const mem = new Map();
 
-function safeParse(v) {
-  if (v === null || v === undefined) return null;
-  if (typeof v !== "string") return v;
-  try { return JSON.parse(v); } catch { return v; }
+function nowMs() {
+  return Date.now();
+}
+
+function memGet(key) {
+  const rec = mem.get(key);
+  if (!rec) return null;
+  if (rec.exp && rec.exp <= nowMs()) {
+    mem.delete(key);
+    return null;
+  }
+  return rec.value;
+}
+
+function memSet(key, value, opts) {
+  let exp = null;
+  if (opts?.px) exp = nowMs() + Number(opts.px);
+  else if (opts?.ex) exp = nowMs() + Number(opts.ex) * 1000;
+  mem.set(key, { value, exp });
 }
 
 async function get(key) {
-  if (redis) return safeParse(await redis.get(key));
-  return mem.has(key) ? mem.get(key) : null;
+  if (redis) return await redis.get(key);
+  return memGet(key);
 }
 
-async function set(key, value, ttlSec = null) {
+async function set(key, value, opts) {
   if (redis) {
-    const payload = JSON.stringify(value);
-    if (ttlSec) await redis.set(key, payload, { ex: ttlSec });
-    else await redis.set(key, payload);
-    return;
+    // @upstash/redis умеет JSON values и opts типа { ex: 10 }
+    if (opts && typeof opts === "object") return await redis.set(key, value, opts);
+    return await redis.set(key, value);
   }
-  mem.set(key, value);
-  if (ttlSec) setTimeout(() => mem.delete(key), ttlSec * 1000);
+  memSet(key, value, opts);
 }
 
 async function del(key) {
-  if (redis) { await redis.del(key); return; }
+  if (redis) return await redis.del(key);
   mem.delete(key);
 }
 
-// атомарный rate limit: SET key NX EX ttl
-async function setNX(key, value, ttlSec) {
-  if (redis) {
-    const payload = JSON.stringify(value);
-    const ok = await redis.set(key, payload, { nx: true, ex: ttlSec });
-    return ok === "OK";
-  }
-  if (mem.has(key)) return false;
-  mem.set(key, value);
-  setTimeout(() => mem.delete(key), (ttlSec || 1) * 1000);
-  return true;
-}
-
-module.exports = { get, set, del, setNX, hasUpstash };
+module.exports = { get, set, del, hasUpstash };
