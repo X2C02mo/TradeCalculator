@@ -10,9 +10,7 @@ function mustInt(name, v) {
 const BOT_TOKEN = process.env.SUPPORT_BOT_TOKEN;
 if (!BOT_TOKEN) throw new Error("SUPPORT_BOT_TOKEN is not set");
 
-// IMPORTANT: group id can be undefined at first run (to allow /id + forward method)
-const SUPPORT_GROUP_ID_RAW = process.env.SUPPORT_GROUP_ID;
-const SUPPORT_GROUP_ID = SUPPORT_GROUP_ID_RAW ? mustInt("SUPPORT_GROUP_ID", SUPPORT_GROUP_ID_RAW) : null;
+const SUPPORT_GROUP_ID = mustInt("SUPPORT_GROUP_ID", process.env.SUPPORT_GROUP_ID);
 
 const ADMIN_USER_IDS = (process.env.ADMIN_USER_IDS || "")
   .split(",")
@@ -22,29 +20,23 @@ const ADMIN_USER_IDS = (process.env.ADMIN_USER_IDS || "")
   .filter((x) => Number.isFinite(x));
 
 function isAdmin(userId) {
-  if (!ADMIN_USER_IDS.length) return true;
+  if (!ADMIN_USER_IDS.length) return true; // если пусто — любой админ/участник группы сможет отвечать
   return ADMIN_USER_IDS.includes(Number(userId));
 }
 
 const bot = new TelegramBot(BOT_TOKEN, { polling: false });
 
-// ---------- helpers ----------
+// ------- helpers -------
 function safeUsername(u) {
   if (!u) return "";
   if (u.username) return `@${u.username}`;
   const name = [u.first_name, u.last_name].filter(Boolean).join(" ").trim();
-  return name ? name : "";
+  return name || "";
 }
 
-function ticketKey(userId) {
-  return `ticket:${userId}`;
-}
-function topicKey(topicId) {
-  return `topic:${topicId}`;
-}
-function mapKey(chatId, messageId) {
-  return `map:${chatId}:${messageId}`;
-}
+function ticketKey(userId) { return `ticket:${userId}`; }
+function topicKey(topicId) { return `topic:${topicId}`; }
+function mapKey(chatId, messageId) { return `map:${chatId}:${messageId}`; }
 
 async function rateLimit(userId) {
   const key = `rl:${userId}`;
@@ -55,16 +47,9 @@ async function rateLimit(userId) {
   return false;
 }
 
-function requireSupportGroup() {
-  if (!SUPPORT_GROUP_ID) {
-    throw new Error("SUPPORT_GROUP_ID is not set yet. Get it via forward/getChat, then set ENV and redeploy.");
-  }
-}
-
 async function ensureTicket(user) {
-  requireSupportGroup();
-
   const userId = user.id;
+
   const existing = await store.get(ticketKey(userId));
   if (existing && existing.topicId) return existing.topicId;
 
@@ -95,25 +80,27 @@ async function ensureTicket(user) {
   );
 
   await store.set(mapKey(SUPPORT_GROUP_ID, header.message_id), userId);
+
   return topicId;
 }
 
 async function copyUserMessageToTopic(msg, topicId) {
-  requireSupportGroup();
-
-  const copied = await bot.copyMessage(SUPPORT_GROUP_ID, msg.chat.id, msg.message_id, {
-    message_thread_id: topicId
-  });
+  const copied = await bot.copyMessage(
+    SUPPORT_GROUP_ID,
+    msg.chat.id,
+    msg.message_id,
+    { message_thread_id: topicId }
+  );
 
   const newMessageId = copied.message_id;
   await store.set(mapKey(SUPPORT_GROUP_ID, newMessageId), msg.from.id);
 }
 
-// ---------- commands: /start, /new ----------
+// ------- commands -------
 bot.onText(/^\/start(?:\s+(.+))?$/, async (msg, match) => {
   if (msg.chat.type !== "private") return;
 
-  const param = match && match[1] ? String(match[1]) : "";
+  const param = (match && match[1]) ? String(match[1]) : "";
   const hint = param ? `\n\nSource: \`${param}\`` : "";
 
   await bot.sendMessage(
@@ -123,7 +110,7 @@ bot.onText(/^\/start(?:\s+(.+))?$/, async (msg, match) => {
   );
 });
 
-bot.onText(/^\/new(?:@[\w_]+)?$/, async (msg) => {
+bot.onText(/^\/new$/, async (msg) => {
   if (msg.chat.type !== "private") return;
 
   const old = await store.get(ticketKey(msg.from.id));
@@ -136,81 +123,13 @@ bot.onText(/^\/new(?:@[\w_]+)?$/, async (msg) => {
   await bot.sendMessage(msg.chat.id, `✅ Создан новый тикет (#${topicId}). Пиши сообщение.`);
 });
 
-// ---------- /id (works in private and groups, supports /id@BotName) ----------
+// В группе: /id или /id@BotName
 bot.onText(/^\/id(?:@[\w_]+)?$/, async (msg) => {
-  const thread = msg.message_thread_id ? `\nthread_id = ${msg.message_thread_id}` : "";
-  await bot.sendMessage(msg.chat.id, `chat.id = ${msg.chat.id}\nchat.type = ${msg.chat.type}${thread}`);
+  await bot.sendMessage(msg.chat.id, `chat.id = ${msg.chat.id}`);
 });
 
-// ---------- forward method to get group id (ONLY in private) ----------
-bot.on("message", async (msg) => {
-  if (msg.chat.type !== "private") return;
-  const fwd = msg.forward_from_chat;
-  if (fwd?.id) {
-    await bot.sendMessage(msg.chat.id, `forward_from_chat.id = ${fwd.id}`);
-  }
-});
-
-// ---------- user side: any non-command message in private -> ticket ----------
-bot.on("message", async (msg) => {
-  if (msg.chat.type !== "private") return;
-  if (!msg.from) return;
-  if (msg.text && msg.text.startsWith("/")) return;
-
-  if (await rateLimit(msg.from.id)) {
-    await bot.sendMessage(msg.chat.id, "⏳ Слишком часто. Подожди пару секунд и отправь снова.");
-    return;
-  }
-
-  const topicId = await ensureTicket(msg.from);
-  await copyUserMessageToTopic(msg, topicId);
-});
-
-// ---------- admin side: reply in support group -> send to user ----------
-bot.on("message", async (msg) => {
-  if (!SUPPORT_GROUP_ID) return;
-  if (msg.chat.id !== SUPPORT_GROUP_ID) return;
-  if (!msg.from || !isAdmin(msg.from.id)) return;
-
-  // ignore commands
-  if (msg.text && msg.text.startsWith("/")) return;
-
-  const replyTo = msg.reply_to_message;
-  if (!replyTo) return;
-
-  const userId = await store.get(mapKey(SUPPORT_GROUP_ID, replyTo.message_id));
-  if (!userId) return;
-
-  if (msg.text) {
-    await bot.sendMessage(userId, `💬 Support:\n\n${msg.text}`);
-    return;
-  }
-
-  try {
-    await bot.copyMessage(userId, SUPPORT_GROUP_ID, msg.message_id);
-  } catch (e) {
-    await bot.sendMessage(msg.chat.id, "⚠️ Failed to deliver non-text reply.", {
-      message_thread_id: msg.message_thread_id
-    });
-  }
-});
-
-// ---------- /reply and /close ----------
-bot.onText(/^\/reply(?:@[\w_]+)?\s+(\d+)\s+([\s\S]+)/, async (msg, match) => {
-  if (!SUPPORT_GROUP_ID) return;
-  if (msg.chat.id !== SUPPORT_GROUP_ID) return;
-  if (!msg.from || !isAdmin(msg.from.id)) return;
-
-  const userId = Number(match[1]);
-  const text = String(match[2]).trim();
-  if (!text) return;
-
-  await bot.sendMessage(userId, `💬 Support:\n\n${text}`);
-  await bot.sendMessage(msg.chat.id, "✅ Sent.", { message_thread_id: msg.message_thread_id });
-});
-
+// В группе: /close (внутри темы)
 bot.onText(/^\/close(?:@[\w_]+)?$/, async (msg) => {
-  if (!SUPPORT_GROUP_ID) return;
   if (msg.chat.id !== SUPPORT_GROUP_ID) return;
   if (!msg.from || !isAdmin(msg.from.id)) return;
 
@@ -226,11 +145,79 @@ bot.onText(/^\/close(?:@[\w_]+)?$/, async (msg) => {
     await store.del(topicKey(topicId));
   }
 
-  try {
-    await bot.closeForumTopic(SUPPORT_GROUP_ID, topicId);
-  } catch (e) {}
+  try { await bot.closeForumTopic(SUPPORT_GROUP_ID, topicId); } catch {}
 
   await bot.sendMessage(msg.chat.id, "🧾 Ticket closed.", { message_thread_id: topicId });
+});
+
+// ------- main message handler (один!) -------
+bot.on("message", async (msg) => {
+  try {
+    // USER side (private)
+    if (msg.chat.type === "private") {
+      if (!msg.from) return;
+
+      // команды обрабатываются отдельными handlers
+      if (msg.text && msg.text.startsWith("/")) return;
+
+      if (await rateLimit(msg.from.id)) {
+        await bot.sendMessage(msg.chat.id, "⏳ Слишком часто. Подожди пару секунд и отправь снова.");
+        return;
+      }
+
+      const topicId = await ensureTicket(msg.from);
+      await copyUserMessageToTopic(msg, topicId);
+
+      // можешь включить, если хочешь подтверждение:
+      // await bot.sendMessage(msg.chat.id, "✅ Принято. Поддержка ответит здесь.");
+      return;
+    }
+
+    // ADMIN side (support group)
+    if (msg.chat.id !== SUPPORT_GROUP_ID) return;
+    if (!msg.from || !isAdmin(msg.from.id)) return;
+
+    // игнорируем команды
+    if (msg.text && msg.text.startsWith("/")) return;
+
+    // отвечаем пользователю только если это reply
+    const replyTo = msg.reply_to_message;
+    if (!replyTo) return;
+
+    // 1) пробуем map по message_id (идеально)
+    let userId = await store.get(mapKey(SUPPORT_GROUP_ID, replyTo.message_id));
+
+    // 2) fallback: если map нет — берём userId по topicId (работает даже при проблемах с маппингом)
+    if (!userId && msg.message_thread_id) {
+      userId = await store.get(topicKey(msg.message_thread_id));
+    }
+    if (!userId) return;
+
+    if (msg.text) {
+      await bot.sendMessage(userId, `💬 Support:\n\n${msg.text}`);
+      return;
+    }
+
+    // не текст — копируем вложение
+    try {
+      await bot.copyMessage(userId, SUPPORT_GROUP_ID, msg.message_id);
+    } catch {
+      await bot.sendMessage(
+        msg.chat.id,
+        "⚠️ Failed to deliver non-text reply.",
+        { message_thread_id: msg.message_thread_id }
+      );
+    }
+  } catch (e) {
+    console.error("support-bot handler error:", e);
+    // чтобы ты видел ошибки прямо в группе (опционально)
+    try {
+      await bot.sendMessage(
+        SUPPORT_GROUP_ID,
+        `⚠️ support-bot error:\n${String(e?.message || e)}`.slice(0, 3500)
+      );
+    } catch {}
+  }
 });
 
 module.exports = { bot };
