@@ -1,4 +1,4 @@
-
+// store.js
 const { Redis } = require("@upstash/redis");
 
 const hasUpstash =
@@ -11,67 +11,52 @@ const redis = hasUpstash
     })
   : null;
 
-
+// fallback (не прод): слетает при рестартах
 const mem = new Map();
 
-
-function encode(value) {
-  if (value === undefined) return null;
-  if (typeof value === "string") return value;
-  return JSON.stringify(value);
-}
-
-function decode(value) {
-  if (value === null || value === undefined) return null;
-  if (typeof value !== "string") return value;
-
-  const s = value.trim();
-  if (!s) return "";
-
-  const c = s[0];
-  // JSON/number/bool/null
-  if (
-    c === "{" ||
-    c === "[" ||
-    c === '"' ||
-    c === "-" ||
-    (c >= "0" && c <= "9") ||
-    s === "true" ||
-    s === "false" ||
-    s === "null"
-  ) {
-    try {
-      return JSON.parse(s);
-    } catch (_) {
-      // если не JSON — вернём как строку
-      return value;
-    }
+function jparse(v) {
+  if (v === null || v === undefined) return null;
+  if (typeof v === "object") return v; // Upstash иногда возвращает объект
+  try {
+    return JSON.parse(v);
+  } catch {
+    return null;
   }
-
-  return value;
+}
+function jstring(v) {
+  return JSON.stringify(v);
 }
 
-async function get(key) {
-  if (redis) return decode(await redis.get(key));
+async function getJSON(key) {
+  if (redis) return jparse(await redis.get(key));
   return mem.has(key) ? mem.get(key) : null;
 }
 
-async function set(key, value, opts = undefined) {
-  const v = encode(value);
+async function setJSON(key, value, opts = {}) {
   if (redis) {
-    // opts: { ex: seconds }
-    await redis.set(key, v, opts);
-    return;
+    // opts: { ex, nx }
+    return await redis.set(key, jstring(value), opts);
   }
-  mem.set(key, decode(v));
+  mem.set(key, value);
+  return "OK";
 }
 
 async function del(key) {
-  if (redis) {
-    await redis.del(key);
-    return;
-  }
+  if (redis) return await redis.del(key);
   mem.delete(key);
 }
 
-module.exports = { get, set, del, hasUpstash };
+async function setNXEX(key, value, exSeconds) {
+  if (redis) {
+    // one-call rate limit / lock
+    const res = await redis.set(key, value, { nx: true, ex: exSeconds });
+    return !!res; // true if lock acquired
+  }
+  const now = Date.now();
+  const prev = mem.get(key);
+  if (prev && now < prev.expiresAt) return false;
+  mem.set(key, { value, expiresAt: now + exSeconds * 1000 });
+  return true;
+}
+
+module.exports = { hasUpstash, getJSON, setJSON, del, setNXEX };
