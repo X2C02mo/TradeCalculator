@@ -7,82 +7,40 @@ const hasUpstash =
 const redis = hasUpstash
   ? new Redis({
       url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
     })
   : null;
 
-// fallback (НЕ ок для прода) — слетает на холодных стартах
+// fallback (не для продакшена)
 const mem = new Map();
+let memCounters = new Map();
 
-function tryJsonParse(v) {
-  if (v == null) return null;
-  if (typeof v === "object") return v;
-  if (typeof v !== "string") return v;
-  const s = v.trim();
-  if (!s) return v;
-  if ((s.startsWith("{") && s.endsWith("}")) || (s.startsWith("[") && s.endsWith("]"))) {
-    try {
-      return JSON.parse(s);
-    } catch {
-      return v;
-    }
-  }
-  return v;
-}
-
-function toStorable(value) {
-  if (value == null) return value;
-  if (typeof value === "string") return value;
-  return JSON.stringify(value);
-}
-
-/**
- * get(key) -> any|null
- */
 async function get(key) {
-  if (redis) return tryJsonParse(await redis.get(key));
-  return mem.has(key) ? tryJsonParse(mem.get(key)) : null;
+  if (redis) return await redis.get(key);
+  return mem.has(key) ? mem.get(key) : null;
 }
 
-/**
- * set(key, value, { ex?: seconds, nx?: boolean }) -> Redis result-like
- * - nx=true: set only if not exists (для дедупликации апдейтов)
- * - ex: TTL seconds
- */
-async function set(key, value, opts = {}) {
-  const v = toStorable(value);
-
+async function set(key, value) {
   if (redis) {
-    const params = {};
-    if (opts.ex) params.ex = opts.ex;
-    if (opts.nx) params.nx = true;
-    // Upstash вернёт "OK" или null (если nx и ключ уже был)
-    return await redis.set(key, v, Object.keys(params).length ? params : undefined);
+    await redis.set(key, value);
+    return;
   }
-
-  if (opts.nx && mem.has(key)) return null;
-  mem.set(key, v);
-
-  if (opts.ex) {
-    const t = setTimeout(() => mem.delete(key), opts.ex * 1000);
-    if (t.unref) t.unref();
-  }
-
-  return "OK";
+  mem.set(key, value);
 }
 
 async function del(key) {
-  if (redis) return await redis.del(key);
+  if (redis) {
+    await redis.del(key);
+    return;
+  }
   mem.delete(key);
-  return 1;
 }
 
 async function incr(key) {
   if (redis) return await redis.incr(key);
-  const cur = Number(mem.get(key) || 0);
-  const next = (Number.isFinite(cur) ? cur : 0) + 1;
-  mem.set(key, String(next));
-  return next;
+  const cur = Number(memCounters.get(key) || 0) + 1;
+  memCounters.set(key, cur);
+  return cur;
 }
 
 module.exports = { get, set, del, incr, hasUpstash };
