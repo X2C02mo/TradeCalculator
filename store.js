@@ -11,17 +11,13 @@ const redis = hasUpstash
     })
   : null;
 
-// fallback (не прод)
+// fallback (не прод) — слетает при рестартах
 const mem = new Map();
 
 function safeParse(v) {
   if (v === null || v === undefined) return null;
-  if (typeof v !== "string") return v; // если библиотека уже вернула объект
-  try {
-    return JSON.parse(v);
-  } catch {
-    return v;
-  }
+  if (typeof v !== "string") return v;
+  try { return JSON.parse(v); } catch { return v; }
 }
 
 async function get(key) {
@@ -32,30 +28,24 @@ async function get(key) {
 async function set(key, value, ttlSec = null) {
   if (redis) {
     const payload = JSON.stringify(value);
-    if (ttlSec) {
-      await redis.set(key, payload, { ex: ttlSec });
-    } else {
-      await redis.set(key, payload);
-    }
+    if (ttlSec) await redis.set(key, payload, { ex: ttlSec });
+    else await redis.set(key, payload);
     return;
   }
   mem.set(key, value);
+  if (ttlSec) setTimeout(() => mem.delete(key), ttlSec * 1000);
 }
 
 async function del(key) {
-  if (redis) {
-    await redis.del(key);
-    return;
-  }
+  if (redis) { await redis.del(key); return; }
   mem.delete(key);
 }
 
-// атомарный rate limit: SET key 1 NX EX ttl
+// атомарный rate limit: SET key NX EX ttl
 async function setNX(key, value, ttlSec) {
   if (redis) {
     const payload = JSON.stringify(value);
     const ok = await redis.set(key, payload, { nx: true, ex: ttlSec });
-    // Upstash возвращает "OK" или null
     return ok === "OK";
   }
   if (mem.has(key)) return false;
