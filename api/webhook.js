@@ -1,27 +1,19 @@
+// api/webhook.js
 const { bot } = require("../support-bot");
 
 module.exports = async (req, res) => {
-  if (req.method === "GET") {
-    res.status(200).send("OK");
-    return;
-  }
-
-  if (req.method !== "POST") {
-    res.status(405).send("Method Not Allowed");
-    return;
-  }
-
   try {
-    const chunks = [];
-    for await (const c of req) chunks.push(c);
-    const raw = Buffer.concat(chunks).toString("utf8");
-    const update = raw ? JSON.parse(raw) : {};
+    if (req.method !== "POST") {
+      res.status(200).send("OK");
+      return;
+    }
 
+    const update = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
     bot.processUpdate(update);
-    res.status(200).send("ok");
+
+    res.status(200).send("OK");
   } catch (e) {
-    console.error("webhook error:", e);
-    // Telegram должен получить 200, иначе будут ретраи
-    res.status(200).send("ok");
+    console.error("[api/webhook] error:", e);
+    res.status(200).send("OK"); // Telegram должен получить 200
   }
 };
