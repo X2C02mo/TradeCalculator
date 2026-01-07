@@ -3,7 +3,6 @@ const { bot } = require("../support-bot");
 
 module.exports = async (req, res) => {
   try {
-    // healthcheck
     if (req.method === "GET") {
       res.status(200).send("OK");
       return;
@@ -13,7 +12,7 @@ module.exports = async (req, res) => {
       return;
     }
 
-    // optional secret token check
+    // optional secret token check (быстро, до ответа)
     const secret = process.env.WEBHOOK_SECRET;
     if (secret) {
       const got = req.headers["x-telegram-bot-api-secret-token"];
@@ -23,16 +22,17 @@ module.exports = async (req, res) => {
       }
     }
 
-    // body
     const update = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
 
-    // IMPORTANT: process update
-    await bot.processUpdate(update);
-
     res.status(200).send("OK");
+
+    // и уже после ответа обрабатываем апдейт
+    Promise.resolve()
+      .then(() => bot.processUpdate(update))
+      .catch((e) => console.error("processUpdate error:", e?.message || e));
   } catch (e) {
-    // Telegram лучше вернуть 200, чтобы не зацикливать повторы на старых апдейтах.
     console.error("webhook error:", e?.message || e);
+    
     res.status(200).send("OK");
   }
 };
