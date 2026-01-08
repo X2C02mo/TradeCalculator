@@ -221,7 +221,8 @@ function createSupportBot() {
     if (!ctx.from) return;
     if (pending) await store.setJson(key.pending(ctx.from.id), pending, TTL_FLOW);
 
-    const text = `${I18N.ru.chooseLangTitle}\n${I18N.ru.chooseLangHint}\n(${BUILD})`;
+    const text = `${I18N.en.chooseLangTitle}\n${I18N.en.chooseLangHint}`;
+
 
     if (ctx.updateType === "callback_query") {
       await ctx.editMessageText(text, kbLang()).catch(async () => ctx.reply(text, kbLang()));
