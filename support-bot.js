@@ -16,11 +16,12 @@ const ADMIN_IDS = new Set(
 if (!process.env.SUPPORT_BOT_TOKEN) throw new Error("SUPPORT_BOT_TOKEN missing");
 if (!Number.isFinite(SUPPORT_CHAT_ID)) throw new Error("SUPPORT_GROUP_ID must be a number");
 
-const PREFIX = "sb:v2:"; // чтобы старые ключи не ломали логику
-
+const PREFIX = "sb:v2:"; // оставляем v2, чтобы не ломать текущие тикеты
 const TTL_TICKET = 60 * 60 * 24 * 14; // 14 дней
 const TTL_LANG = 60 * 60 * 24 * 365;  // 1 год
 const TTL_FLOW = 60 * 15;             // 15 минут
+
+const START_RE = /^\/start(?:@\w+)?(?:\s|$)/i;
 
 const I18N = {
   ru: {
@@ -51,9 +52,7 @@ const I18N = {
     statusOpen: (cat) => `ℹ️ Статус: ОТКРЫТО\nКатегория: ${cat || "—"}`,
     statusNone: "ℹ️ Открытых обращений нет.",
     faqText: "FAQ:\n• Опиши проблему конкретно\n• Скрины/логи помогают\n• Ответ придёт сюда",
-    contactsText: "Контакты:\n• Поддержка — через этого бота\n• (добавь свои контакты сюда)",
-    supportPrefix: "🧑‍💻 Поддержка:\n\n",
-    supportAttachment: "🧑‍💻 Поддержка отправила вложение."
+    contactsText: "Контакты:\n• Поддержка — через этого бота\n• (добавь свои контакты сюда)"
   },
   en: {
     chooseLangTitle: "Choose language:",
@@ -83,9 +82,7 @@ const I18N = {
     statusOpen: (cat) => `ℹ️ Status: OPEN\nCategory: ${cat || "—"}`,
     statusNone: "ℹ️ No open tickets.",
     faqText: "FAQ:\n• Describe the issue clearly\n• Screenshots/logs help\n• We’ll reply here",
-    contactsText: "Contacts:\n• Support — via this bot\n• (add your contacts here)",
-    supportPrefix: "🧑‍💻 Support:\n\n",
-    supportAttachment: "🧑‍💻 Support sent an attachment."
+    contactsText: "Contacts:\n• Support — via this bot\n• (add your contacts here)"
   }
 };
 
@@ -105,22 +102,42 @@ function createSupportBot() {
 
   const key = {
     dedup: (updateId) => `${PREFIX}dedup:${updateId}`,
+    // lang: Храним ТОЛЬКО как объект {lang:"en"} для стабильности
     lang: (uid) => `${PREFIX}lang:${uid}`,
-    flow: (uid) => `${PREFIX}flow:${uid}`,       // {mode, category}
-    pending: (uid) => `${PREFIX}pending:${uid}`, // {screen, payload}
-    ticket: (uid) => `${PREFIX}ticket:${uid}`,   // {status, threadId, category, lang, createdAt}
+    flow: (uid) => `${PREFIX}flow:${uid}`,       // {mode:"AWAIT", category}
+    pending: (uid) => `${PREFIX}pending:${uid}`, // {screen, category}
+    ticket: (uid) => `${PREFIX}ticket:${uid}`,   // {status, threadId, category, lang}
     threadMap: (threadId) => `${PREFIX}thread:${SUPPORT_CHAT_ID}:${threadId}` // {userId}
   };
 
   const isPrivate = (ctx) => ctx.chat?.type === "private";
   const isSupportGroup = (ctx) => ctx.chat?.id === SUPPORT_CHAT_ID;
 
+  // ✅ супер-устойчивое чтение языка из любых старых форматов
   async function getLang(uid) {
     const v = await store.getJson(key.lang(uid));
-    return v === "en" || v === "ru" ? v : null;
+    // 1) прям строка
+    if (v === "en" || v === "ru") return v;
+
+    // 2) объект
+    if (v && typeof v === "object" && (v.lang === "en" || v.lang === "ru")) return v.lang;
+
+    // 3) строка, которая сама содержит JSON
+    if (typeof v === "string") {
+      const s = v.trim();
+      if (s === "en" || s === "ru") return s;
+      try {
+        const p = JSON.parse(s);
+        if (p === "en" || p === "ru") return p;
+        if (p && typeof p === "object" && (p.lang === "en" || p.lang === "ru")) return p.lang;
+      } catch {}
+    }
+
+    return null;
   }
+
   async function setLang(uid, lang) {
-    await store.setJson(key.lang(uid), lang, TTL_LANG);
+    await store.setJson(key.lang(uid), { lang }, TTL_LANG);
   }
 
   function t(lang, k) {
@@ -173,26 +190,20 @@ function createSupportBot() {
     return tk && tk.status === "open" ? tk : null;
   }
 
-  async function createTopic(threadTitle) {
-    return bot.telegram.callApi("createForumTopic", {
-      chat_id: SUPPORT_CHAT_ID,
-      name: threadTitle
-    });
+  async function createTopic(title) {
+    return bot.telegram.callApi("createForumTopic", { chat_id: SUPPORT_CHAT_ID, name: title });
   }
   async function closeTopic(threadId) {
-    return bot.telegram.callApi("closeForumTopic", {
-      chat_id: SUPPORT_CHAT_ID,
-      message_thread_id: threadId
-    });
+    return bot.telegram.callApi("closeForumTopic", { chat_id: SUPPORT_CHAT_ID, message_thread_id: threadId });
   }
   async function sendToTopic(threadId, text, extra = {}) {
     return bot.telegram.sendMessage(SUPPORT_CHAT_ID, text, { message_thread_id: threadId, ...extra });
   }
-  async function copyToTopic(threadId, fromChatId, messageId, extra = {}) {
-    return bot.telegram.copyMessage(SUPPORT_CHAT_ID, fromChatId, messageId, { message_thread_id: threadId, ...extra });
+  async function copyToTopic(threadId, fromChatId, messageId) {
+    return bot.telegram.copyMessage(SUPPORT_CHAT_ID, fromChatId, messageId, { message_thread_id: threadId });
   }
-  async function copyToUser(userId, fromChatId, messageId, extra = {}) {
-    return bot.telegram.copyMessage(userId, fromChatId, messageId, extra);
+  async function copyToUser(userId, fromChatId, messageId) {
+    return bot.telegram.copyMessage(userId, fromChatId, messageId);
   }
 
   async function isAdminUser(userId) {
@@ -205,16 +216,21 @@ function createSupportBot() {
     }
   }
 
-  async function showLangPicker(ctx, pendingScreen) {
+  // ✅ показываем выбор языка БЕЗ спама: в callback — пытаемся edit, иначе reply
+  async function showLangPicker(ctx, pending) {
     if (!ctx.from) return;
-    if (pendingScreen) {
-      await store.setJson(key.pending(ctx.from.id), pendingScreen, TTL_FLOW);
-    }
+    if (pending) await store.setJson(key.pending(ctx.from.id), pending, TTL_FLOW);
+
     const text = `${I18N.ru.chooseLangTitle}\n${I18N.ru.chooseLangHint}\n(${BUILD})`;
-    await ctx.reply(text, kbLang());
+
+    if (ctx.updateType === "callback_query") {
+      await ctx.editMessageText(text, kbLang()).catch(async () => ctx.reply(text, kbLang()));
+    } else {
+      await ctx.reply(text, kbLang());
+    }
   }
 
-  // ---- Dedup (Telegram retries)
+  // Dedup (Telegram retries)
   bot.use(async (ctx, next) => {
     const id = ctx.update?.update_id;
     if (!id) return next();
@@ -223,7 +239,7 @@ function createSupportBot() {
     return next();
   });
 
-  // ---- /start: ВСЕГДА язык + сброс flow, чтобы не было "липких" шагов
+  // /start — всегда сбрасываем flow и показываем язык
   async function onStart(ctx) {
     if (!isPrivate(ctx) || !ctx.from) return;
     await store.del(key.flow(ctx.from.id));
@@ -231,46 +247,42 @@ function createSupportBot() {
     await showLangPicker(ctx, { screen: "MENU" });
   }
   bot.start(onStart);
-  bot.hears(/^\/start(\s|$)/i, onStart);
+  bot.hears(START_RE, onStart);
 
-  // ---- callback_query
+  // callback_query
   bot.on("callback_query", async (ctx) => {
     const uid = ctx.from.id;
     const data = ctx.callbackQuery.data || "";
-
     await ctx.answerCbQuery().catch(() => {});
 
-    // Язык выбирается всегда, даже если его ещё нет
+    // язык выбираем всегда
     if (data.startsWith("LANG:")) {
       const chosen = data.endsWith("en") ? "en" : "ru";
       await setLang(uid, chosen);
 
-      // куда вернуться после выбора языка
       const pending = await store.getJson(key.pending(uid));
       await store.del(key.pending(uid));
 
-      const lang = chosen;
+      // если был шаг "жду сообщение" — возвращаем туда
       if (pending?.screen === "ASK_ONE") {
         await store.setJson(key.flow(uid), { mode: "AWAIT", category: pending.category || "other" }, TTL_FLOW);
-        return ctx.editMessageText(t(lang, "askOne"), kbCancel(lang)).catch(async () => {
-          await ctx.reply(t(lang, "askOne"), kbCancel(lang));
+        return ctx.editMessageText(t(chosen, "askOne"), kbCancel(chosen)).catch(async () => {
+          await ctx.reply(t(chosen, "askOne"), kbCancel(chosen));
         });
       }
 
-      // default -> menu
-      return ctx.editMessageText(`${t(lang, "menuTitle")}\n${t(lang, "menuIntro")}`, kbMenu(lang)).catch(async () => {
-        await ctx.reply(`${t(lang, "menuTitle")}\n${t(lang, "menuIntro")}`, kbMenu(lang));
+      // иначе меню
+      return ctx.editMessageText(`${t(chosen, "menuTitle")}\n${t(chosen, "menuIntro")}`, kbMenu(chosen)).catch(async () => {
+        await ctx.reply(`${t(chosen, "menuTitle")}\n${t(chosen, "menuIntro")}`, kbMenu(chosen));
       });
     }
 
-    // всё остальное — только если язык уже выбран
+    // всё остальное — только если язык есть
     const lang = await getLang(uid);
     if (!lang) {
-      // запомним “куда хотел”, и попросим язык
-      if (data === "U:OPEN") await showLangPicker(ctx, { screen: "MENU" });
-      else if (data.startsWith("U:CAT:")) await showLangPicker(ctx, { screen: "MENU" });
-      else await showLangPicker(ctx, { screen: "MENU" });
-      return;
+      // запоминаем, куда хотел
+      if (data.startsWith("U:CAT:")) return showLangPicker(ctx, { screen: "ASK_ONE", category: data.split(":")[2] || "other" });
+      return showLangPicker(ctx, { screen: "MENU" });
     }
 
     if (data === "U:LANG") {
@@ -290,10 +302,7 @@ function createSupportBot() {
         t(lang, "faqText"),
         Markup.inlineKeyboard([[Markup.button.callback(t(lang, "back"), "U:HOME")]])
       ).catch(async () => {
-        await ctx.reply(
-          t(lang, "faqText"),
-          Markup.inlineKeyboard([[Markup.button.callback(t(lang, "back"), "U:HOME")]])
-        );
+        await ctx.reply(t(lang, "faqText"), Markup.inlineKeyboard([[Markup.button.callback(t(lang, "back"), "U:HOME")]]));
       });
     }
 
@@ -302,24 +311,15 @@ function createSupportBot() {
         t(lang, "contactsText"),
         Markup.inlineKeyboard([[Markup.button.callback(t(lang, "back"), "U:HOME")]])
       ).catch(async () => {
-        await ctx.reply(
-          t(lang, "contactsText"),
-          Markup.inlineKeyboard([[Markup.button.callback(t(lang, "back"), "U:HOME")]])
-        );
+        await ctx.reply(t(lang, "contactsText"), Markup.inlineKeyboard([[Markup.button.callback(t(lang, "back"), "U:HOME")]]));
       });
     }
 
     if (data === "U:STATUS") {
       const tk = await getOpenTicket(uid);
       const text = tk ? tFn(lang, "statusOpen", tk.category) : t(lang, "statusNone");
-      return ctx.editMessageText(
-        text,
-        Markup.inlineKeyboard([[Markup.button.callback(t(lang, "back"), "U:HOME")]])
-      ).catch(async () => {
-        await ctx.reply(
-          text,
-          Markup.inlineKeyboard([[Markup.button.callback(t(lang, "back"), "U:HOME")]])
-        );
+      return ctx.editMessageText(text, Markup.inlineKeyboard([[Markup.button.callback(t(lang, "back"), "U:HOME")]])).catch(async () => {
+        await ctx.reply(text, Markup.inlineKeyboard([[Markup.button.callback(t(lang, "back"), "U:HOME")]]));
       });
     }
 
@@ -373,8 +373,11 @@ function createSupportBot() {
     }
   });
 
-  // ---- ЕДИНСТВЕННЫЙ message handler (и для группы, и для лички)
+  // message handler
   bot.on("message", async (ctx) => {
+    // ✅ если пользователь пишет /start — не даём общему хендлеру отработать (иначе “меню + язык”)
+    if (isPrivate(ctx) && ctx.message?.text && START_RE.test(ctx.message.text)) return;
+
     // A) support group -> user
     if (isSupportGroup(ctx)) {
       const msg = ctx.message;
@@ -389,9 +392,7 @@ function createSupportBot() {
       const userId = map?.userId;
       if (!userId) return;
 
-      try {
-        await copyToUser(userId, ctx.chat.id, msg.message_id);
-      } catch {}
+      try { await copyToUser(userId, ctx.chat.id, msg.message_id); } catch {}
       return;
     }
 
@@ -401,9 +402,7 @@ function createSupportBot() {
     const uid = ctx.from.id;
     const lang = await getLang(uid);
 
-    // если язык не выбран — НЕ продолжаем логику, а просим выбрать
     if (!lang) {
-      // если пользователь писал “описание”, запомним и вернём его в этот шаг после выбора языка
       const flow = await store.getJson(key.flow(uid));
       if (flow?.mode === "AWAIT") {
         await showLangPicker(ctx, { screen: "ASK_ONE", category: flow.category || "other" });
@@ -413,7 +412,6 @@ function createSupportBot() {
       return;
     }
 
-    // если ждём одно сообщение — создаём тикет
     const flow = await store.getJson(key.flow(uid));
     if (flow?.mode === "AWAIT") {
       await store.del(key.flow(uid));
@@ -437,7 +435,6 @@ function createSupportBot() {
       return;
     }
 
-    // если тикет открыт — пересылаем
     const tk = await getOpenTicket(uid);
     if (tk) {
       try {
@@ -449,7 +446,6 @@ function createSupportBot() {
       return;
     }
 
-    // иначе меню
     await ctx.reply(`${t(lang, "menuTitle")}\n${t(lang, "menuIntro")}`, kbMenu(lang));
   });
 
