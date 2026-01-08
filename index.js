@@ -70,3 +70,16 @@ bot.onText(/\/start/, async (msg) => {
 
 console.log('Bot is running...');
 
+bot.on('polling_error', (err) => console.error('Polling error:', err?.message || err));
+bot.on('webhook_error', (err) => console.error('Webhook error:', err?.message || err));
+
+// Railway-friendly health endpoint (не мешает polling)
+const http = require('http');
+const PORT = process.env.PORT || 3000;
+http.createServer((req, res) => {
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.end('ok');
+}).listen(PORT, () => console.log('Health server on', PORT));
+
+
+
