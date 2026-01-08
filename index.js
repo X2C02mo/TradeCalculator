@@ -10,7 +10,7 @@ const bot = new TelegramBot(TOKEN, { polling: true });
 
 const MINI_APP_URL = (process.env.MINI_APP_URL || 'https://trade-calculator-five.vercel.app/').replace(/\/?$/, '/');
 const CHANNEL_URL = process.env.CHANNEL_URL || 'https://t.me/InvestTraderTrade';
-const SUPPORT = process.env.SUPPORT || '@popashadurov';
+const SUPPORT = process.env.SUPPORT || '@Trader_TradeSupportBot';
 
 const START_IMAGE = process.env.START_IMAGE_FILE_ID || 'AgACAgIAAxkBAAMaaVaWeFmSspKIZuXdEQdNMFFv-gQAAhcTaxt-6rFKr0HOjIiv95gBAAMCAAN5AAM4BA';
 
@@ -69,3 +69,4 @@ bot.onText(/\/start/, async (msg) => {
 });
 
 console.log('Bot is running...');
+
