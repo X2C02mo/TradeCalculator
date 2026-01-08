@@ -1,4 +1,4 @@
-// api/webhook.js
+// api/webhook.js (Vercel Serverless, CommonJS)
 const { createSupportBot } = require("../support-bot");
 
 const bot = createSupportBot();
@@ -35,7 +35,7 @@ module.exports = async (req, res) => {
     return res.status(200).send("OK");
   } catch (e) {
     console.error("WEBHOOK_FATAL", e);
-    // чтобы Telegram не долбил ретраями бесконечно во время фикса:
+    // чтобы Telegram не застревал на ретраях во время редеплоя
     return res.status(200).send("OK");
   }
 };
