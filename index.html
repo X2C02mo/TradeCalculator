@@ -8,7 +8,7 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
 
-  <!-- Analytics (loads ONLY after consent) -->
+  
   <script>
     const TG_ANALYTICS_TOKEN = "eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=";
     const TG_ANALYTICS_APP_NAME = "trader_calculator";
@@ -486,7 +486,7 @@
   </header>
 
   <main>
-    <!-- MAIN: CALCULATOR -->
+    
     <section id="main_calc" class="main-screen active">
       <div class="subtabs" role="tablist" aria-label="Calculator tabs">
         <button class="subtab active" data-tab="dca" data-i18n="tab.dca" type="button">DCA</button>
@@ -749,7 +749,7 @@
       </div>
     </section>
 
-    <!-- MAIN: SUPPORT -->
+    
     <section id="main_support" class="main-screen">
       <div class="support-wrap">
         <div class="card" style="width:min(820px,100%)">
@@ -781,7 +781,7 @@
         </div>
 
         <div style="text-align:center">
-          <!-- CHANGED: rainbow -> tagline -->
+          
           <div class="support-tags tagline">AIRDROP • NEWS • TRADING</div>
           <div class="support-links">
             <a id="link_telegram" class="rainbow" href="https://t.me/InvestTraderTrade" target="_blank" rel="noopener">TELEGRAM</a>
@@ -792,7 +792,7 @@
     </section>
   </main>
 
-  <!-- Bottom main tabs -->
+  
   <nav class="bottomnav" aria-label="Main tabs">
     <div class="bar">
       <button id="main_tab_calc" class="main-tab active" type="button">
@@ -809,7 +809,7 @@
 
 <div id="toast">—</div>
 
-<!-- consent modal -->
+
 <div id="consent_backdrop" role="dialog" aria-modal="true">
   <div id="consent_modal">
     <h4 data-i18n="consent.title">Analytics</h4>
@@ -822,7 +822,7 @@
   </div>
 </div>
 
-<!-- card modal -->
+
 <div id="modal_backdrop" role="dialog" aria-modal="true">
   <div id="modal">
     <div id="modal_header">
@@ -849,7 +849,7 @@
   try{ tg?.disableVerticalSwipes?.(); }catch(e){}
   try{ tg?.ready?.(); }catch(e){}
 
-  /* ====== main tabs (Calculator / Support) ====== */
+
   const mainCalc = document.getElementById('main_calc');
   const mainSupport = document.getElementById('main_support');
   const mainBtnCalc = document.getElementById('main_tab_calc');
@@ -869,12 +869,10 @@
   mainBtnCalc?.addEventListener('click', ()=>setMainTab('calc'));
   mainBtnSupport?.addEventListener('click', ()=>setMainTab('support'));
 
-  /* =========================================================
-     CRITICAL: lastIndicators must exist before setTheme() touches it
-     ========================================================= */
+ 
   let lastIndicators = null;
 
-  /* ---------- i18n ---------- */
+  
   const locales = {
     ru:{
       "main.calc":"Калькулятор",
@@ -1021,7 +1019,7 @@
     updateConsentText();
   }
 
-  /* toast */
+  
   let toastTimer=null;
   function showToast(msg){
     const el=document.getElementById('toast');
@@ -1032,7 +1030,7 @@
     toastTimer=setTimeout(()=>el.classList.remove('show'), 1200);
   }
 
-  /* theme */
+  
   const THEME_KEY='tc_theme_v10';
   function getInitialTheme(){
     const saved=localStorage.getItem(THEME_KEY);
@@ -1088,7 +1086,7 @@
     }catch(e){}
   }
 
-  /* language */
+  
   const btnRu=document.getElementById('btn_ru');
   const btnEn=document.getElementById('btn_en');
   function syncLangButtons(){
@@ -1116,7 +1114,7 @@
     return act?.dataset?.tab || 'dca';
   }
 
-  /* DCA */
+  
   const dcaRowsEl=document.getElementById('dca_rows');
   const dcaAvgEl=document.getElementById('dca_avg');
   const dcaTotalVolEl=document.getElementById('dca_total_vol');
@@ -1210,7 +1208,7 @@
   dcaGoal?.addEventListener('input', calcDCA);
   dcaNext?.addEventListener('input', calcDCA);
 
-  /* copy helpers */
+  
   async function copyText(text){
     if(!text || text==='—') return false;
     try{
@@ -1244,7 +1242,7 @@
   bindCopy(document.getElementById('dca_copy'), ()=>dcaAvgEl.textContent);
   bindCopy(document.getElementById('dca_need_copy'), ()=>dcaNeedVol.textContent);
 
-  /* RR */
+  
   const rrEntry=document.getElementById('rr_entry');
   const rrSl=document.getElementById('rr_sl');
   const rrTp=document.getElementById('rr_tp');
