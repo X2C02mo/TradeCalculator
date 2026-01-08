@@ -1,6 +1,7 @@
 // api/webhook.js
 const { createSupportBot } = require("../support-bot");
 
+const BUILD = process.env.BUILD_VERSION || "build-1";
 const bot = createSupportBot();
 
 async function readJsonBody(req) {
@@ -8,7 +9,6 @@ async function readJsonBody(req) {
   if (typeof req.body === "string" && req.body.length) {
     try { return JSON.parse(req.body); } catch { return null; }
   }
-  // fallback: read stream
   const chunks = [];
   for await (const c of req) chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c));
   const raw = Buffer.concat(chunks).toString("utf8");
@@ -19,23 +19,14 @@ async function readJsonBody(req) {
 module.exports = async (req, res) => {
   try {
     if (req.method === "GET") {
-      return res.status(200).send("ok");
+      return res.status(200).send(`ok ${BUILD}`);
     }
+    if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
 
-    if (req.method !== "POST") {
-      return res.status(405).send("Method Not Allowed");
-    }
-
-    // Verify secret token header (Telegram sends it if you set secret_token in setWebhook)
     const expected = process.env.WEBHOOK_SECRET;
     if (expected) {
-      const got =
-        req.headers["x-telegram-bot-api-secret-token"] ||
-        req.headers["X-Telegram-Bot-Api-Secret-Token"];
-
-      if (!got || got !== expected) {
-        return res.status(401).send("Unauthorized");
-      }
+      const got = req.headers["x-telegram-bot-api-secret-token"];
+      if (!got || got !== expected) return res.status(401).send("Unauthorized");
     }
 
     const update = await readJsonBody(req);
@@ -44,8 +35,7 @@ module.exports = async (req, res) => {
     await bot.handleUpdate(update);
     return res.status(200).send("OK");
   } catch (e) {
-    console.error("WEBHOOK_ERROR", e);
-    // важно: 200, чтобы Telegram не долбил ретраями бесконечно.
+    console.error("WEBHOOK_ERROR", { build: BUILD, e: String(e?.stack || e) });
     return res.status(200).send("OK");
   }
 };
