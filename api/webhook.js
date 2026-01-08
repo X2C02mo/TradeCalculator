@@ -1,35 +1,41 @@
 // api/webhook.js
-import { getBot } from "../support-bot.js";
+const { createSupportBot } = require("../support-bot");
 
-const bot = getBot();
+const bot = createSupportBot();
+const BUILD = process.env.BUILD_VERSION || "no-build";
 
-function buildId() {
-  return (
-    process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ||
-    process.env.VERCEL_DEPLOYMENT_ID ||
-    "dev"
-  );
+async function readJson(req) {
+  if (req.body && typeof req.body === "object") return req.body;
+
+  const chunks = [];
+  for await (const c of req) chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c));
+  const raw = Buffer.concat(chunks).toString("utf8");
+  if (!raw) return null;
+
+  try { return JSON.parse(raw); } catch { return null; }
 }
 
-export default async function handler(request) {
-  // healthcheck в браузере
-  if (request.method === "GET") {
-    return new Response(`ok ${buildId()}`, { status: 200 });
+module.exports = async (req, res) => {
+  try {
+    if (req.method === "GET") {
+      return res.status(200).send(`ok ${BUILD}`);
+    }
+    if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
+
+    const expected = process.env.WEBHOOK_SECRET;
+    if (expected) {
+      const got = req.headers["x-telegram-bot-api-secret-token"];
+      if (got !== expected) return res.status(401).send("Unauthorized");
+    }
+
+    const update = await readJson(req);
+    if (!update) return res.status(400).send("Bad Request");
+
+    await bot.handleUpdate(update);
+    return res.status(200).send("OK");
+  } catch (e) {
+    console.error("WEBHOOK_FATAL", e);
+    // чтобы Telegram не долбил ретраями бесконечно во время фикса:
+    return res.status(200).send("OK");
   }
-
-  if (request.method !== "POST") {
-    return new Response("method not allowed", { status: 405 });
-  }
-
-  const secretHeader = request.headers.get("x-telegram-bot-api-secret-token") || "";
-  const expected = bot.context.webhookSecret || "";
-
-  if (expected && secretHeader !== expected) {
-    return new Response("unauthorized", { status: 401 });
-  }
-
-  const update = await request.json();
-  await bot.handleUpdate(update);
-
-  return new Response("ok", { status: 200 });
-}
+};
