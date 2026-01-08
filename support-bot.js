@@ -1,617 +1,431 @@
 // support-bot.js
-const { Telegraf, Markup } = require("telegraf");
-const { createStore } = require("./store");
+import { Telegraf, Markup } from "telegraf";
+import { getJSON, setJSON, setJSONEX, delKey } from "./store.js";
 
-const BUILD = process.env.BUILD_VERSION || "build-1"; // для диагностики
+const BOT_TOKEN = process.env.SUPPORT_BOT_TOKEN;
+const SUPPORT_GROUP_ID = Number(process.env.SUPPORT_GROUP_ID);
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "";
+const ADMIN_USERS_IDS = String(process.env.ADMIN_USERS_IDS || "")
+  .split(",")
+  .map(s => s.trim())
+  .filter(Boolean)
+  .map(Number);
 
-function parseAdminIds(raw) {
-  if (!raw) return new Set();
-  return new Set(
-    raw
-      .split(/[,\s]+/)
-      .map((x) => x.trim())
-      .filter(Boolean)
-      .map((x) => Number(x))
-      .filter((n) => Number.isFinite(n))
-  );
+function must(v, name) {
+  if (!v) throw new Error(`Missing env: ${name}`);
+  return v;
 }
+must(BOT_TOKEN, "SUPPORT_BOT_TOKEN");
+must(SUPPORT_GROUP_ID, "SUPPORT_GROUP_ID");
 
-function normChatId(raw) {
-  if (raw == null) throw new Error("SUPPORT_GROUP_ID is missing");
-  const n = Number(raw);
-  if (!Number.isFinite(n)) throw new Error("SUPPORT_GROUP_ID must be a number");
-  return n;
-}
+const TICKET_TTL = 60 * 60 * 24 * 30; // 30 дней
 
-function clampTopicName(s) {
-  const clean = String(s).replace(/\s+/g, " ").trim();
-  return clean.length > 120 ? clean.slice(0, 120) + "…" : clean;
-}
-
-function displayUser(u) {
-  const parts = [];
-  if (u.first_name) parts.push(u.first_name);
-  if (u.last_name) parts.push(u.last_name);
-  const name = parts.join(" ").trim() || `id:${u.id}`;
-  const tag = u.username ? `@${u.username}` : "";
-  return tag ? `${name} (${tag})` : name;
-}
+const K = {
+  lang: (uid) => `u:${uid}:lang`,
+  session: (uid) => `u:${uid}:session`,
+  ticket: (uid) => `u:${uid}:ticket`,
+  ticketById: (tid) => `t:${tid}`,
+  ticketByThread: (threadId) => `thread:${threadId}`,
+};
 
 const I18N = {
   ru: {
-    chooseLangTitle: "Выберите язык:",
-    chooseLangHint: "Язык можно изменить позже в меню.",
+    hello: "Привет! Это поддержка Trader продуктов.\n\nВыберите действие:",
+    chooseLang: "Выберите язык / Choose language:",
     menuTitle: "Меню поддержки:",
-    menuIntro: "Выберите действие кнопками ниже.",
     create: "🆘 Создать обращение",
     faq: "📌 FAQ",
     status: "ℹ️ Статус",
     contacts: "✉️ Контакты",
-    lang: "🌐 Язык",
-    back: "⬅️ Назад",
-    cancel: "⬅️ Отмена",
-    close: "✅ Закрыть обращение",
-    closeAdmin: "✅ Закрыть тикет",
-    sent: "✅ Отправлено в поддержку.",
+    language: "🌐 Язык",
+    back: "⬅️ В меню",
+    cancel: "↩️ Отмена",
+    close: "✅ Закрыть тикет",
+    sendOne: "Ок. Теперь отправьте **ОДНО** сообщение с описанием проблемы.\nМожно текст/фото/файл.",
     alreadyOpen: "У вас уже есть открытое обращение. Просто пишите сообщением — я пересылаю в поддержку.",
-    pickCategory: "Выберите категорию:",
-    cat_bug: "🐞 Баг / Ошибка",
-    cat_pay: "💳 Оплата",
-    cat_biz: "🤝 Партнёрство",
-    cat_other: "❓ Другое",
-    askOneMsg: "Ок. Теперь отправьте ОДНО сообщение с описанием проблемы.\nМожно текст/фото/файл.",
-    created: "✅ Обращение создано. Пишите сюда — я буду пересылать в поддержку.\n\nЕсли вопрос решён — закройте обращение кнопкой.",
-    closed: "✅ Обращение закрыто. Если нужно — создайте новое через меню.",
-    noOpen: "Открытого обращения нет.",
-    statusOpen: (cat) => `ℹ️ Статус: ОТКРЫТО\nКатегория: ${cat || "—"}`,
-    statusNone: "ℹ️ Открытых обращений нет.",
-    faqText:
-      "📌 FAQ\n\n" +
-      "• Как быстро отвечают? Обычно в течение дня.\n" +
-      "• Что писать? Конкретно: что делали, что ожидали, что получили.\n" +
-      "• Скрины/логи приветствуются.\n\n" +
-      "Нажмите «Создать обращение», если нужна помощь.",
-    contactsText:
-      "✉️ Контакты\n\n" +
-      "Если вопрос срочный — создайте обращение, поддержка увидит его в теме.\n" +
-      "Если нужен другой канал — добавьте сюда нужные контакты (почта/чат) и я вставлю.",
-    supportPrefix: "🧑‍💻 Поддержка:\n\n",
-    supportAttachment: "🧑‍💻 Поддержка отправила вложение.",
-    sendFail: "⚠️ Не удалось отправить в поддержку. Я попробую восстановить тему — повторите сообщение ещё раз."
+    sent: "Принято. Переслал в поддержку.",
+    sendFail: "⚠️ Не удалось отправить. Попробуйте ещё раз.",
+    noTicket: "Открытых обращений нет.",
+    openTicket: (id) => `Открыто обращение #${id}.`,
+    closed: "Тикет закрыт.",
+    adminOnly: "Только для админов.",
+    faqText: "FAQ:\n• Опиши проблему одним сообщением\n• Прикрепляй скрины/видео, если нужно\n• Мы отвечаем в этом чате",
+    contactsText: "Контакты:\n• Поддержка: в этом боте\n• Канал: (впиши свой контакт/ссылку)",
   },
   en: {
-    chooseLangTitle: "Choose language:",
-    chooseLangHint: "You can change it later in the menu.",
+    hello: "Hi! This is Trader product support.\n\nChoose an action:",
+    chooseLang: "Choose language / Выберите язык:",
     menuTitle: "Support menu:",
-    menuIntro: "Use the buttons below.",
     create: "🆘 Create ticket",
     faq: "📌 FAQ",
     status: "ℹ️ Status",
     contacts: "✉️ Contacts",
-    lang: "🌐 Language",
+    language: "🌐 Language",
     back: "⬅️ Back",
-    cancel: "⬅️ Cancel",
+    cancel: "↩️ Cancel",
     close: "✅ Close ticket",
-    closeAdmin: "✅ Close ticket",
-    sent: "✅ Sent to support.",
-    alreadyOpen: "You already have an open ticket. Just send messages here — I will forward them to support.",
-    pickCategory: "Choose a category:",
-    cat_bug: "🐞 Bug / Error",
-    cat_pay: "💳 Payments",
-    cat_biz: "🤝 Partnership",
-    cat_other: "❓ Other",
-    askOneMsg: "OK. Now send ONE message describing the issue.\nText/photo/file is fine.",
-    created: "✅ Ticket created. Message me here — I will forward to support.\n\nIf solved — close it with the button.",
-    closed: "✅ Ticket closed. If needed — create a new one from the menu.",
-    noOpen: "No open ticket.",
-    statusOpen: (cat) => `ℹ️ Status: OPEN\nCategory: ${cat || "—"}`,
-    statusNone: "ℹ️ No open tickets.",
-    faqText:
-      "📌 FAQ\n\n" +
-      "• Response time: usually within a day.\n" +
-      "• What to send: steps, expected result, actual result.\n" +
-      "• Screenshots/logs help a lot.\n\n" +
-      "Press “Create ticket” if you need help.",
-    contactsText:
-      "✉️ Contacts\n\n" +
-      "If urgent — create a ticket so support sees it in the topic.\n" +
-      "If you need another channel — tell me (email/chat) and I’ll add it here.",
-    supportPrefix: "🧑‍💻 Support:\n\n",
-    supportAttachment: "🧑‍💻 Support sent an attachment.",
-    sendFail: "⚠️ Failed to send to support. I’ll try to recover the topic — resend your message."
+    sendOne: "Ok. Now send **ONE** message describing the issue.\nText/photo/file is fine.",
+    alreadyOpen: "You already have an open ticket. Just message me — I’ll forward it to support.",
+    sent: "Got it. Forwarded to support.",
+    sendFail: "⚠️ Failed to send. Please try again.",
+    noTicket: "No open tickets.",
+    openTicket: (id) => `Ticket #${id} is open.`,
+    closed: "Ticket closed.",
+    adminOnly: "Admins only.",
+    faqText: "FAQ:\n• Describe the issue in one message\n• Attach screenshots/videos if needed\n• We’ll reply here",
+    contactsText: "Contacts:\n• Support: via this bot\n• Channel: (put your link here)",
   }
 };
 
-function createSupportBot() {
-  const token = process.env.SUPPORT_BOT_TOKEN;
-  if (!token) throw new Error("SUPPORT_BOT_TOKEN is missing");
+function genTicketId() {
+  // 10-значный
+  return String(Math.floor(1000000000 + Math.random() * 9000000000));
+}
 
-  const SUPPORT_CHAT_ID = normChatId(process.env.SUPPORT_GROUP_ID);
-  const ADMIN_IDS = parseAdminIds(process.env.ADMIN_USERS_IDS);
+async function getLang(uid) {
+  const rec = await getJSON(K.lang(uid));
+  return rec?.lang === "en" ? "en" : rec?.lang === "ru" ? "ru" : null;
+}
+async function setLang(uid, lang) {
+  await setJSONEX(K.lang(uid), TICKET_TTL, { lang });
+}
 
-  const store = createStore();
-  const bot = new Telegraf(token);
+async function getSession(uid) {
+  return (await getJSON(K.session(uid))) || {};
+}
+async function setSession(uid, s) {
+  await setJSONEX(K.session(uid), TICKET_TTL, s);
+}
 
-  const keyState = (uid) => `state:user:${uid}`;
-  const keyTicketByUser = (uid) => `ticket:user:${uid}`;
-  const keyUserByThread = (threadId) => `ticket:thread:${SUPPORT_CHAT_ID}:${threadId}`;
-  const keyDedup = (updateId) => `dedup:update:${updateId}`;
-  const keyLang = (uid) => `user:lang:${uid}`;
-  const keyMemberCache = (uid) => `cache:member:${SUPPORT_CHAT_ID}:${uid}`;
+async function getOpenTicket(uid) {
+  return await getJSON(K.ticket(uid));
+}
+async function setOpenTicket(uid, ticket) {
+  await setJSONEX(K.ticket(uid), TICKET_TTL, ticket);
+}
 
-  const isPrivate = (ctx) => ctx.chat && ctx.chat.type === "private";
-  const isSupportGroup = (ctx) => ctx.chat && ctx.chat.id === SUPPORT_CHAT_ID;
+async function clearOpenTicket(uid, ticketId, threadId) {
+  await delKey(K.ticket(uid));
+  if (ticketId) await delKey(K.ticketById(ticketId));
+  if (threadId) await delKey(K.ticketByThread(threadId));
+}
 
-  async function getLang(uid) {
-    const v = await store.getJson(keyLang(uid));
-    return v === "en" || v === "ru" ? v : null;
-  }
-  async function setLang(uid, lang) {
-    await store.setJson(keyLang(uid), lang);
-  }
+function langKeyboard() {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback("Русский", "LANG:ru"), Markup.button.callback("English", "LANG:en")]
+  ]);
+}
 
-  function t(lang, key) {
-    const pack = I18N[lang] || I18N.ru;
-    return pack[key] ?? I18N.ru[key] ?? key;
-  }
-  function tFn(lang, key, ...args) {
-    const pack = I18N[lang] || I18N.ru;
-    const v = pack[key] ?? I18N.ru[key];
-    return typeof v === "function" ? v(...args) : String(v);
-  }
+function menuKeyboard(t) {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(t.create, "MENU:CREATE")],
+    [Markup.button.callback(t.faq, "MENU:FAQ"), Markup.button.callback(t.status, "MENU:STATUS")],
+    [Markup.button.callback(t.contacts, "MENU:CONTACTS")],
+    [Markup.button.callback(t.language, "MENU:LANG")]
+  ]);
+}
 
-  function langKeyboard() {
-    return Markup.inlineKeyboard([
-      [Markup.button.callback("English", "lang:en"), Markup.button.callback("Русский", "lang:ru")]
-    ]);
-  }
+function ticketKeyboard(t) {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(t.close, "TICKET:CLOSE")],
+    [Markup.button.callback(t.back, "MENU:HOME")]
+  ]);
+}
 
-  function userMenu(lang) {
-    return Markup.inlineKeyboard([
-      [Markup.button.callback(t(lang, "create"), "u:open")],
-      [Markup.button.callback(t(lang, "faq"), "u:faq"), Markup.button.callback(t(lang, "status"), "u:status")],
-      [Markup.button.callback(t(lang, "contacts"), "u:contacts")],
-      [Markup.button.callback(t(lang, "lang"), "u:lang")]
-    ]);
-  }
+function awaitKeyboard(t) {
+  return Markup.inlineKeyboard([[Markup.button.callback(t.cancel, "FLOW:CANCEL")]]);
+}
 
-  function categoryMenu(lang) {
-    return Markup.inlineKeyboard([
-      [Markup.button.callback(t(lang, "cat_bug"), "u:cat:bug")],
-      [Markup.button.callback(t(lang, "cat_pay"), "u:cat:pay")],
-      [Markup.button.callback(t(lang, "cat_biz"), "u:cat:biz")],
-      [Markup.button.callback(t(lang, "cat_other"), "u:cat:other")],
-      [Markup.button.callback(t(lang, "back"), "u:back")]
-    ]);
-  }
-
-  function userTicketActions(lang) {
-    return Markup.inlineKeyboard([
-      [Markup.button.callback(t(lang, "close"), "u:close")],
-      [Markup.button.callback(t(lang, "back"), "u:back")]
-    ]);
-  }
-
-  function adminTicketActions(userId, langForLabel = "ru") {
-    return Markup.inlineKeyboard([[Markup.button.callback(t(langForLabel, "closeAdmin"), `a:close:${userId}`)]]);
-  }
-
-  async function setState(uid, stateObj, ttlSec = 600) {
-    await store.setJson(keyState(uid), stateObj, ttlSec);
-  }
-  async function clearState(uid) {
-    await store.del(keyState(uid));
-  }
-  async function getState(uid) {
-    return await store.getJson(keyState(uid));
-  }
-
-  async function getOpenTicket(uid) {
-    const tk = await store.getJson(keyTicketByUser(uid));
-    if (!tk || tk.status !== "open") return null;
-    return tk;
-  }
-
-  async function isGroupAdmin(userId) {
-    if (ADMIN_IDS.has(Number(userId))) return true;
-
-    const cached = await store.getJson(keyMemberCache(userId));
-    if (cached && typeof cached.isAdmin === "boolean") return cached.isAdmin;
-
-    try {
-      const m = await bot.telegram.getChatMember(SUPPORT_CHAT_ID, userId);
-      const isAdmin = m && (m.status === "administrator" || m.status === "creator");
-      await store.setJson(keyMemberCache(userId), { isAdmin }, 300);
-      return isAdmin;
-    } catch {
-      await store.setJson(keyMemberCache(userId), { isAdmin: false }, 60);
-      return false;
-    }
-  }
-
-  async function createNewTopicForUser(userId, fromUser, category, lang) {
-    const topicName = clampTopicName(`Ticket #${userId} — ${displayUser(fromUser)} — ${category || "other"}`);
-    const topic = await bot.telegram.createForumTopic(SUPPORT_CHAT_ID, topicName);
-    const threadId = topic.message_thread_id;
-
-    const ticketObj = {
-      status: "open",
-      userId,
-      threadId,
-      category: category || "other",
-      lang: lang || "ru",
-      createdAt: Date.now()
-    };
-
-    await store.setJson(keyTicketByUser(userId), ticketObj, 60 * 60 * 24 * 14);
-    await store.setJson(keyUserByThread(threadId), { userId }, 60 * 60 * 24 * 14);
-
-    // notify admins
-    try {
-      await bot.telegram.sendMessage(
-        SUPPORT_CHAT_ID,
-        `🆕 New ticket\n👤 ${displayUser(fromUser)}\n🧾 Ticket: #${userId}\n🌐 Lang: ${lang}\n📂 ${ticketObj.category}\n\nReply inside THIS topic — bot will forward to the user.`,
-        { message_thread_id: threadId, ...adminTicketActions(userId, lang) }
-      );
-    } catch (_) {}
-
-    return ticketObj;
-  }
-
-  async function closeTicketEverywhere({ userId, closedBy, threadId }) {
-    const lang = (await getLang(userId)) || "ru";
-
-    const ticket = await store.getJson(keyTicketByUser(userId));
-    if (ticket && ticket.status === "open") {
-      ticket.status = "closed";
-      ticket.closedBy = closedBy;
-      ticket.closedAt = Date.now();
-      await store.setJson(keyTicketByUser(userId), ticket, 60 * 60 * 24 * 7);
-    } else {
-      await store.del(keyTicketByUser(userId));
-    }
-
-    if (threadId) {
-      await store.del(keyUserByThread(threadId));
-      try { await bot.telegram.closeForumTopic(SUPPORT_CHAT_ID, threadId); } catch (_) {}
-      try {
-        await bot.telegram.sendMessage(SUPPORT_CHAT_ID, `✅ Ticket closed (${closedBy}).`, { message_thread_id: threadId });
-      } catch (_) {}
-    }
-
-    try {
-      await bot.telegram.sendMessage(userId, t(lang, "closed"), userMenu(lang));
-    } catch (_) {}
-  }
-
-  bot.catch((err, ctx) => {
-    console.error("BOT_ERROR", { build: BUILD, err: String(err?.stack || err), update: ctx?.update });
+async function apiCreateForumTopic(bot, name) {
+  return bot.telegram.callApi("createForumTopic", {
+    chat_id: SUPPORT_GROUP_ID,
+    name
   });
-
-  bot.use(async (ctx, next) => {
-    const updateId = ctx.update && ctx.update.update_id;
-    if (!updateId) return next();
-    const first = await store.setOnce(keyDedup(updateId), "1", 120);
-    if (!first) return;
-    return next();
+}
+async function apiCloseForumTopic(bot, threadId) {
+  return bot.telegram.callApi("closeForumTopic", {
+    chat_id: SUPPORT_GROUP_ID,
+    message_thread_id: threadId
   });
-
-  // ✅ start in any case: /start /START /Start
-  async function showLangPicker(ctx) {
-    if (!isPrivate(ctx) || !ctx.from) return;
-    await clearState(ctx.from.id);
-    await ctx.reply(`${I18N.ru.chooseLangTitle}\n${I18N.ru.chooseLangHint}\n\n(${BUILD})`, langKeyboard());
-  }
-  bot.start(showLangPicker);
-  bot.hears(/^\/start(\s|$)/i, showLangPicker);
-
-  bot.action(/^lang:(ru|en)$/, async (ctx) => {
-    await ctx.answerCbQuery().catch(() => {});
-    if (!isPrivate(ctx) || !ctx.from) return;
-
-    const lang = ctx.match[1];
-    await setLang(ctx.from.id, lang);
-    await clearState(ctx.from.id);
-
-    const text = `${t(lang, "menuTitle")}\n${t(lang, "menuIntro")}`;
-    await ctx.editMessageText(text, userMenu(lang)).catch(async () => {
-      await ctx.reply(text, userMenu(lang));
-    });
+}
+async function apiSendToTopic(bot, threadId, text, extra = {}) {
+  return bot.telegram.callApi("sendMessage", {
+    chat_id: SUPPORT_GROUP_ID,
+    message_thread_id: threadId,
+    text,
+    ...extra
   });
-
-  bot.action("u:lang", async (ctx) => {
-    await ctx.answerCbQuery().catch(() => {});
-    if (!isPrivate(ctx) || !ctx.from) return;
-
-    const lang = (await getLang(ctx.from.id)) || "ru";
-    const text = `${t(lang, "chooseLangTitle")}\n${t(lang, "chooseLangHint")}`;
-    await ctx.editMessageText(text, langKeyboard()).catch(async () => {
-      await ctx.reply(text, langKeyboard());
-    });
+}
+async function apiCopyToTopic(bot, threadId, fromChatId, messageId, extra = {}) {
+  return bot.telegram.callApi("copyMessage", {
+    chat_id: SUPPORT_GROUP_ID,
+    message_thread_id: threadId,
+    from_chat_id: fromChatId,
+    message_id: messageId,
+    ...extra
   });
-
-  bot.action("u:back", async (ctx) => {
-    await ctx.answerCbQuery().catch(() => {});
-    if (!isPrivate(ctx) || !ctx.from) return;
-
-    const lang = await getLang(ctx.from.id);
-    if (!lang) return showLangPicker(ctx);
-
-    await clearState(ctx.from.id);
-    const text = `${t(lang, "menuTitle")}\n${t(lang, "menuIntro")}`;
-    await ctx.editMessageText(text, userMenu(lang)).catch(async () => {
-      await ctx.reply(text, userMenu(lang));
-    });
+}
+async function apiCopyToUser(bot, userId, fromChatId, messageId, extra = {}) {
+  return bot.telegram.callApi("copyMessage", {
+    chat_id: userId,
+    from_chat_id: fromChatId,
+    message_id: messageId,
+    ...extra
   });
+}
 
-  bot.action("u:open", async (ctx) => {
-    await ctx.answerCbQuery().catch(() => {});
-    if (!isPrivate(ctx) || !ctx.from) return;
+async function ensureThread(bot, ticket, user) {
+  // если топик умер/закрыт — пересоздадим и перелинкуем
+  try {
+    await apiSendToTopic(bot, ticket.threadId, "—", { disable_notification: true });
+    return ticket;
+  } catch {
+    const created = await apiCreateForumTopic(bot, `Ticket #${ticket.ticketId}`);
+    const newThreadId = created.message_thread_id;
 
-    const lang = await getLang(ctx.from.id);
-    if (!lang) return showLangPicker(ctx);
+    // перелинкуем
+    ticket.threadId = newThreadId;
+    await setJSONEX(K.ticketByThread(newThreadId), TICKET_TTL, { ticketId: ticket.ticketId });
 
-    const openTicket = await getOpenTicket(ctx.from.id);
-    if (openTicket) {
-      await ctx.reply(t(lang, "alreadyOpen"), userTicketActions(lang));
-      return;
-    }
+    await setJSONEX(K.ticketById(ticket.ticketId), TICKET_TTL, ticket);
+    await setOpenTicket(user.id, ticket);
 
-    await ctx.editMessageText(t(lang, "pickCategory"), categoryMenu(lang)).catch(async () => {
-      await ctx.reply(t(lang, "pickCategory"), categoryMenu(lang));
-    });
-  });
-
-  bot.action(/^u:cat:(.+)$/, async (ctx) => {
-    await ctx.answerCbQuery().catch(() => {});
-    if (!isPrivate(ctx) || !ctx.from) return;
-
-    const lang = await getLang(ctx.from.id);
-    if (!lang) return showLangPicker(ctx);
-
-    const userId = ctx.from.id;
-    const openTicket = await getOpenTicket(userId);
-    if (openTicket) {
-      await ctx.reply(t(lang, "alreadyOpen"), userTicketActions(lang));
-      return;
-    }
-
-    const cat = ctx.match[1];
-    await setState(userId, { mode: "AWAITING_DESCRIPTION", category: cat }, 600);
-
-    await ctx.editMessageText(
-      t(lang, "askOneMsg"),
-      Markup.inlineKeyboard([[Markup.button.callback(t(lang, "cancel"), "u:back")]])
-    ).catch(async () => {
-      await ctx.reply(
-        t(lang, "askOneMsg"),
-        Markup.inlineKeyboard([[Markup.button.callback(t(lang, "cancel"), "u:back")]])
-      );
-    });
-  });
-
-  bot.action("u:faq", async (ctx) => {
-    await ctx.answerCbQuery().catch(() => {});
-    if (!isPrivate(ctx) || !ctx.from) return;
-
-    const lang = await getLang(ctx.from.id);
-    if (!lang) return showLangPicker(ctx);
-
-    await ctx.editMessageText(
-      t(lang, "faqText"),
-      Markup.inlineKeyboard([[Markup.button.callback(t(lang, "back"), "u:back")]])
-    ).catch(async () => {
-      await ctx.reply(
-        t(lang, "faqText"),
-        Markup.inlineKeyboard([[Markup.button.callback(t(lang, "back"), "u:back")]])
-      );
-    });
-  });
-
-  bot.action("u:contacts", async (ctx) => {
-    await ctx.answerCbQuery().catch(() => {});
-    if (!isPrivate(ctx) || !ctx.from) return;
-
-    const lang = await getLang(ctx.from.id);
-    if (!lang) return showLangPicker(ctx);
-
-    await ctx.editMessageText(
-      t(lang, "contactsText"),
-      Markup.inlineKeyboard([[Markup.button.callback(t(lang, "back"), "u:back")]])
-    ).catch(async () => {
-      await ctx.reply(
-        t(lang, "contactsText"),
-        Markup.inlineKeyboard([[Markup.button.callback(t(lang, "back"), "u:back")]])
-      );
-    });
-  });
-
-  bot.action("u:status", async (ctx) => {
-    await ctx.answerCbQuery().catch(() => {});
-    if (!isPrivate(ctx) || !ctx.from) return;
-
-    const lang = await getLang(ctx.from.id);
-    if (!lang) return showLangPicker(ctx);
-
-    const tk = await store.getJson(keyTicketByUser(ctx.from.id));
-    const text = tk && tk.status === "open" ? tFn(lang, "statusOpen", tk.category) : t(lang, "statusNone");
-
-    await ctx.editMessageText(
-      text,
-      Markup.inlineKeyboard([[Markup.button.callback(t(lang, "back"), "u:back")]])
-    ).catch(async () => {
-      await ctx.reply(
-        text,
-        Markup.inlineKeyboard([[Markup.button.callback(t(lang, "back"), "u:back")]])
-      );
-    });
-  });
-
-  bot.action("u:close", async (ctx) => {
-    await ctx.answerCbQuery().catch(() => {});
-    if (!isPrivate(ctx) || !ctx.from) return;
-
-    const lang = (await getLang(ctx.from.id)) || "ru";
-    const tk = await getOpenTicket(ctx.from.id);
-    if (!tk) {
-      await ctx.reply(t(lang, "noOpen"), userMenu(lang));
-      return;
-    }
-    await closeTicketEverywhere({ userId: ctx.from.id, closedBy: "user", threadId: tk.threadId });
-  });
-
-  bot.action(/^a:close:(\d+)$/, async (ctx) => {
-    await ctx.answerCbQuery().catch(() => {});
-    if (!isSupportGroup(ctx) || !ctx.from) return;
-
-    const ok = await isGroupAdmin(ctx.from.id);
-    if (!ok) return;
-
-    const userId = Number(ctx.match[1]);
-    const threadId = ctx.update?.callback_query?.message?.message_thread_id;
-    if (!userId || !threadId) return;
-
-    await closeTicketEverywhere({ userId, closedBy: "admin", threadId });
-  });
-
-  // ✅ Private messages -> forward / create ticket
-  bot.on("message", async (ctx, next) => {
-    if (!ctx.from) return next();
-    if (!isPrivate(ctx)) return next();
-
-    const userId = ctx.from.id;
-    const lang = await getLang(userId);
-    if (!lang) return showLangPicker(ctx);
-
-    // If open ticket: forward to support. If thread broken -> recreate once.
-    let tk = await getOpenTicket(userId);
-    if (tk) {
-      const tryForward = async (ticket) => {
-        const header =
-          `👤 ${displayUser(ctx.from)}\n` +
-          `🧾 Ticket: #${userId}\n` +
-          `🌐 Lang: ${lang}\n` +
-          `📂 ${ticket.category || "—"}`;
-
-        if (ctx.message.text) {
-          await bot.telegram.sendMessage(
-            SUPPORT_CHAT_ID,
-            `${header}\n\n${ctx.message.text}`,
-            { message_thread_id: ticket.threadId }
-          );
-        } else {
-          await bot.telegram.copyMessage(
-            SUPPORT_CHAT_ID,
-            ctx.chat.id,
-            ctx.message.message_id,
-            { message_thread_id: ticket.threadId }
-          );
-          await bot.telegram.sendMessage(
-            SUPPORT_CHAT_ID,
-            `${header}\n\n(attachment)`,
-            { message_thread_id: ticket.threadId }
-          );
-        }
-      };
-
-      try {
-        await tryForward(tk);
-        await ctx.reply(t(lang, "sent"), userTicketActions(lang));
-      } catch (e1) {
-        console.error("FORWARD_FAIL", { build: BUILD, e: String(e1?.description || e1?.message || e1) });
-
-        // попытка восстановления темы (1 раз)
-        try {
-          // удалить старую привязку (на всякий)
-          await store.del(keyUserByThread(tk.threadId));
-
-          const repaired = await createNewTopicForUser(userId, ctx.from, tk.category, lang);
-          tk = repaired;
-
-          await tryForward(tk);
-          await ctx.reply(t(lang, "sent"), userTicketActions(lang));
-        } catch (e2) {
-          console.error("FORWARD_REPAIR_FAIL", { build: BUILD, e: String(e2?.description || e2?.message || e2) });
-          await ctx.reply(t(lang, "sendFail"), userTicketActions(lang));
+    // шапка
+    await apiSendToTopic(
+      bot,
+      newThreadId,
+      `🆕 Ticket #${ticket.ticketId}\nUser: ${user.first_name || ""} (@${user.username || "no_username"})\nUserId: ${user.id}`,
+      {
+        reply_markup: {
+          inline_keyboard: [[{ text: "✅ Close ticket", callback_data: `ADMIN:CLOSE:${ticket.ticketId}` }]]
         }
       }
-      return;
+    );
+
+    return ticket;
+  }
+}
+
+let _bot = null;
+
+export function getBot() {
+  if (_bot) return _bot;
+
+  const bot = new Telegraf(BOT_TOKEN);
+
+  // ========== START / LANGUAGE ==========
+  async function showStart(ctx) {
+    const uid = ctx.from.id;
+    const lang = await getLang(uid);
+    if (!lang) {
+      return ctx.reply(I18N.ru.chooseLang, langKeyboard());
     }
+    const t = I18N[lang];
+    return ctx.reply(t.menuTitle, menuKeyboard(t));
+  }
 
-    // If waiting description: create ticket topic
-    const state = await getState(userId);
-    if (state && state.mode === "AWAITING_DESCRIPTION") {
-      const category = state.category || "other";
-      await clearState(userId);
+  bot.hears(/^\/start/i, showStart);
 
-      let newTicket;
-      try {
-        newTicket = await createNewTopicForUser(userId, ctx.from, category, lang);
-      } catch (e) {
-        console.error("CREATE_TOPIC_FAILED", { build: BUILD, e: String(e?.description || e?.message || e) });
-        await ctx.reply("⚠️ Не смог создать тему в support-группе. Проверь: Topics включены, бот admin, can_manage_topics.", userMenu(lang));
+  // ========== CALLBACKS ==========
+  bot.on("callback_query", async (ctx) => {
+    try {
+      const uid = ctx.from.id;
+      const data = ctx.callbackQuery.data || "";
+      const lang = (await getLang(uid)) || "ru";
+      const t = I18N[lang];
+
+      // lang set
+      if (data.startsWith("LANG:")) {
+        const chosen = data.split(":")[1] === "en" ? "en" : "ru";
+        await setLang(uid, chosen);
+        const tt = I18N[chosen];
+        await ctx.answerCbQuery("OK");
+        return ctx.editMessageText(tt.menuTitle, menuKeyboard(tt));
+      }
+
+      if (data === "MENU:HOME") {
+        await ctx.answerCbQuery();
+        return ctx.editMessageText(t.menuTitle, menuKeyboard(t));
+      }
+
+      if (data === "MENU:LANG") {
+        await ctx.answerCbQuery();
+        return ctx.editMessageText(I18N.ru.chooseLang, langKeyboard());
+      }
+
+      if (data === "MENU:FAQ") {
+        await ctx.answerCbQuery();
+        return ctx.editMessageText(t.faqText, Markup.inlineKeyboard([[Markup.button.callback(t.back, "MENU:HOME")]]));
+      }
+
+      if (data === "MENU:CONTACTS") {
+        await ctx.answerCbQuery();
+        return ctx.editMessageText(t.contactsText, Markup.inlineKeyboard([[Markup.button.callback(t.back, "MENU:HOME")]]));
+      }
+
+      if (data === "MENU:STATUS") {
+        await ctx.answerCbQuery();
+        const ticket = await getOpenTicket(uid);
+        const text = ticket?.status === "open" ? t.openTicket(ticket.ticketId) : t.noTicket;
+        return ctx.editMessageText(text, Markup.inlineKeyboard([[Markup.button.callback(t.back, "MENU:HOME")]]));
+      }
+
+      if (data === "MENU:CREATE") {
+        await ctx.answerCbQuery();
+        const ticket = await getOpenTicket(uid);
+        if (ticket?.status === "open") {
+          return ctx.editMessageText(t.alreadyOpen, ticketKeyboard(t));
+        }
+        const session = await getSession(uid);
+        session.awaitingFirstMessage = true;
+        await setSession(uid, session);
+        return ctx.editMessageText(t.sendOne, awaitKeyboard(t));
+      }
+
+      if (data === "FLOW:CANCEL") {
+        await ctx.answerCbQuery();
+        const session = await getSession(uid);
+        session.awaitingFirstMessage = false;
+        await setSession(uid, session);
+        return ctx.editMessageText(t.menuTitle, menuKeyboard(t));
+      }
+
+      if (data === "TICKET:CLOSE") {
+        await ctx.answerCbQuery();
+        const ticket = await getOpenTicket(uid);
+        if (!ticket?.ticketId) return ctx.editMessageText(t.noTicket, menuKeyboard(t));
+
+        ticket.status = "closed";
+        await clearOpenTicket(uid, ticket.ticketId, ticket.threadId);
+        try { await apiCloseForumTopic(bot, ticket.threadId); } catch {}
+        return ctx.editMessageText(t.closed, menuKeyboard(t));
+      }
+
+      // admin close from group
+      if (data.startsWith("ADMIN:CLOSE:")) {
+        const fromId = ctx.from.id;
+        if (!ADMIN_USERS_IDS.includes(fromId)) {
+          await ctx.answerCbQuery(t.adminOnly, { show_alert: true });
+          return;
+        }
+        const ticketId = data.split(":")[2];
+        const ticket = await getJSON(K.ticketById(ticketId));
+        if (ticket?.userId) {
+          await clearOpenTicket(ticket.userId, ticketId, ticket.threadId);
+          try { await apiCloseForumTopic(bot, ticket.threadId); } catch {}
+          try { await bot.telegram.sendMessage(ticket.userId, I18N[(await getLang(ticket.userId)) || "ru"].closed); } catch {}
+        }
+        await ctx.answerCbQuery("Closed");
         return;
       }
 
-      // First user message into thread
-      try {
-        if (ctx.message.text) {
-          await bot.telegram.sendMessage(
-            SUPPORT_CHAT_ID,
-            `👤 User message:\n\n${ctx.message.text}`,
-            { message_thread_id: newTicket.threadId }
-          );
-        } else {
-          await bot.telegram.copyMessage(
-            SUPPORT_CHAT_ID,
-            ctx.chat.id,
-            ctx.message.message_id,
-            { message_thread_id: newTicket.threadId }
-          );
-        }
-      } catch (e) {
-        console.error("FIRST_MESSAGE_TO_THREAD_FAILED", { build: BUILD, e: String(e?.description || e?.message || e) });
-      }
+      await ctx.answerCbQuery();
+    } catch (e) {
+      try { await ctx.answerCbQuery("Error"); } catch {}
+    }
+  });
 
-      await ctx.reply(t(lang, "created"), userTicketActions(lang));
+  // ========== PRIVATE CHAT MESSAGES ==========
+  bot.on("message", async (ctx) => {
+    const chatType = ctx.chat?.type;
+    if (chatType !== "private") return;
+
+    const uid = ctx.from.id;
+    const lang = (await getLang(uid)) || null;
+    if (!lang) {
+      return ctx.reply(I18N.ru.chooseLang, langKeyboard());
+    }
+    const t = I18N[lang];
+
+    const session = await getSession(uid);
+    const openTicket = await getOpenTicket(uid);
+
+    // если ждём первое сообщение — создаём тикет
+    if (session.awaitingFirstMessage) {
+      session.awaitingFirstMessage = false;
+      await setSession(uid, session);
+
+      const ticketId = genTicketId();
+      const created = await apiCreateForumTopic(bot, `Ticket #${ticketId}`);
+      const threadId = created.message_thread_id;
+
+      const ticket = {
+        ticketId,
+        userId: uid,
+        threadId,
+        status: "open",
+        createdAt: Date.now()
+      };
+
+      await setJSONEX(K.ticketByThread(threadId), TICKET_TTL, { ticketId });
+      await setJSONEX(K.ticketById(ticketId), TICKET_TTL, ticket);
+      await setOpenTicket(uid, ticket);
+
+      // шапка + кнопка закрытия (админам)
+      await apiSendToTopic(
+        bot,
+        threadId,
+        `🆕 Ticket #${ticketId}\nUser: ${ctx.from.first_name || ""} (@${ctx.from.username || "no_username"})\nUserId: ${uid}`,
+        {
+          reply_markup: {
+            inline_keyboard: [[{ text: "✅ Close ticket", callback_data: `ADMIN:CLOSE:${ticketId}` }]]
+          }
+        }
+      );
+
+      // копируем первое сообщение пользователя в топик
+      try {
+        await apiCopyToTopic(bot, threadId, ctx.chat.id, ctx.message.message_id);
+      } catch {}
+
+      await ctx.reply(`Ticket #${ticketId} created.`, ticketKeyboard(t));
       return;
     }
 
-    // default -> menu
-    await ctx.reply(`${t(lang, "menuTitle")}\n${t(lang, "menuIntro")}`, userMenu(lang));
+    // если тикет открыт — пересылаем всё в поддержку
+    if (openTicket?.status === "open") {
+      try {
+        const fixedTicket = await ensureThread(bot, openTicket, ctx.from);
+        await apiCopyToTopic(bot, fixedTicket.threadId, ctx.chat.id, ctx.message.message_id);
+        await ctx.reply(t.sent, ticketKeyboard(t));
+      } catch {
+        await ctx.reply(t.sendFail, ticketKeyboard(t));
+      }
+      return;
+    }
+
+    // иначе — показываем меню
+    await ctx.reply(t.menuTitle, menuKeyboard(t));
   });
 
-  // ✅ Support group topic replies -> forward to user
+  // ========== SUPPORT GROUP MESSAGES -> USER ==========
   bot.on("message", async (ctx) => {
-    if (!ctx.from || !ctx.message) return;
-    if (!isSupportGroup(ctx)) return;
+    if (ctx.chat?.id !== SUPPORT_GROUP_ID) return;
 
-    const threadId = ctx.message.message_thread_id;
+    const msg = ctx.message;
+    const threadId = msg.message_thread_id;
     if (!threadId) return;
-    if (ctx.from.is_bot) return;
 
-    const ok = await isGroupAdmin(ctx.from.id);
-    if (!ok) return;
+    // игнорим сообщения самого бота, чтобы не зациклиться
+    if (msg.from?.is_bot) return;
 
-    const mapping = await store.getJson(keyUserByThread(threadId));
-    const userId = mapping && mapping.userId;
-    if (!userId) return;
+    const map = await getJSON(K.ticketByThread(threadId));
+    const ticketId = map?.ticketId;
+    if (!ticketId) return;
 
-    const lang = (await getLang(userId)) || "ru";
+    const ticket = await getJSON(K.ticketById(ticketId));
+    if (!ticket?.userId) return;
 
     try {
-      if (ctx.message.text) {
-        await bot.telegram.sendMessage(userId, `${t(lang, "supportPrefix")}${ctx.message.text}`, userTicketActions(lang));
-      } else {
-        await bot.telegram.copyMessage(userId, ctx.chat.id, ctx.message.message_id);
-        await bot.telegram.sendMessage(userId, t(lang, "supportAttachment"), userTicketActions(lang));
-      }
-    } catch (e) {
-      console.error("FORWARD_TO_USER_FAILED", { build: BUILD, e: String(e?.description || e?.message || e) });
+      await apiCopyToUser(bot, ticket.userId, ctx.chat.id, msg.message_id);
+    } catch {
+      // пользователь мог заблокировать бота — тут можно пометить тикет, но не обязательно
     }
   });
 
+  // expose secret for webhook handler
+  bot.context.webhookSecret = WEBHOOK_SECRET;
+
+  _bot = bot;
   return bot;
 }
-
-module.exports = { createSupportBot };
