@@ -1,77 +1,64 @@
 // store.js
-const { Redis } = require("@upstash/redis");
+const URL = process.env.UPSTASH_REDIS_REST_URL;
+const TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-function safeJsonParse(s) {
-  try {
-    return JSON.parse(s);
-  } catch {
-    return null;
-  }
+function must(v, name) {
+  if (!v) throw new Error(`Missing env: ${name}`);
+  return v;
 }
 
-function createStore() {
-  const hasUpstash =
-    !!process.env.UPSTASH_REDIS_REST_URL && !!process.env.UPSTASH_REDIS_REST_TOKEN;
+must(URL, "UPSTASH_REDIS_REST_URL");
+must(TOKEN, "UPSTASH_REDIS_REST_TOKEN");
 
-  const redis = hasUpstash
-    ? new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN
-      })
-    : null;
-
-  // fallback (не надёжен в serverless, но лучше чем падать)
-  const mem = new Map();
-
-  async function getRaw(key) {
-    if (redis) return await redis.get(key);
-    return mem.get(key);
-  }
-
-  async function setRaw(key, value, exSeconds) {
-    if (redis) {
-      if (exSeconds) return await redis.set(key, value, { ex: exSeconds });
-      return await redis.set(key, value);
-    }
-    mem.set(key, value);
-    if (exSeconds) {
-      setTimeout(() => mem.delete(key), exSeconds * 1000).unref?.();
-    }
-    return "OK";
-  }
-
-  async function del(key) {
-    if (redis) return await redis.del(key);
-    mem.delete(key);
-    return 1;
-  }
-
-  async function getJson(key) {
-    const v = await getRaw(key);
-    if (v == null) return null;
-    if (typeof v === "string") return safeJsonParse(v) ?? v;
-    return v;
-  }
-
-  async function setJson(key, obj, exSeconds) {
-    const payload = JSON.stringify(obj);
-    return await setRaw(key, payload, exSeconds);
-  }
-
-  // set if not exists (для дедупликации апдейтов и т.п.)
-  async function setOnce(key, value, exSeconds) {
-    if (redis) {
-      // NX поддерживается через опции
-      const res = await redis.set(key, value, { nx: true, ex: exSeconds ?? 60 });
-      // Upstash вернёт "OK" или null
-      return res === "OK";
-    }
-    if (mem.has(key)) return false;
-    await setRaw(key, value, exSeconds ?? 60);
-    return true;
-  }
-
-  return { getJson, setJson, del, setOnce };
+// Upstash REST: https://<host>/<command>/<arg1>/<arg2> with Bearer token :contentReference[oaicite:4]{index=4}
+async function redis(cmd, ...args) {
+  const path = [cmd, ...args].map(a => encodeURIComponent(String(a))).join("/");
+  const res = await fetch(`${URL}/${path}`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${TOKEN}` }
+  });
+  const json = await res.json();
+  if (!res.ok || json?.error) throw new Error(json?.error || `Upstash error (${res.status})`);
+  return json.result;
 }
 
-module.exports = { createStore };
+async function pipeline(commands) {
+  const res = await fetch(`${URL}/pipeline`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${TOKEN}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(commands)
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(`Upstash pipeline error (${res.status})`);
+  // each item: { result } or { error } :contentReference[oaicite:5]{index=5}
+  for (const item of json) {
+    if (item?.error) throw new Error(item.error);
+  }
+  return json.map(i => i.result);
+}
+
+export async function getJSON(key) {
+  const val = await redis("get", key);
+  if (val == null) return null;
+  try { return JSON.parse(val); } catch { return null; }
+}
+
+export async function setJSON(key, obj) {
+  return redis("set", key, JSON.stringify(obj));
+}
+
+export async function setJSONEX(key, seconds, obj) {
+  // SETEX key seconds value :contentReference[oaicite:6]{index=6}
+  return redis("setex", key, seconds, JSON.stringify(obj));
+}
+
+export async function delKey(key) {
+  return redis("del", key);
+}
+
+export async function multi(commands) {
+  return pipeline(commands);
+}
