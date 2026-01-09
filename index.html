@@ -17,7 +17,18 @@
       try {
         if (!window.telegramAnalytics) return;
         if (!TG_ANALYTICS_TOKEN || !TG_ANALYTICS_APP_NAME) return;
-        if (String(TG_ANALYTICS_TOKEN).includes("eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=")) return;
+        const TG_ANALYTICS_TOKEN = "eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=";
+const TG_ANALYTICS_APP_NAME = "trader_calculator";
+
+function initAnalytics() {
+  try {
+    if (!window.telegramAnalytics) return;
+    if (!TG_ANALYTICS_TOKEN || TG_ANALYTICS_TOKEN === "eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=") return;
+    if (!TG_ANALYTICS_APP_NAME) return;
+    window.telegramAnalytics.init({ token: TG_ANALYTICS_TOKEN, appName: TG_ANALYTICS_APP_NAME });
+  } catch (e) {}
+}
+
 
         window.telegramAnalytics.init({ token: TG_ANALYTICS_TOKEN, appName: TG_ANALYTICS_APP_NAME });
       } catch (e) {}
