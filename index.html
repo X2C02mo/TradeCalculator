@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8" />
@@ -7,48 +7,7 @@
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
-
-  
-  <script>
-    const TG_ANALYTICS_TOKEN = "eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=";
-    const TG_ANALYTICS_APP_NAME = "trader_calculator";
-
-    function initAnalytics() {
-      try {
-        if (!window.telegramAnalytics) return;
-        if (!TG_ANALYTICS_TOKEN || !TG_ANALYTICS_APP_NAME) return;
-        const TG_ANALYTICS_TOKEN = "eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=";
-const TG_ANALYTICS_APP_NAME = "trader_calculator";
-
-function initAnalytics() {
-  try {
-    if (!window.telegramAnalytics) return;
-    if (!TG_ANALYTICS_TOKEN || TG_ANALYTICS_TOKEN === "eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=") return;
-    if (!TG_ANALYTICS_APP_NAME) return;
-    window.telegramAnalytics.init({ token: TG_ANALYTICS_TOKEN, appName: TG_ANALYTICS_APP_NAME });
-  } catch (e) {}
-}
-
-
-        window.telegramAnalytics.init({ token: TG_ANALYTICS_TOKEN, appName: TG_ANALYTICS_APP_NAME });
-      } catch (e) {}
-    }
-
-    function loadAnalyticsSdkOnce() {
-      try {
-        if (window.__tgAnalyticsLoaded) return;
-        window.__tgAnalyticsLoaded = true;
-
-        const s = document.createElement("script");
-        s.async = true;
-        s.src = "https://tganalytics.xyz/index.js";
-        s.onload = initAnalytics;
-        document.head.appendChild(s);
-      } catch (e) {}
-    }
-  </script>
-
-  <style>
+<style>
     :root{
       --bg:#000;
       --panel:#0b0b0b;
@@ -1967,6 +1926,40 @@ function initAnalytics() {
     const ok = await copyText(text);
     if(ok){ showToast(t('toast.copied')); haptic('notify','success'); }
   });
+
+  /* analytics (opt-in) */
+  const TG_ANALYTICS_ENABLED = true; // set to false for Apps Center review if needed
+  const TG_ANALYTICS_TOKEN = "eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=";
+  const TG_ANALYTICS_APP_NAME = "trader_calculator";
+  let __tgAnalyticsLoading = false;
+
+  function loadAnalyticsSdkOnce() {
+    if(!TG_ANALYTICS_ENABLED) return;
+    if(__tgAnalyticsLoading) return;
+    if(window.telegramAnalytics) {
+      try {
+        window.telegramAnalytics.init({
+          token: TG_ANALYTICS_TOKEN,
+          appName: TG_ANALYTICS_APP_NAME
+        });
+      } catch(e) {}
+      return;
+    }
+    __tgAnalyticsLoading = true;
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://tganalytics.xyz/index.js';
+    s.onload = () => {
+      try {
+        window.telegramAnalytics?.init?.({
+          token: TG_ANALYTICS_TOKEN,
+          appName: TG_ANALYTICS_APP_NAME
+        });
+      } catch(e) {}
+    };
+    s.onerror = () => { __tgAnalyticsLoading = false; };
+    document.head.appendChild(s);
+  }
 
   /* analytics consent */
   const CONSENT_KEY = 'tc_analytics_consent_v1';
