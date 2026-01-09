@@ -1,10 +1,156 @@
-<!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Privacy Policy</title></head>
-<body style="font-family:system-ui,Segoe UI,Roboto,Arial;padding:18px;max-width:820px;margin:0 auto">
-<h1>Privacy Policy</h1>
-<p>This Mini App does not collect personal data directly. Analytics may collect aggregated usage metrics.</p>
-<p>If you connect a wallet via TON Connect, wallet address may be visible to the app for the purpose of sending transactions.</p>
-<p>Contact: @Trader_TradeSupportBot</p>
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Privacy Policy — Trader Calculator</title>
+  <meta name="description" content="Privacy Policy for Trader Calculator Telegram Mini App." />
+  <style>
+    :root{
+      --bg:#000;
+      --panel:#0b0b0b;
+      --border:#151515;
+      --text:#fff;
+      --muted:#a0a0a0;
+      --accent:#7CFC00;
+      --radius:14px;
+    }
+    html[data-theme="light"]{
+      --bg:#f6f7fb;
+      --panel:#ffffff;
+      --border:#e6e8ee;
+      --text:#0b0b0b;
+      --muted:#5f6675;
+      --accent:#2d8cff;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .wrap{max-width:980px;margin:0 auto;padding:18px 14px 40px}
+    .card{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:16px;
+    }
+    h1{margin:0 0 10px 0;font-size:28px}
+    h2{margin:18px 0 8px 0;font-size:16px}
+    p,li{color:var(--muted);line-height:1.55}
+    b,strong{color:var(--text)}
+    a{color:var(--accent);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .top{
+      display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;
+      margin-bottom:12px;
+    }
+    .pill{
+      display:inline-flex;gap:10px;align-items:center;flex-wrap:wrap;
+      padding:8px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);
+    }
+    .pill a{color:var(--accent)}
+    .langline{margin-top:12px;border-top:1px solid var(--border);padding-top:12px}
+    .small{font-size:12px;color:var(--muted)}
+    ul{margin:8px 0 0 18px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="pill">
+        <span><strong>Trader Calculator</strong> — Privacy Policy</span>
+        <span class="small">Last updated: 2026-01-08</span>
+      </div>
+      <div class="pill">
+        <a href="/terms.html">Terms</a>
+        <span>·</span>
+        <a href="/privacy.html">Privacy</a>
+        <span>·</span>
+        <a href="https://t.me/Trader_TradeSupportBot" rel="noopener" target="_blank">Contact</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h1>Privacy Policy</h1>
+      <p>
+        This policy explains what data <strong>Trader Calculator</strong> (Telegram Mini App) processes and why.
+        The app is designed to work without requiring you to enter personal data.
+      </p>
+
+      <h2>1) What we collect</h2>
+      <ul>
+        <li><strong>Inputs you type</strong> (prices, risk, etc.) are processed locally in your browser to calculate results.</li>
+        <li><strong>Local storage</strong>: the app saves calculator history and preferences (theme, language, analytics choice) in your browser using <code>localStorage</code>.</li>
+        <li><strong>Analytics (optional)</strong>: only if you explicitly accept analytics inside the app.</li>
+      </ul>
+
+      <h2>2) What we do NOT collect</h2>
+      <ul>
+        <li>No passports / names / emails / phone numbers are requested by the app.</li>
+        <li>No hidden scraping of your Telegram chats or contacts.</li>
+        <li>No sale of personal data.</li>
+      </ul>
+
+      <h2>3) Analytics (opt-in)</h2>
+      <p>
+        If you accept analytics, we may collect aggregated usage events (e.g., which screen is opened, button clicks, errors).
+        This is used to improve stability and UX. If you decline, the calculator still works.
+      </p>
+
+      <h2>4) Third-party services</h2>
+      <p>The app may communicate with third parties from your device:</p>
+      <ul>
+        <li><strong>Telegram WebApp</strong> (for in-app UI integration).</li>
+        <li><strong>TON Connect</strong> (wallet connection). If you connect a wallet, the wallet address can be shown inside the app and to the wallet provider.</li>
+        <li><strong>Market/indicator APIs</strong> (e.g., for Fear &amp; Greed and global market metrics). These calls are made from your device; those providers may see your IP address and user-agent.</li>
+      </ul>
+
+      <h2>5) Wallet & transactions (TON)</h2>
+      <p>
+        Wallet connection is initiated by you. We do not custody funds. Transactions are created and signed in your wallet.
+        Network fees and wallet/provider rules apply.
+      </p>
+
+      <h2>6) Data retention</h2>
+      <ul>
+        <li>Local data stays on your device until you clear the app history or browser data.</li>
+        <li>Analytics data (if enabled) is stored according to the analytics provider’s retention settings.</li>
+      </ul>
+
+      <h2>7) Security</h2>
+      <p>
+        We use HTTPS hosting. However, no online service can guarantee absolute security. Do not share sensitive information
+        via third-party links.
+      </p>
+
+      <h2>8) Your choices</h2>
+      <ul>
+        <li>You can decline analytics in the consent dialog.</li>
+        <li>You can remove local history via the “Clear” button (History) and by clearing browser storage.</li>
+        <li>You can disconnect TON wallet at any time.</li>
+      </ul>
+
+      <h2>9) Contact</h2>
+      <p>
+        Questions or requests: <a href="https://t.me/Trader_TradeSupportBot" rel="noopener" target="_blank">@Trader_TradeSupportBot</a>
+      </p>
+
+      <div class="langline">
+        <h2>Кратко на русском</h2>
+        <p>
+          Приложение <strong>Trader Calculator</strong> не требует персональные данные. Расчёты выполняются локально.
+          История и настройки сохраняются в <code>localStorage</code> на вашем устройстве.
+          Аналитика включается <strong>только по вашему согласию</strong>.
+          Подключение кошелька TON выполняется вами, транзакции подписываются кошельком.
+        </p>
+        <p>
+          Контакт: <a href="https://t.me/Trader_TradeSupportBot" rel="noopener" target="_blank">@Trader_TradeSupportBot</a>
+        </p>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
