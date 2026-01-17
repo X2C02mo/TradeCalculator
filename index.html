@@ -6,6 +6,27 @@
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
+  
+  <!-- Telegram Analytics SDK -->
+  <script type="module">
+    import telegramAnalytics from 'https://esm.sh/@telegram-apps/analytics';
+    
+    const TG_ANALYTICS_TOKEN = "eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=";
+    const TG_ANALYTICS_APP_NAME = "trader_calculator";
+    
+    try {
+      telegramAnalytics.init({
+        token: TG_ANALYTICS_TOKEN,
+        appName: TG_ANALYTICS_APP_NAME
+      });
+      console.log('Telegram Analytics SDK initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize Telegram Analytics:', error);
+    }
+    
+    window.telegramAnalytics = telegramAnalytics;
+  </script>
+
 <style>
     :root{
       --bg:#000;
@@ -372,27 +393,6 @@
     #modal_right{width:240px;min-width:240px;display:flex;flex-direction:column;gap:8px}
     #modal_right .btn{width:100%}
     #modal_help{font-size:12px;color:var(--muted);font-weight:700}
-
-    #consent_backdrop{
-      position:fixed;inset:0;
-      background:rgba(0,0,0,.55);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:997;
-      padding:12px;
-    }
-    #consent_modal{
-      width:min(620px, 100%);
-      border-radius:18px;
-      border:1px solid var(--border);
-      background:var(--panel);
-      box-shadow:var(--shadow);
-      padding:12px;
-    }
-    #consent_modal h4{margin:0 0 8px 0}
-    #consent_actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-    #consent_actions .btn{flex:1;min-width:160px}
 
     .vizgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
     @media(max-width:520px){ .vizgrid{grid-template-columns:1fr} }
@@ -767,20 +767,6 @@
 
 <div id="toast">—</div>
 
-
-<div id="consent_backdrop" role="dialog" aria-modal="true">
-  <div id="consent_modal">
-    <h4 data-i18n="consent.title">Analytics</h4>
-    <div class="small" id="consent_text">—</div>
-    <div class="small" style="margin-top:8px" id="consent_links">—</div>
-    <div id="consent_actions">
-      <button class="btn" id="consent_accept" type="button" data-i18n="consent.accept">Accept</button>
-      <button class="btn ghost" id="consent_decline" type="button" data-i18n="consent.decline">Decline</button>
-    </div>
-  </div>
-</div>
-
-
 <div id="modal_backdrop" role="dialog" aria-modal="true">
   <div id="modal">
     <div id="modal_header">
@@ -951,20 +937,6 @@
 
   function t(key){ return (locales[lang] && locales[lang][key] !== undefined) ? locales[lang][key] : key; }
 
-  function updateConsentText(){
-    const txt = document.getElementById('consent_text');
-    const links = document.getElementById('consent_links');
-    if(!txt || !links) return;
-
-    if(lang === 'ru'){
-      txt.textContent = 'Разрешить анонимную аналитику для улучшения приложения? (Можно отказаться — калькулятор будет работать.)';
-      links.textContent = 'Документы доступны во вкладке Support.';
-    }else{
-      txt.textContent = 'Allow anonymous analytics to improve the app? (You can decline — the calculator will still work.)';
-      links.textContent = 'Docs are available in the Support tab.';
-    }
-  }
-
   function translateAll(){
     document.querySelectorAll('[data-i18n]').forEach(el=>{
       const k=el.getAttribute('data-i18n');
@@ -973,7 +945,6 @@
       }
     });
     updateThemeUI();
-    updateConsentText();
   }
 
   
@@ -1915,66 +1886,6 @@
     if(ok){ showToast(t('toast.copied')); haptic('notify','success'); }
   });
 
-  const TG_ANALYTICS_ENABLED = true;
-  const TG_ANALYTICS_TOKEN = "eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=";
-  const TG_ANALYTICS_APP_NAME = "trader_calculator";
-  let __tgAnalyticsLoading = false;
-
-  function loadAnalyticsSdkOnce() {
-    if(!TG_ANALYTICS_ENABLED) return;
-    if(__tgAnalyticsLoading) return;
-    if(window.telegramAnalytics) {
-      try {
-        window.telegramAnalytics.init({
-          token: TG_ANALYTICS_TOKEN,
-          appName: TG_ANALYTICS_APP_NAME
-        });
-      } catch(e) {}
-      return;
-    }
-    __tgAnalyticsLoading = true;
-    const s = document.createElement('script');
-    s.async = true;
-    s.src = 'https://tganalytics.xyz/index.js';
-    s.onload = () => {
-      try {
-        window.telegramAnalytics?.init?.({
-          token: TG_ANALYTICS_TOKEN,
-          appName: TG_ANALYTICS_APP_NAME
-        });
-      } catch(e) {}
-    };
-    s.onerror = () => { __tgAnalyticsLoading = false; };
-    document.head.appendChild(s);
-  }
-
-  const CONSENT_KEY = 'tc_analytics_consent_v1';
-  const consentBackdrop = document.getElementById('consent_backdrop');
-  const consentAccept = document.getElementById('consent_accept');
-  const consentDecline = document.getElementById('consent_decline');
-
-  function showConsent(){ if(consentBackdrop) consentBackdrop.style.display = 'flex'; }
-  function hideConsent(){ if(consentBackdrop) consentBackdrop.style.display = 'none'; }
-
-  function ensureConsent(){
-    const v = localStorage.getItem(CONSENT_KEY);
-    if(v === 'yes'){ loadAnalyticsSdkOnce(); return; }
-    if(v === 'no'){ return; }
-    showConsent();
-  }
-
-  consentAccept?.addEventListener('click', ()=>{
-    localStorage.setItem(CONSENT_KEY, 'yes');
-    hideConsent();
-    loadAnalyticsSdkOnce();
-    showToast(t('toast.saved'));
-  });
-  consentDecline?.addEventListener('click', ()=>{
-    localStorage.setItem(CONSENT_KEY, 'no');
-    hideConsent();
-    showToast(t('toast.saved'));
-  });
-
   function refreshAll(){
     dcaRows.forEach(r=>{
       const labels=r.el.querySelectorAll('label');
@@ -2008,8 +1919,6 @@
       setTimeout(()=>drawAllIndicatorVisuals(lastIndicators), 150);
     });
   }catch(e){}
-
-  ensureConsent();
 })();
 </script>
 </body>
