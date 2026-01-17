@@ -1,4 +1,3 @@
-
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8" />
@@ -27,7 +26,6 @@
       --result-bg:#060606;
       --chip-bg:#0a0a0a;
 
-      /* Support tagline color (dark theme) */
       --support-tagline:#22c55e;
     }
 
@@ -49,7 +47,6 @@
       --result-bg:#f7f9ff;
       --chip-bg:#f1f4fb;
 
-      /* Support tagline color (light theme) */
       --support-tagline:#2d8cff;
     }
 
@@ -99,11 +96,10 @@
     .iconbtn .lbl{font-size:12px;font-weight:800;white-space:nowrap}
     .iconbtn.active{border-color:var(--accent);color:var(--accent)}
 
-    /* MAIN area (reserve space for bottom tabs) */
     main{
       flex:1;
       padding:12px;
-      padding-bottom: 92px; /* space for bottom nav */
+      padding-bottom: 92px;
       display:flex;
       flex-direction:column;
       gap:14px;
@@ -112,7 +108,6 @@
     .main-screen{display:none}
     .main-screen.active{display:block}
 
-    /* calculator inner tabs (DCA/RR/Capital/Indicators) */
     .subtabs{
       display:flex;
       gap:8px;
@@ -246,7 +241,6 @@
     .mini:hover{border-color:color-mix(in srgb, var(--accent) 45%, var(--border)); color:var(--accent)}
     .note{font-size:12px;color:var(--muted);font-weight:700;margin-top:8px}
 
-    /* Rainbow text (Support tab footer) */
     .rainbow{
       display:inline-block;
       font-weight:1000;
@@ -260,7 +254,6 @@
     }
     @keyframes rain{0%{background-position:0% 50%}100%{background-position:100% 50%}}
 
-    /* NEW: non-rainbow tagline color by theme */
     .tagline{
       color:var(--support-tagline) !important;
       background:none !important;
@@ -290,7 +283,6 @@
       font-weight:1000;
     }
 
-    /* Bottom tabs (main navigation) */
     .bottomnav{
       position:fixed;
       left:0; right:0; bottom:0;
@@ -331,12 +323,11 @@
     }
     .main-tab .ico{font-size:16px}
 
-    /* toast */
     #toast{
       position:fixed;
       left:50%;
       transform:translateX(-50%);
-      bottom:88px; /* above bottom nav */
+      bottom:88px;
       padding:10px 12px;
       border-radius:999px;
       border:1px solid var(--border);
@@ -352,7 +343,6 @@
     html[data-theme="light"] #toast{background:rgba(0,0,0,.72)}
     #toast.show{opacity:1;transform:translateX(-50%) translateY(-2px)}
 
-    /* card modal */
     #modal_backdrop{
       position:fixed;inset:0;
       background:rgba(0,0,0,.55);
@@ -383,7 +373,6 @@
     #modal_right .btn{width:100%}
     #modal_help{font-size:12px;color:var(--muted);font-weight:700}
 
-    /* consent modal */
     #consent_backdrop{
       position:fixed;inset:0;
       background:rgba(0,0,0,.55);
@@ -405,7 +394,6 @@
     #consent_actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
     #consent_actions .btn{flex:1;min-width:160px}
 
-    /* indicators visuals */
     .vizgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
     @media(max-width:520px){ .vizgrid{grid-template-columns:1fr} }
     .viz{
@@ -833,7 +821,6 @@
     mainBtnCalc.classList.toggle('active', isCalc);
     mainBtnSupport.classList.toggle('active', !isCalc);
 
-    // redraw visuals on tab switch
     setTimeout(()=>{ try{ drawAllIndicatorVisuals(lastIndicators); }catch(e){} }, 60);
   }
   mainBtnCalc?.addEventListener('click', ()=>setMainTab('calc'));
@@ -1039,7 +1026,6 @@
     setTheme(current==='dark'?'light':'dark');
   });
 
-  /* utils */
   function safeNum(v){ const x=parseFloat(v); return isFinite(x)?x:0; }
   function fmt(v, digits=8){
     if(v===null || v===undefined || !isFinite(v)) return '—';
@@ -1068,7 +1054,6 @@
   btnRu?.addEventListener('click', ()=>{ lang='ru'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); updateWalletUI(); });
   btnEn?.addEventListener('click', ()=>{ lang='en'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); updateWalletUI(); });
 
-  /* inner calculator tabs */
   document.querySelectorAll('.subtab').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       document.querySelectorAll('.subtab').forEach(tn=>tn.classList.remove('active'));
@@ -1115,11 +1100,15 @@
     const inputs=wrap.querySelectorAll('input');
     const btnRemove=wrap.querySelector('button');
     const item={id:rowId, el:wrap, pEl:inputs[0], vEl:inputs[1]};
-    inputs.forEach(inp=>inp.addEventListener('input', calcDCA));
+    inputs.forEach(inp=>inp.addEventListener('input', ()=>{
+      calcDCA();
+      pushHistoryIfReady();
+    }));
     btnRemove.addEventListener('click', ()=>{
       dcaRows = dcaRows.filter(r=>r.id!==rowId);
       wrap.remove();
       calcDCA();
+      pushHistoryIfReady();
     });
     dcaRows.push(item);
     dcaRowsEl.appendChild(wrap);
@@ -1175,8 +1164,14 @@
 
   document.getElementById('dca_add')?.addEventListener('click', ()=>addDcaRow());
   document.getElementById('dca_clear')?.addEventListener('click', clearDCA);
-  dcaGoal?.addEventListener('input', calcDCA);
-  dcaNext?.addEventListener('input', calcDCA);
+  dcaGoal?.addEventListener('input', ()=>{
+    calcDCA();
+    pushHistoryIfReady();
+  });
+  dcaNext?.addEventListener('input', ()=>{
+    calcDCA();
+    pushHistoryIfReady();
+  });
 
   
   async function copyText(text){
@@ -1247,7 +1242,6 @@
   bindCopy(document.getElementById('rr_copy_gross'), ()=>rrGross.textContent);
   bindCopy(document.getElementById('rr_copy_net'), ()=>rrNet.textContent);
 
-  /* Capital */
   const capDep=document.getElementById('cap_dep');
   const capRisk=document.getElementById('cap_risk');
   const capLev=document.getElementById('cap_lev');
@@ -1297,7 +1291,6 @@
   [capDep,capRisk,capLev,capEntry,capSl,capFee].forEach(x=>x?.addEventListener('input', ()=>{ calcCap(); pushHistoryIfReady(); }));
   bindCopy(document.getElementById('cap_copy_pos'), ()=>capPos.textContent);
 
-  /* Indicators */
   const fgText=document.getElementById('fg_text');
   const tcapText=document.getElementById('tcap_text');
   const altText=document.getElementById('alt_text');
@@ -1505,7 +1498,6 @@
     drawAllIndicatorVisuals(lastIndicators);
   }
 
-  /* history */
   const HISTORY_KEY='tc_history_v10';
   function loadHistory(){ try{ return JSON.parse(localStorage.getItem(HISTORY_KEY))||[] }catch(e){return[]} }
   function saveHistory(arr){ try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(arr)); }catch(e){} }
@@ -1605,7 +1597,6 @@
     }
   }
 
-  /* links/open */
   function openUrl(url){
     try{
       if(tg?.openLink) return tg.openLink(url);
@@ -1620,7 +1611,6 @@
   document.getElementById('open_privacy')?.addEventListener('click', ()=>openUrl(location.origin + '/privacy.html'));
   document.getElementById('open_support')?.addEventListener('click', ()=>openUrl('https://t.me/Trader_TradeSupportBot'));
 
-  /* card modal */
   const modalBackdrop=document.getElementById('modal_backdrop');
   const modalClose=document.getElementById('modal_close');
   const cardCanvas=document.getElementById('card_canvas');
@@ -1787,7 +1777,6 @@
 
   document.getElementById('card_btn')?.addEventListener('click', ()=>{ exportCardPNG({fromHistory:false}); });
 
-  /* TON Connect */
   const TONCONNECT_MANIFEST_URL = 'https://trade-calculator-five.vercel.app/tonconnect-manifest.json';
   const TIP_ADDRESS = 'UQD04FKshVmZaQjZq9y2AtBXWklkzQfK4sEJWrsYfqbNHGGz';
   const TIP_AMOUNT_TON = 0.05;
@@ -1901,7 +1890,6 @@
 
   initTonConnect();
 
-  /* Share text */
   document.getElementById('share_btn')?.addEventListener('click', async ()=>{
     const tab=activeTab();
     let text='📊 Trader Calculator\n';
@@ -1927,8 +1915,7 @@
     if(ok){ showToast(t('toast.copied')); haptic('notify','success'); }
   });
 
-  /* analytics (opt-in) */
-  const TG_ANALYTICS_ENABLED = true; // set to false for Apps Center review if needed
+  const TG_ANALYTICS_ENABLED = true;
   const TG_ANALYTICS_TOKEN = "eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=";
   const TG_ANALYTICS_APP_NAME = "trader_calculator";
   let __tgAnalyticsLoading = false;
@@ -1961,7 +1948,6 @@
     document.head.appendChild(s);
   }
 
-  /* analytics consent */
   const CONSENT_KEY = 'tc_analytics_consent_v1';
   const consentBackdrop = document.getElementById('consent_backdrop');
   const consentAccept = document.getElementById('consent_accept');
@@ -1989,7 +1975,6 @@
     showToast(t('toast.saved'));
   });
 
-  /* init */
   function refreshAll(){
     dcaRows.forEach(r=>{
       const labels=r.el.querySelectorAll('label');
