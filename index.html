@@ -7,7 +7,6 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
   
-  <!-- Telegram Analytics SDK -->
   <script type="module">
     import telegramAnalytics from 'https://esm.sh/@telegram-apps/analytics';
     
@@ -638,7 +637,6 @@
       #modal_right{width:100%;min-width:100%}
     }
 
-    /* Анимации */
     @keyframes fadeInUp {
       from {
         opacity:0;
@@ -688,7 +686,6 @@
       }
     }
 
-    /* Новые стили для персонализации */
     .scenario-controls {
       display:flex;
       gap:8px;
@@ -951,7 +948,6 @@
               <button class="chip" data-risk="3" type="button">3%</button>
             </div>
 
-            <!-- Сохранение сценариев -->
             <div class="scenario-controls">
               <button class="btn ghost" id="cap_save_scenario" type="button" style="font-size:12px">
                 💾 Save preset
@@ -1045,7 +1041,6 @@
               </div>
             </div>
 
-            <!-- Настройки порогов для индикаторов -->
             <div style="margin-top:12px; border-top:1px dashed var(--border); padding-top:12px;">
               <div class="small" style="margin-bottom:8px;">⚙️ Fear & Greed Thresholds</div>
               <div class="threshold-control">
@@ -1100,7 +1095,6 @@
           </div>
         </section>
 
-        <!-- history -->
         <aside class="history" aria-live="polite">
           <h4 data-i18n="hist.title">📜 History</h4>
           <div class="history-list" id="history_list"></div>
@@ -1124,7 +1118,6 @@
             Wallet connection & tips are here. You can also contact support below.
           </div>
 
-          <!-- Выбор цвета темы -->
           <div style="margin-top:16px; border-top:1px dashed var(--border); padding-top:12px;">
             <div class="small" style="margin-bottom:8px;">🎨 Accent Color Theme</div>
             <div class="color-picker">
@@ -1160,8 +1153,8 @@
           
           <div class="support-tags tagline">AIRDROP • NEWS • TRADING</div>
           <div class="support-links">
-            <a id="link_telegram" class="rainbow" href="https://t.me/InvestTraderTrade" target="_blank" rel="noopener">TELEGRAM</a>
-            <a id="link_youtube" class="rainbow" href="https://www.youtube.com/@TRADER_TRADE" target="_blank" rel="noopener">YOUTUBE</a>
+            <a id="link_telegram" class="rainbow" href="https://t.me/ChalovCrypto" target="_blank" rel="noopener">TELEGRAM</a>
+            <a id="link_youtube" class="rainbow" href="https://www.youtube.com/@ChalovCrypto" target="_blank" rel="noopener">YOUTUBE</a>
           </div>
         </div>
       </div>
@@ -1438,14 +1431,12 @@
       btn.classList.remove('active');
     }
 
-    // Обновляем выбранный цвет в палитре
     const currentColor = getAccentColor();
     document.querySelectorAll('.color-option').forEach(opt => {
       opt.classList.toggle('active', opt.dataset.color === currentColor);
     });
   }
 
-  // Инициализация темы и цвета
   setTheme(getInitialTheme());
   setAccentColor(getAccentColor());
   
@@ -1454,7 +1445,6 @@
     setTheme(current==='dark'?'light':'dark');
   });
 
-  // Выбор цвета темы
   document.querySelectorAll('.color-option').forEach(opt => {
     opt.addEventListener('click', () => {
       setAccentColor(opt.dataset.color);
@@ -1511,7 +1501,6 @@
     const element = document.getElementById(elementId);
     if(!element) return;
     
-    // Удаляем старую подсказку
     const oldHint = element.querySelector('.small.hint');
     if(oldHint) oldHint.remove();
     
@@ -1599,7 +1588,6 @@
       inp.addEventListener('input', ()=>{
         calcDCA();
         pushHistoryIfReady();
-        // Проверка на отрицательные значения
         if(parseFloat(inp.value) < 0){
           inp.classList.add('error');
           showHint('dca', lang==='ru' ? 'Значение не может быть отрицательным' : 'Value cannot be negative', true);
@@ -1624,7 +1612,6 @@
     dcaRows.push(item);
     dcaRowsEl.appendChild(wrap);
     
-    // Анимация появления
     wrap.style.opacity='0';
     wrap.style.transform='translateY(10px)';
     setTimeout(()=>{
@@ -1789,7 +1776,6 @@
     const grossResult = document.getElementById('rr_gross_result');
     const netResult = document.getElementById('rr_net_result');
     
-    // Проверка на одинаковые значения
     if(e !== 0 && sl !== 0 && e === sl){
       showHint('rr_hint', lang==='ru' ? 'Entry и Stop Loss не должны совпадать' : 'Entry and Stop Loss should not be equal', true);
       rrEntry.classList.add('error');
@@ -1826,7 +1812,6 @@
     grossResult?.classList.add('success');
     netResult?.classList.add('success');
     
-    // Контекстная подсказка
     if(gross > 3){
       showHint('rr_hint', lang==='ru' ? 'Отличное соотношение риска!' : 'Great risk ratio!');
     } else if(gross < 1){
@@ -1860,7 +1845,6 @@
   const capMargin=document.getElementById('cap_margin');
   const capHint=document.getElementById('cap_hint');
 
-  // Управление сценариями
   function loadScenarios(){
     try{
       const scenarios = JSON.parse(localStorage.getItem(SCENARIOS_KEY)) || [];
@@ -2011,7 +1995,6 @@
     riskResult?.classList.add('success');
     marginResult?.classList.add('success');
     
-    // Контекстные подсказки
     if(rp > 0.05){
       showHint('cap_hint', lang==='ru' ? 'Высокий уровень риска' : 'High risk level', true);
     } else if(lev > 10){
@@ -2041,7 +2024,6 @@
   const fgFearThreshold = document.getElementById('fg_fear_threshold');
   const fgNeutralThreshold = document.getElementById('fg_neutral_threshold');
 
-  // Загрузка настроек индикаторов
   function loadFgSettings(){
     try{
       const settings = JSON.parse(localStorage.getItem(FGSETTINGS_KEY));
@@ -2052,7 +2034,6 @@
     }catch(e){}
   }
 
-  // Сохранение настроек индикаторов
   function saveFgSettings(){
     try{
       const settings = {
@@ -2424,8 +2405,8 @@
     }catch(e){}
     window.open(url,'_blank');
   }
-  document.getElementById('link_telegram')?.addEventListener('click', e=>{ e.preventDefault(); openUrl('https://t.me/InvestTraderTrade');});
-  document.getElementById('link_youtube')?.addEventListener('click', e=>{ e.preventDefault(); openUrl('https://www.youtube.com/@TRADER_TRADE');});
+  document.getElementById('link_telegram')?.addEventListener('click', e=>{ e.preventDefault(); openUrl('https://t.me/ChalovCrypto');});
+  document.getElementById('link_youtube')?.addEventListener('click', e=>{ e.preventDefault(); openUrl('https://www.youtube.com/@ChalovCrypto');});
 
   document.getElementById('open_terms')?.addEventListener('click', ()=>openUrl(location.origin + '/terms.html'));
   document.getElementById('open_privacy')?.addEventListener('click', ()=>openUrl(location.origin + '/privacy.html'));
@@ -2493,7 +2474,6 @@
     ctx.font='800 44px Inter, Arial';
     ctx.fillText('Trader Calculator', pad+28, pad+64);
 
-    // Заголовок с градиентом
     const gradient = ctx.createLinearGradient(pad+28, 0, pad+300, 0);
     gradient.addColorStop(0, accent);
     gradient.addColorStop(1, accentGradient.includes('00FFAA') ? '#00FFAA' : accent);
@@ -2770,7 +2750,6 @@
     drawAllIndicatorVisuals(lastIndicators);
   }
 
-  // Инициализация
   translateAll();
   clearDCA();
   calcRR(); calcCap();
