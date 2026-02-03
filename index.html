@@ -8,7 +8,6 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
   
-  <!-- Telegram Analytics SDK -->
   <script type="module">
     import { init, trackEvent } from 'https://esm.sh/@telegram-apps/analytics';
     
@@ -20,67 +19,42 @@
         token: TG_ANALYTICS_TOKEN,
         appName: TG_ANALYTICS_APP_NAME
       });
-      console.log('Telegram Analytics SDK initialized successfully');
-      trackEvent('app_launch', { source: 'telegram_web_app' });
+      trackEvent('app_launch');
     } catch (error) {
-      console.error('Failed to initialize Telegram Analytics:', error);
+      console.error('Telegram Analytics SDK error:', error);
     }
-    
-    window.trackEvent = trackEvent;
   </script>
 
   <style>
     :root {
-      --bg: linear-gradient(135deg, #0a0a0a 0%, #000 100%);
-      --panel: linear-gradient(145deg, #131313 0%, #0b0b0b 100%);
+      --bg: #0a0a0a;
+      --panel: #111111;
       --border: #252525;
       --text: #ffffff;
       --muted: #a0a0a0;
-      --accent: linear-gradient(90deg, #7CFC00 0%, #00FFAA 100%);
-      --accent-solid: #7CFC00;
-      
+      --accent: #7CFC00;
       --chip: #1a1a1a;
-      --chip2: #151515;
       --danger: #ff4d4d;
       --success: #22c55e;
-      --warning: #f59e0b;
-
-      --radius: 18px;
-      --shadow: 0 20px 40px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
-      --shadow-hover: 0 25px 50px rgba(124, 252, 0, 0.15), 0 8px 20px rgba(0, 0, 0, 0.5);
-
-      --input-bg: #111111;
-      --result-bg: linear-gradient(135deg, rgba(124, 252, 0, 0.08) 0%, rgba(0, 255, 170, 0.04) 100%);
-      --chip-bg: #151515;
-
-      --support-tagline: #22c55e;
-      
-      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --radius: 12px;
+      --shadow: 0 8px 24px rgba(0,0,0,0.4);
+      --input-bg: #0d0d0d;
+      --result-bg: #0f0f0f;
     }
 
     html[data-theme="light"] {
-      --bg: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-      --panel: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-      --border: #e2e8f0;
-      --text: #0f172a;
-      --muted: #64748b;
-      --accent: linear-gradient(90deg, #3b82f6 0%, #06b6d4 100%);
-      --accent-solid: #3b82f6;
-      
-      --chip: #f1f5f9;
-      --chip2: #e2e8f0;
+      --bg: #f5f7fa;
+      --panel: #ffffff;
+      --border: #e1e5eb;
+      --text: #1a1a1a;
+      --muted: #666666;
+      --accent: #2d8cff;
+      --chip: #f0f2f5;
       --danger: #ef4444;
       --success: #10b981;
-      --warning: #f59e0b;
-
-      --shadow: 0 20px 40px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
-      --shadow-hover: 0 25px 50px rgba(59, 130, 246, 0.1), 0 8px 20px rgba(0, 0, 0, 0.08);
-
-      --input-bg: #ffffff;
-      --result-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(6, 182, 212, 0.04) 100%);
-      --chip-bg: #f8fafc;
-
-      --support-tagline: #3b82f6;
+      --shadow: 0 8px 24px rgba(0,0,0,0.08);
+      --input-bg: #fafbfc;
+      --result-bg: #f8f9fa;
     }
 
     * {
@@ -93,20 +67,15 @@
       height: 100%;
       background: var(--bg);
       color: var(--text);
-      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      font-feature-settings: "cv11", "ss01";
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }
 
     #app {
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      position: relative;
     }
 
-    /* Header */
     header {
       position: sticky;
       top: 0;
@@ -114,16 +83,9 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
       padding: 12px 16px;
       border-bottom: 1px solid var(--border);
-      background: rgba(11, 11, 11, 0.9);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-    }
-
-    html[data-theme="light"] header {
-      background: rgba(255, 255, 255, 0.9);
+      background: var(--panel);
     }
 
     .leftbar {
@@ -133,14 +95,12 @@
       flex-wrap: wrap;
     }
 
-    /* Language switcher */
     .lang {
       display: flex;
-      gap: 6px;
-      align-items: center;
-      background: var(--chip-bg);
+      gap: 4px;
+      background: var(--chip);
       padding: 4px;
-      border-radius: 14px;
+      border-radius: 8px;
       border: 1px solid var(--border);
     }
 
@@ -148,104 +108,43 @@
       background: transparent;
       border: none;
       color: var(--muted);
-      padding: 6px 14px;
+      padding: 4px 12px;
       cursor: pointer;
-      border-radius: 10px;
-      font-weight: 700;
+      border-radius: 6px;
       font-size: 13px;
-      letter-spacing: 0.3px;
-      transition: var(--transition);
-    }
-
-    .lang button:hover {
-      background: rgba(255, 255, 255, 0.05);
+      font-weight: 600;
     }
 
     .lang button.active {
       background: var(--accent);
       color: #000;
-      font-weight: 800;
-      box-shadow: 0 4px 12px rgba(124, 252, 0, 0.2);
     }
 
-    html[data-theme="light"] .lang button.active {
-      color: #fff;
-    }
-
-    /* Icon buttons */
     .iconbtn {
       border: 1px solid var(--border);
-      background: var(--chip-bg);
-      color: var(--muted);
-      padding: 8px 14px;
-      border-radius: 14px;
+      background: var(--chip);
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 8px;
       cursor: pointer;
-      font-weight: 700;
-      line-height: 1.1;
-      min-height: 38px;
+      font-size: 13px;
+      font-weight: 600;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      transition: var(--transition);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .iconbtn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: var(--accent);
-      opacity: 0;
-      transition: opacity 0.3s;
-      z-index: 0;
+      gap: 6px;
     }
 
     .iconbtn:hover {
-      border-color: var(--accent-solid);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-hover);
+      border-color: var(--accent);
     }
 
-    .iconbtn:hover::before {
-      opacity: 0.1;
-    }
-
-    .iconbtn .ico {
-      font-size: 16px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .iconbtn .lbl {
-      font-size: 13px;
-      font-weight: 700;
-      white-space: nowrap;
-      position: relative;
-      z-index: 1;
-    }
-
-    .iconbtn.active {
-      border-color: transparent;
-      background: var(--accent);
-      color: #000;
-    }
-
-    html[data-theme="light"] .iconbtn.active {
-      color: #fff;
-    }
-
-    /* Main content */
     main {
       flex: 1;
       padding: 16px;
-      padding-bottom: 100px;
+      padding-bottom: 80px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
       max-width: 1200px;
       margin: 0 auto;
       width: 100%;
@@ -253,80 +152,44 @@
 
     .main-screen {
       display: none;
-      animation: fadeIn 0.4s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
     }
 
     .main-screen.active {
       display: block;
     }
 
-    /* Subtabs */
     .subtabs {
       display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-      justify-content: center;
+      gap: 8px;
       margin-bottom: 20px;
-      background: var(--chip-bg);
-      padding: 8px;
-      border-radius: 20px;
-      border: 1px solid var(--border);
+      flex-wrap: wrap;
     }
 
     .subtab {
-      background: none;
-      border: none;
+      background: var(--chip);
+      border: 1px solid var(--border);
       color: var(--muted);
       font-size: 14px;
-      padding: 10px 20px;
+      padding: 8px 16px;
       cursor: pointer;
-      border-radius: 14px;
-      font-weight: 700;
-      border: 2px solid transparent;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      border-radius: 8px;
+      font-weight: 600;
     }
-
-    .subtab::before {
-      font-size: 16px;
-    }
-
-    .subtab[data-tab="dca"]::before { content: "📊"; }
-    .subtab[data-tab="rr"]::before { content: "⚖️"; }
-    .subtab[data-tab="cap"]::before { content: "💰"; }
-    .subtab[data-tab="ind"]::before { content: "📈"; }
 
     .subtab:hover {
-      border-color: rgba(124, 252, 0, 0.3);
-      background: rgba(124, 252, 0, 0.05);
+      border-color: var(--accent);
     }
 
     .subtab.active {
       background: var(--accent);
       color: #000;
-      border-color: transparent;
-      font-weight: 800;
-      box-shadow: 0 6px 20px rgba(124, 252, 0, 0.2);
+      border-color: var(--accent);
     }
 
-    html[data-theme="light"] .subtab.active {
-      color: #fff;
-    }
-
-    /* Panels layout */
     .panels {
       display: flex;
       gap: 20px;
       flex-wrap: wrap;
-      flex: 1;
     }
 
     .screen {
@@ -338,195 +201,88 @@
       display: block;
     }
 
-    /* Cards */
     .card {
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 24px;
-      max-width: 900px;
+      padding: 20px;
       box-shadow: var(--shadow);
-      transition: var(--transition);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: var(--accent);
-      opacity: 0.8;
-    }
-
-    .card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-hover);
+      margin-bottom: 20px;
     }
 
     .card h3 {
-      margin: 0 0 20px 0;
-      font-size: 20px;
-      font-weight: 800;
-      background: var(--accent);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
+      margin: 0 0 16px 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
     }
 
-    .card h3::before {
-      font-size: 22px;
-    }
-
-    /* Fields */
     .field {
-      margin-bottom: 16px;
-      position: relative;
+      margin-bottom: 12px;
     }
 
     label {
       display: block;
-      font-size: 13px;
+      font-size: 12px;
       color: var(--muted);
-      margin-bottom: 8px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      margin-bottom: 6px;
+      font-weight: 600;
     }
-
-    label::before {
-      font-size: 16px;
-    }
-
-    .field:nth-child(1) label::before { content: "📍"; }
-    .field:nth-child(2) label::before { content: "📉"; }
-    .field:nth-child(3) label::before { content: "📈"; }
-    .field:nth-child(4) label::before { content: "💸"; }
 
     input, select {
       width: 100%;
-      padding: 14px 16px;
+      padding: 10px 12px;
       background: var(--input-bg);
-      border: 2px solid var(--border);
+      border: 1px solid var(--border);
       color: var(--text);
-      border-radius: 14px;
-      font-size: 16px;
+      border-radius: 8px;
+      font-size: 14px;
       outline: none;
-      transition: var(--transition);
-      font-weight: 500;
     }
 
     input:focus, select:focus {
-      border-color: var(--accent-solid);
-      box-shadow: 0 0 0 4px rgba(124, 252, 0, 0.1);
+      border-color: var(--accent);
     }
 
-    input.success, select.success {
-      border-color: var(--success);
-    }
-
-    input.error, select.error {
-      border-color: var(--danger);
-    }
-
-    /* Rows */
     .row {
       display: flex;
-      gap: 16px;
+      gap: 12px;
       flex-wrap: wrap;
     }
 
     .row > * {
       flex: 1;
-      min-width: 180px;
+      min-width: 150px;
     }
 
-    @media (max-width: 480px) {
-      .row > * {
-        min-width: 100%;
-      }
-      
-      .dca-row {
-        flex-direction: column;
-      }
-      
-      .dca-row .field {
-        flex: 1 1 100%;
-      }
-    }
-
-    /* Results */
     .result {
-      margin-top: 12px;
-      padding: 18px;
-      border-radius: 16px;
+      margin-top: 8px;
+      padding: 12px;
+      border-radius: 8px;
       background: var(--result-bg);
-      border: 1px solid rgba(124, 252, 0, 0.2);
+      border: 1px solid var(--border);
       display: flex;
       gap: 12px;
       align-items: center;
       justify-content: space-between;
-      font-weight: 800;
-      transition: var(--transition);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .result::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: var(--accent);
-      opacity: 0;
-      transition: opacity 0.3s;
-      z-index: 0;
-    }
-
-    .result:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 30px rgba(124, 252, 0, 0.1);
-    }
-
-    .result:hover::before {
-      opacity: 0.05;
-    }
-
-    .result > div {
-      position: relative;
-      z-index: 1;
     }
 
     .result .v {
-      background: var(--accent);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      font-size: 22px;
-      font-weight: 900;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 16px;
     }
 
     .small {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--muted);
-      font-weight: 600;
-      line-height: 1.4;
+      font-weight: 500;
     }
 
-    /* Controls */
     .controls {
       display: flex;
-      gap: 12px;
-      margin-top: 20px;
+      gap: 8px;
+      margin-top: 16px;
       flex-wrap: wrap;
     }
 
@@ -534,405 +290,209 @@
       background: var(--accent);
       color: #000;
       border: none;
-      padding: 12px 24px;
-      border-radius: 14px;
+      padding: 8px 16px;
+      border-radius: 8px;
       cursor: pointer;
-      font-weight: 800;
-      font-size: 14px;
-      transition: var(--transition);
-      position: relative;
-      overflow: hidden;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      min-height: 44px;
-    }
-
-    html[data-theme="light"] .btn {
-      color: #fff;
-    }
-
-    .btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
-      opacity: 0;
-      transition: opacity 0.3s;
+      font-weight: 600;
+      font-size: 13px;
     }
 
     .btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 30px rgba(124, 252, 0, 0.3);
-    }
-
-    .btn:hover::before {
-      opacity: 1;
-    }
-
-    .btn:active {
-      transform: translateY(-1px);
-    }
-
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none !important;
+      opacity: 0.9;
     }
 
     .btn.ghost {
       background: transparent;
       color: var(--muted);
-      border: 2px solid var(--border);
+      border: 1px solid var(--border);
     }
 
     .btn.ghost:hover {
-      border-color: var(--accent-solid);
-      color: var(--accent-solid);
-      background: rgba(124, 252, 0, 0.05);
+      border-color: var(--accent);
+      color: var(--accent);
     }
 
-    .btn.danger {
-      background: transparent;
-      color: var(--danger);
-      border: 2px solid var(--danger);
-    }
-
-    .btn.danger:hover {
-      background: rgba(255, 77, 77, 0.1);
-    }
-
-    /* Chips */
     .chips {
       display: flex;
-      gap: 10px;
+      gap: 8px;
+      margin-top: 12px;
       flex-wrap: wrap;
-      margin-top: 16px;
     }
 
     .chip {
-      border: 2px solid var(--border);
-      background: var(--chip-bg);
-      padding: 10px 20px;
-      border-radius: 50px;
+      border: 1px solid var(--border);
+      background: var(--chip);
+      padding: 6px 12px;
+      border-radius: 20px;
       cursor: pointer;
       color: var(--muted);
-      font-weight: 700;
-      font-size: 13px;
-      transition: var(--transition);
+      font-size: 12px;
+      font-weight: 600;
     }
 
     .chip:hover {
-      border-color: var(--accent-solid);
-      color: var(--accent-solid);
-      transform: translateY(-2px);
+      border-color: var(--accent);
     }
 
     .chip.active {
       background: var(--accent);
-      border-color: transparent;
       color: #000;
-      font-weight: 800;
-      box-shadow: 0 6px 20px rgba(124, 252, 0, 0.2);
+      border-color: var(--accent);
     }
 
-    html[data-theme="light"] .chip.active {
-      color: #fff;
-    }
-
-    /* History */
     .history {
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 20px;
+      padding: 16px;
       width: 100%;
-      max-width: 500px;
       box-shadow: var(--shadow);
-      transition: var(--transition);
-    }
-
-    .history:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-hover);
     }
 
     .history h4 {
-      margin: 0 0 16px 0;
-      font-size: 18px;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .history h4::before {
-      content: "📚";
-      font-size: 20px;
+      margin: 0 0 12px 0;
+      font-size: 16px;
+      font-weight: 700;
     }
 
     .history-list {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      max-height: 400px;
+      gap: 8px;
+      max-height: 300px;
       overflow: auto;
-      padding-right: 8px;
-    }
-
-    .history-list::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .history-list::-webkit-scrollbar-track {
-      background: var(--chip-bg);
-      border-radius: 3px;
-    }
-
-    .history-list::-webkit-scrollbar-thumb {
-      background: var(--accent-solid);
-      border-radius: 3px;
     }
 
     .hist-item {
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px;
+      border-radius: 8px;
+      padding: 12px;
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      gap: 16px;
-      background: var(--chip-bg);
-      transition: var(--transition);
-    }
-
-    .hist-item:hover {
-      border-color: var(--accent-solid);
-      transform: translateX(4px);
+      gap: 12px;
+      background: var(--chip);
     }
 
     .hist-item b {
       display: block;
-      font-size: 14px;
-      margin-bottom: 6px;
+      font-size: 13px;
+      margin-bottom: 4px;
     }
 
     .hist-actions {
       display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
+      gap: 6px;
     }
 
     .mini {
-      border: 2px solid var(--border);
+      border: 1px solid var(--border);
       background: transparent;
       color: var(--muted);
-      padding: 8px 14px;
-      border-radius: 12px;
+      padding: 4px 8px;
+      border-radius: 6px;
       cursor: pointer;
-      font-weight: 700;
-      font-size: 12px;
-      transition: var(--transition);
+      font-size: 11px;
+      font-weight: 600;
     }
 
     .mini:hover {
-      border-color: var(--accent-solid);
-      color: var(--accent-solid);
-      transform: translateY(-2px);
+      border-color: var(--accent);
+      color: var(--accent);
     }
 
-    .note {
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 600;
-      margin-top: 12px;
-      line-height: 1.5;
-    }
-
-    /* Support section */
     .support-wrap {
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 20px;
       align-items: center;
-      padding: 40px 20px;
+      padding: 20px;
     }
 
     .support-links {
       display: flex;
-      gap: 24px;
-      flex-wrap: wrap;
-      justify-content: center;
-      align-items: center;
-      margin-top: 20px;
+      gap: 20px;
+      margin-top: 16px;
     }
 
-    .support-tags {
-      font-size: 14px;
-      letter-spacing: 1px;
-      font-weight: 900;
-      text-transform: uppercase;
-      background: var(--accent);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      animation: gradientShift 3s ease infinite;
-      background-size: 200% 200%;
-    }
-
-    @keyframes gradientShift {
-      0%, 100% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-    }
-
-    .rainbow {
-      display: inline-block;
-      font-weight: 900;
+    .support-links a {
+      color: var(--accent);
       text-decoration: none;
-      background: linear-gradient(90deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff);
-      background-size: 400% 400%;
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      animation: rainbow 3s linear infinite;
-      padding: 12px 24px;
-      border-radius: 50px;
-      border: 2px solid var(--border);
-      transition: var(--transition);
+      font-weight: 700;
+      font-size: 14px;
     }
 
-    @keyframes rainbow {
-      0% { background-position: 0% 50%; }
-      100% { background-position: 400% 50%; }
+    .support-links a:hover {
+      text-decoration: underline;
     }
 
-    .rainbow:hover {
-      border-color: var(--accent-solid);
-      transform: translateY(-3px);
-      box-shadow: 0 12px 30px rgba(124, 252, 0, 0.2);
-    }
-
-    /* Bottom navigation */
     .bottomnav {
       position: fixed;
       left: 0;
       right: 0;
       bottom: 0;
       z-index: 100;
-      padding: 16px 20px;
-      padding-bottom: calc(16px + env(safe-area-inset-bottom));
+      padding: 12px 16px;
       border-top: 1px solid var(--border);
-      background: rgba(11, 11, 11, 0.9);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: var(--panel);
       display: flex;
       justify-content: center;
     }
 
-    html[data-theme="light"] .bottomnav {
-      background: rgba(255, 255, 255, 0.9);
-    }
-
     .bottomnav .bar {
-      width: min(600px, 100%);
+      width: min(400px, 100%);
       display: flex;
-      gap: 16px;
+      gap: 12px;
     }
 
     .main-tab {
       flex: 1;
-      border: 2px solid var(--border);
-      background: var(--chip-bg);
+      border: 1px solid var(--border);
+      background: var(--chip);
       color: var(--muted);
-      border-radius: 18px;
-      padding: 16px 20px;
+      border-radius: 8px;
+      padding: 10px;
       cursor: pointer;
-      font-weight: 800;
+      font-weight: 600;
+      font-size: 13px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
-      transition: var(--transition);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .main-tab::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: var(--accent);
-      opacity: 0;
-      transition: opacity 0.3s;
+      gap: 8px;
     }
 
     .main-tab:hover {
-      border-color: var(--accent-solid);
-      transform: translateY(-3px);
-      color: var(--accent-solid);
-    }
-
-    .main-tab:hover::before {
-      opacity: 0.1;
+      border-color: var(--accent);
     }
 
     .main-tab.active {
-      border-color: transparent;
       background: var(--accent);
       color: #000;
-      box-shadow: 0 12px 30px rgba(124, 252, 0, 0.3);
+      border-color: var(--accent);
     }
 
-    html[data-theme="light"] .main-tab.active {
-      color: #fff;
-    }
-
-    .main-tab .ico {
-      font-size: 20px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .main-tab span {
-      position: relative;
-      z-index: 1;
-    }
-
-    /* Toast */
     #toast {
       position: fixed;
       left: 50%;
       transform: translateX(-50%);
-      bottom: 120px;
-      padding: 14px 24px;
-      border-radius: 50px;
-      border: 1px solid var(--border);
+      bottom: 100px;
+      padding: 12px 20px;
+      border-radius: 8px;
       background: var(--panel);
       color: var(--text);
-      font-weight: 800;
-      font-size: 14px;
+      font-weight: 600;
+      font-size: 13px;
       opacity: 0;
       pointer-events: none;
-      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-      z-index: 9999;
+      z-index: 1000;
+      border: 1px solid var(--border);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
     }
 
     #toast.show {
       opacity: 1;
-      transform: translateX(-50%) translateY(-10px);
     }
 
-    /* Modal */
     #modal_backdrop {
       position: fixed;
       inset: 0;
@@ -940,97 +500,73 @@
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 9998;
-      padding: 20px;
-      animation: fadeIn 0.3s ease;
+      z-index: 999;
+      padding: 16px;
     }
 
     #modal {
-      width: min(800px, 100%);
-      border-radius: 24px;
-      border: 1px solid var(--border);
+      width: min(600px, 100%);
+      border-radius: 12px;
       background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 20px;
       box-shadow: var(--shadow);
-      padding: 24px;
-      animation: modalSlideUp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    }
-
-    @keyframes modalSlideUp {
-      from {
-        opacity: 0;
-        transform: translateY(40px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
     }
 
     #modal_header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     #modal_header b {
-      font-size: 18px;
-      font-weight: 800;
-      background: var(--accent);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent);
     }
 
     #modal_close {
-      border: 2px solid var(--border);
+      border: 1px solid var(--border);
       background: transparent;
-      border-radius: 14px;
+      border-radius: 6px;
       color: var(--muted);
-      padding: 10px 16px;
+      padding: 6px 10px;
       cursor: pointer;
-      font-weight: 800;
-      transition: var(--transition);
+      font-size: 16px;
     }
 
     #modal_close:hover {
-      border-color: var(--accent-solid);
-      color: var(--accent-solid);
-      transform: rotate(90deg);
+      border-color: var(--accent);
+      color: var(--accent);
     }
 
     #modal_body {
       display: flex;
-      gap: 24px;
+      gap: 16px;
       flex-wrap: wrap;
     }
 
     #modal_canvas_wrap {
       flex: 1;
-      min-width: 300px;
-      border: 2px solid var(--border);
-      border-radius: 20px;
+      min-width: 200px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
       overflow: hidden;
       background: var(--result-bg);
-      aspect-ratio: 3/2;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     #card_canvas {
       display: block;
       width: 100%;
-      height: 100%;
+      height: 200px;
     }
 
     #modal_right {
-      width: 260px;
-      min-width: 260px;
+      width: 200px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
     }
 
     #modal_right .btn {
@@ -1038,237 +574,39 @@
     }
 
     #modal_help {
-      font-size: 13px;
+      font-size: 11px;
       color: var(--muted);
-      font-weight: 600;
-      line-height: 1.5;
+      font-weight: 500;
       text-align: center;
-      padding: 12px;
-      background: var(--chip-bg);
-      border-radius: 14px;
     }
 
-    /* Visualizations */
     .vizgrid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: 1fr;
       gap: 16px;
-      margin-top: 24px;
-    }
-
-    @media (max-width: 640px) {
-      .vizgrid {
-        grid-template-columns: 1fr;
-      }
+      margin-top: 20px;
     }
 
     .viz {
-      border: 2px solid var(--border);
-      border-radius: 20px;
-      padding: 20px;
-      background: var(--chip-bg);
-      transition: var(--transition);
-    }
-
-    .viz:hover {
-      border-color: var(--accent-solid);
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-hover);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      background: var(--chip);
     }
 
     .viz h5 {
-      margin: 0 0 16px 0;
-      font-size: 14px;
+      margin: 0 0 12px 0;
+      font-size: 13px;
       color: var(--muted);
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .viz h5::before {
-      font-size: 16px;
+      font-weight: 600;
     }
 
     .viz canvas {
       width: 100%;
-      height: 160px;
+      height: 120px;
       display: block;
     }
 
-    .viz .big {
-      font-size: 28px;
-      font-weight: 900;
-      margin-top: 12px;
-      background: var(--accent);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .viz .sub {
-      font-size: 13px;
-      color: var(--muted);
-      font-weight: 700;
-      margin-top: 4px;
-    }
-
-    /* Tooltips */
-    [data-tooltip] {
-      position: relative;
-      cursor: help;
-    }
-
-    [data-tooltip]::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      bottom: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 8px 12px;
-      background: var(--panel);
-      color: var(--text);
-      font-size: 12px;
-      font-weight: 600;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      white-space: nowrap;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s;
-      z-index: 1000;
-      box-shadow: var(--shadow);
-    }
-
-    [data-tooltip]:hover::after {
-      opacity: 1;
-    }
-
-    /* Risk warning */
-    .risk-warning {
-      padding: 12px 16px;
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
-      border: 2px solid var(--warning);
-      border-radius: 16px;
-      margin-top: 16px;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.8; }
-    }
-
-    .risk-warning .small {
-      color: var(--warning);
-      font-weight: 700;
-    }
-
-    /* Success highlight */
-    .success-highlight {
-      animation: successPulse 2s ease;
-    }
-
-    @keyframes successPulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
-      50% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
-    }
-
-    /* Scenario presets */
-    .scenario-presets {
-      display: flex;
-      gap: 12px;
-      margin-top: 20px;
-      flex-wrap: wrap;
-    }
-
-    .scenario-preset {
-      border: 2px solid var(--border);
-      background: var(--chip-bg);
-      padding: 12px 20px;
-      border-radius: 16px;
-      cursor: pointer;
-      color: var(--muted);
-      font-weight: 700;
-      font-size: 14px;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .scenario-preset::before {
-      content: "💾";
-      font-size: 16px;
-    }
-
-    .scenario-preset:hover {
-      border-color: var(--accent-solid);
-      color: var(--accent-solid);
-      transform: translateY(-2px);
-    }
-
-    .scenario-preset.active {
-      background: var(--accent);
-      border-color: transparent;
-      color: #000;
-      font-weight: 800;
-    }
-
-    html[data-theme="light"] .scenario-preset.active {
-      color: #fff;
-    }
-
-    /* Indicator thresholds */
-    .threshold-controls {
-      display: flex;
-      gap: 12px;
-      margin-top: 16px;
-      flex-wrap: wrap;
-    }
-
-    .threshold {
-      flex: 1;
-      min-width: 200px;
-    }
-
-    .threshold-range {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-top: 8px;
-    }
-
-    .threshold-color {
-      width: 20px;
-      height: 20px;
-      border-radius: 6px;
-      border: 2px solid var(--border);
-    }
-
-    /* Loading states */
-    .loading {
-      position: relative;
-      overflow: hidden;
-    }
-
-    .loading::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(124, 252, 0, 0.1), transparent);
-      animation: loading 1.5s infinite;
-    }
-
-    @keyframes loading {
-      100% { left: 100%; }
-    }
-
-    /* Responsive improvements */
     @media (max-width: 768px) {
       .panels {
         flex-direction: column;
@@ -1278,37 +616,8 @@
         max-width: 100%;
       }
       
-      .subtabs {
-        overflow-x: auto;
-        padding: 8px;
-        justify-content: flex-start;
-      }
-      
-      .main-tab span {
-        display: none;
-      }
-      
-      .main-tab {
-        padding: 16px;
-      }
-      
-      .main-tab .ico {
-        font-size: 24px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .card {
-        padding: 20px;
-      }
-      
-      .controls {
-        flex-direction: column;
-      }
-      
-      .btn {
-        width: 100%;
-        justify-content: center;
+      .row > * {
+        min-width: 100%;
       }
       
       #modal_body {
@@ -1317,7 +626,20 @@
       
       #modal_right {
         width: 100%;
-        min-width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .subtabs {
+        justify-content: center;
+      }
+      
+      .main-tab span {
+        display: none;
+      }
+      
+      .main-tab {
+        padding: 10px;
       }
     }
   </style>
@@ -1332,289 +654,195 @@
         <button id="btn_en" class="active">EN</button>
       </div>
 
-      <button class="iconbtn" id="theme_toggle" type="button" aria-label="Theme">
-        <span class="ico" id="theme_icon">🌙</span>
-        <span class="lbl" id="theme_text">Dark</span>
+      <button class="iconbtn" id="theme_toggle">
+        <span id="theme_icon"></span>
+        <span id="theme_text"></span>
       </button>
 
-      <button class="iconbtn" id="share_btn" type="button" aria-label="Share">
-        <span class="ico">📋</span>
-        <span class="lbl" data-i18n="share">Share</span>
+      <button class="iconbtn" id="share_btn">
+        <span>Share</span>
       </button>
 
-      <button class="iconbtn" id="card_btn" type="button" aria-label="Trade Card PNG">
-        <span class="ico">🖼️</span>
-        <span class="lbl" data-i18n="cardpng">Card PNG</span>
+      <button class="iconbtn" id="card_btn">
+        <span>Card</span>
       </button>
     </div>
   </header>
 
   <main>
-    
     <section id="main_calc" class="main-screen active">
-      <div class="subtabs" role="tablist" aria-label="Calculator tabs">
-        <button class="subtab active" data-tab="dca" data-i18n="tab.dca" type="button">DCA</button>
-        <button class="subtab" data-tab="rr" data-i18n="tab.rr" type="button">R/R</button>
-        <button class="subtab" data-tab="cap" data-i18n="tab.cap" type="button">Capital</button>
-        <button class="subtab" data-tab="ind" data-i18n="tab.ind" type="button">Indicators</button>
+      <div class="subtabs">
+        <button class="subtab active" data-tab="dca">DCA</button>
+        <button class="subtab" data-tab="rr">R/R</button>
+        <button class="subtab" data-tab="cap">Capital</button>
+        <button class="subtab" data-tab="ind">Indicators</button>
       </div>
 
       <div class="panels">
-        <!-- DCA -->
         <section id="dca" class="screen active">
           <div class="card">
-            <h3 data-i18n="dca.title">DCA Calculator</h3>
-            
-            <div class="small" style="margin-bottom:20px" data-i18n="dca.tip">
-              💡 Tip: Add multiple entries to calculate average price, total volume and cost.
+            <h3>DCA Calculator</h3>
+            <div class="small" style="margin-bottom:12px">
+              Add multiple entries to calculate average price, total volume and cost.
             </div>
 
             <div id="dca_rows"></div>
 
             <div class="controls">
-              <button class="btn" id="dca_add" type="button" data-i18n="dca.add">
-                <span class="ico">➕</span>
-                <span>Add entry</span>
-              </button>
-              <button class="btn ghost" id="dca_clear" type="button" data-i18n="common.clear">
-                <span class="ico">🗑️</span>
-                <span>Clear</span>
-              </button>
+              <button class="btn" id="dca_add">Add entry</button>
+              <button class="btn ghost" id="dca_clear">Clear</button>
             </div>
 
-            <div class="result success-highlight" style="margin-top:20px">
+            <div class="result">
               <div>
-                <div class="small" data-i18n="dca.avg">Average price</div>
+                <div class="small">Average price</div>
                 <div><span class="v" id="dca_avg">—</span></div>
               </div>
-              <button class="btn ghost" id="dca_copy" type="button" data-i18n="common.copy">
-                <span class="ico">📋</span>
-                <span>Copy</span>
-              </button>
+              <button class="btn ghost" id="dca_copy">Copy</button>
             </div>
 
-            <div class="row" style="margin-top:16px">
+            <div class="row">
               <div class="result">
                 <div>
-                  <div class="small" data-i18n="dca.vol">Total volume</div>
+                  <div class="small">Total volume</div>
                   <div><span class="v" id="dca_total_vol">—</span></div>
                 </div>
               </div>
               <div class="result">
                 <div>
-                  <div class="small" data-i18n="dca.cost">Total cost</div>
+                  <div class="small">Total cost</div>
                   <div><span class="v" id="dca_total_cost">—</span></div>
                 </div>
               </div>
             </div>
 
-            <!-- DCA GOAL -->
-            <div style="margin-top:24px;border-top:2px dashed var(--border);padding-top:24px">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px">
-                <b style="font-weight:900;background:var(--accent);-webkit-background-clip:text;background-clip:text;color:transparent" data-i18n="dca.goalHeader">🎯 DCA Goal</b>
-                <span class="small" data-i18n="dca.goalOptional">optional</span>
+            <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                <b style="color:var(--accent);font-weight:700">DCA Goal</b>
+                <span class="small">optional</span>
               </div>
 
               <div class="row">
                 <div class="field">
-                  <label data-i18n="dca.goalPrice">
-                    <span class="ico">🎯</span>
-                    <span>Target avg price</span>
-                  </label>
-                  <input id="dca_goal" type="number" step="any" inputmode="decimal" data-tooltip="Set your desired average price" />
+                  <label>Target avg price</label>
+                  <input id="dca_goal" type="number" step="any" />
                 </div>
                 <div class="field">
-                  <label data-i18n="dca.nextPrice">
-                    <span class="ico">➡️</span>
-                    <span>Next buy price</span>
-                  </label>
-                  <input id="dca_next_price" type="number" step="any" inputmode="decimal" data-tooltip="Price for your next purchase" />
+                  <label>Next buy price</label>
+                  <input id="dca_next_price" type="number" step="any" />
                 </div>
               </div>
 
-              <div class="result" style="margin-top:16px">
+              <div class="result">
                 <div>
-                  <div class="small" data-i18n="dca.need">Needed volume at next price</div>
+                  <div class="small">Needed volume at next price</div>
                   <div><span class="v" id="dca_need_vol">—</span></div>
                 </div>
-                <button class="btn ghost" id="dca_need_copy" type="button" data-i18n="common.copy">
-                  <span class="ico">📋</span>
-                  <span>Copy</span>
-                </button>
+                <button class="btn ghost" id="dca_need_copy">Copy</button>
               </div>
             </div>
           </div>
         </section>
 
-        <!-- R/R -->
         <section id="rr" class="screen">
           <div class="card">
-            <h3 data-i18n="rr.title">Risk/Reward Calculator</h3>
-            
+            <h3>Risk/Reward</h3>
             <div class="row">
               <div class="field">
-                <label data-i18n="rr.entry">
-                  <span class="ico">📍</span>
-                  <span>Entry</span>
-                </label>
-                <input id="rr_entry" type="number" step="any" inputmode="decimal" data-tooltip="Your entry price" />
+                <label>Entry</label>
+                <input id="rr_entry" type="number" step="any" />
               </div>
               <div class="field">
-                <label data-i18n="rr.sl">
-                  <span class="ico">📉</span>
-                  <span>Stop Loss</span>
-                </label>
-                <input id="rr_sl" type="number" step="any" inputmode="decimal" data-tooltip="Stop loss price" />
+                <label>Stop Loss</label>
+                <input id="rr_sl" type="number" step="any" />
               </div>
               <div class="field">
-                <label data-i18n="rr.tp">
-                  <span class="ico">📈</span>
-                  <span>Take Profit</span>
-                </label>
-                <input id="rr_tp" type="number" step="any" inputmode="decimal" data-tooltip="Take profit price" />
+                <label>Take Profit</label>
+                <input id="rr_tp" type="number" step="any" />
               </div>
             </div>
 
-            <div class="row">
-              <div class="field">
-                <label data-i18n="rr.fee">
-                  <span class="ico">💸</span>
-                  <span>Fee % (entry+exit)</span>
-                </label>
-                <input id="rr_fee" type="number" step="any" inputmode="decimal" value="0.2" data-tooltip="Total fees for entry and exit" />
-                <div class="small" data-i18n="rr.feeNote" style="margin-top:8px">
-                  Shows net R/R with approximate fees.
-                </div>
-              </div>
-            </div>
-
-            <div class="result" style="margin-top:20px">
-              <div>
-                <div class="small" data-i18n="rr.gross">Gross R/R</div>
-                <div><span class="v" id="rr_gross">—</span></div>
-              </div>
-              <button class="btn ghost" id="rr_copy_gross" type="button" data-i18n="common.copy">
-                <span class="ico">📋</span>
-                <span>Copy</span>
-              </button>
+            <div class="field">
+              <label>Fee % (entry+exit)</label>
+              <input id="rr_fee" type="number" step="any" value="0.2" />
             </div>
 
             <div class="result">
               <div>
-                <div class="small" data-i18n="rr.net">Net R/R (with fees)</div>
-                <div><span class="v" id="rr_net">—</span></div>
+                <div class="small">Gross R/R</div>
+                <div><span class="v" id="rr_gross">—</span></div>
               </div>
-              <button class="btn ghost" id="rr_copy_net" type="button" data-i18n="common.copy">
-                <span class="ico">📋</span>
-                <span>Copy</span>
-              </button>
+              <button class="btn ghost" id="rr_copy_gross">Copy</button>
             </div>
 
-            <!-- Risk Warning -->
-            <div id="rr_warning" class="risk-warning" style="display:none;margin-top:20px">
-              <div class="small">⚠️ Warning: Stop Loss equals Take Profit. Adjust your levels.</div>
+            <div class="result">
+              <div>
+                <div class="small">Net R/R (with fees)</div>
+                <div><span class="v" id="rr_net">—</span></div>
+              </div>
+              <button class="btn ghost" id="rr_copy_net">Copy</button>
             </div>
           </div>
         </section>
 
-        <!-- Capital -->
         <section id="cap" class="screen">
           <div class="card">
-            <h3 data-i18n="cap.title">Capital Management</h3>
-            
+            <h3>Capital Management</h3>
             <div class="row">
               <div class="field">
-                <label data-i18n="cap.dep">
-                  <span class="ico">💰</span>
-                  <span>Deposit</span>
-                </label>
-                <input id="cap_dep" type="number" step="any" inputmode="decimal" data-tooltip="Your total capital" />
+                <label>Deposit</label>
+                <input id="cap_dep" type="number" step="any" />
               </div>
               <div class="field">
-                <label data-i18n="cap.risk">
-                  <span class="ico">⚠️</span>
-                  <span>Risk %</span>
-                </label>
-                <input id="cap_risk" type="number" step="any" inputmode="decimal" value="1" data-tooltip="Risk per trade as percentage of deposit" />
+                <label>Risk %</label>
+                <input id="cap_risk" type="number" step="any" value="1" />
               </div>
               <div class="field">
-                <label data-i18n="cap.lev">
-                  <span class="ico">⚖️</span>
-                  <span>Leverage</span>
-                </label>
-                <input id="cap_lev" type="number" step="any" inputmode="decimal" value="1" data-tooltip="Leverage multiplier" />
+                <label>Leverage</label>
+                <input id="cap_lev" type="number" step="any" value="1" />
               </div>
             </div>
 
-            <div class="chips" aria-label="Risk presets">
-              <div class="small" style="width:100%" data-i18n="cap.presets">Quick Risk Presets</div>
-              <button class="chip" data-risk="0.5" type="button">0.5%</button>
-              <button class="chip active" data-risk="1" type="button">1%</button>
-              <button class="chip" data-risk="2" type="button">2%</button>
-              <button class="chip" data-risk="3" type="button">3%</button>
-              <button class="chip" data-risk="5" type="button">5%</button>
-            </div>
-
-            <!-- Risk Warning -->
-            <div id="cap_risk_warning" class="risk-warning" style="display:none;margin-top:16px">
-              <div class="small" id="cap_risk_warning_text"></div>
-            </div>
-
-            <!-- Scenario Presets -->
-            <div class="scenario-presets">
-              <div class="small" style="width:100%" data-i18n="cap.scenarios">Save Scenarios</div>
-              <button class="scenario-preset" data-preset="conservative" type="button">Conservative</button>
-              <button class="scenario-preset" data-preset="moderate" type="button">Moderate</button>
-              <button class="scenario-preset" data-preset="aggressive" type="button">Aggressive</button>
-            </div>
-
-            <div class="row" style="margin-top:20px">
-              <div class="field">
-                <label data-i18n="cap.entry">
-                  <span class="ico">📍</span>
-                  <span>Entry</span>
-                </label>
-                <input id="cap_entry" type="number" step="any" inputmode="decimal" data-tooltip="Entry price" />
-              </div>
-              <div class="field">
-                <label data-i18n="cap.sl">
-                  <span class="ico">📉</span>
-                  <span>Stop Loss</span>
-                </label>
-                <input id="cap_sl" type="number" step="any" inputmode="decimal" data-tooltip="Stop loss price" />
-              </div>
-              <div class="field">
-                <label data-i18n="cap.fee">
-                  <span class="ico">💸</span>
-                  <span>Fee % (entry+exit)</span>
-                </label>
-                <input id="cap_fee" type="number" step="any" inputmode="decimal" value="0.2" data-tooltip="Total fees" />
-              </div>
+            <div class="chips">
+              <button class="chip" data-risk="0.5">0.5%</button>
+              <button class="chip active" data-risk="1">1%</button>
+              <button class="chip" data-risk="2">2%</button>
+              <button class="chip" data-risk="3">3%</button>
             </div>
 
             <div class="row">
-              <div class="result" style="flex:1">
-                <div>
-                  <div class="small" data-i18n="cap.pos">Position size</div>
-                  <div><span class="v" id="cap_pos">—</span></div>
-                </div>
-                <button class="btn ghost" id="cap_copy_pos" type="button" data-i18n="common.copy">
-                  <span class="ico">📋</span>
-                  <span>Copy</span>
-                </button>
+              <div class="field">
+                <label>Entry</label>
+                <input id="cap_entry" type="number" step="any" />
               </div>
+              <div class="field">
+                <label>Stop Loss</label>
+                <input id="cap_sl" type="number" step="any" />
+              </div>
+              <div class="field">
+                <label>Fee % (entry+exit)</label>
+                <input id="cap_fee" type="number" step="any" value="0.2" />
+              </div>
+            </div>
+
+            <div class="result">
+              <div>
+                <div class="small">Position size</div>
+                <div><span class="v" id="cap_pos">—</span></div>
+              </div>
+              <button class="btn ghost" id="cap_copy_pos">Copy</button>
             </div>
 
             <div class="row">
               <div class="result">
                 <div>
-                  <div class="small" data-i18n="cap.riskUsd">Risk $</div>
+                  <div class="small">Risk $</div>
                   <div><span class="v" id="cap_risk_usd">—</span></div>
                 </div>
               </div>
               <div class="result">
                 <div>
-                  <div class="small" data-i18n="cap.margin">Margin (with leverage)</div>
+                  <div class="small">Margin (with leverage)</div>
                   <div><span class="v" id="cap_margin">—</span></div>
                 </div>
               </div>
@@ -1622,210 +850,124 @@
           </div>
         </section>
 
-        <!-- Indicators -->
         <section id="ind" class="screen">
           <div class="card">
-            <h3 data-i18n="ind.title">Market Indicators</h3>
+            <h3>Market Indicators</h3>
 
             <div class="row">
               <div class="field">
-                <label data-i18n="ind.fg.label">
-                  <span class="ico">😨</span>
-                  <span>Fear & Greed</span>
-                </label>
-                <div id="fg_value" class="result">
-                  <div>
-                    <div class="small" data-i18n="ind.fg.valueLabel">Current Value</div>
-                    <div><span class="v" id="fg_text">—</span></div>
-                  </div>
-                </div>
-              </div>
-              <div class="field">
-                <label data-i18n="ind.mood.label">
-                  <span class="ico">📊</span>
-                  <span>Market Mood</span>
-                </label>
+                <label>Fear & Greed Index</label>
                 <div class="result">
-                  <div>
-                    <div class="small" data-i18n="ind.mood.hint">Derived from F&G + Alt dominance</div>
-                    <div><span class="v" id="mood">—</span></div>
-                  </div>
+                  <div><span class="v" id="fg_text">—</span></div>
+                </div>
+              </div>
+              <div class="field">
+                <label>Market Mood</label>
+                <div class="result">
+                  <div><span class="v" id="mood">—</span></div>
                 </div>
               </div>
             </div>
 
             <div class="row">
               <div class="field">
-                <label data-i18n="ind.tcap.label">
-                  <span class="ico">🌎</span>
-                  <span>Total Market Cap</span>
-                </label>
-                <div id="tcap" class="result"><span class="v" id="tcap_text">—</span></div>
+                <label>Total Market Cap</label>
+                <div class="result"><span class="v" id="tcap_text">—</span></div>
               </div>
               <div class="field">
-                <label data-i18n="ind.alt.label">
-                  <span class="ico">📊</span>
-                  <span>Altcoin Dominance</span>
-                </label>
-                <div id="alt_dom" class="result"><span class="v" id="alt_text">—</span></div>
-              </div>
-            </div>
-
-            <!-- Threshold Controls -->
-            <div class="threshold-controls">
-              <div class="threshold">
-                <label class="small">Fear & Greed Thresholds</label>
-                <div class="threshold-range">
-                  <input type="range" min="0" max="100" value="30" id="fg_low" style="flex:1">
-                  <div class="threshold-color" style="background:#ef4444"></div>
-                  <span class="small" id="fg_low_val">30</span>
-                </div>
-                <div class="threshold-range">
-                  <input type="range" min="0" max="100" value="70" id="fg_high" style="flex:1">
-                  <div class="threshold-color" style="background:#22c55e"></div>
-                  <span class="small" id="fg_high_val">70</span>
-                </div>
+                <label>Altcoin Dominance</label>
+                <div class="result"><span class="v" id="alt_text">—</span></div>
               </div>
             </div>
 
             <div class="controls">
-              <button class="btn" id="refresh_ind" type="button" data-i18n="ind.refresh">
-                <span class="ico">🔄</span>
-                <span>Refresh Data</span>
-              </button>
+              <button class="btn" id="refresh_ind">Refresh Data</button>
               <span class="small" id="ind_note"></span>
             </div>
 
             <div class="vizgrid">
               <div class="viz">
-                <h5 data-i18n="ind.viz.fg">Fear & Greed Gauge</h5>
-                <canvas id="fg_canvas" width="600" height="260"></canvas>
-                <div class="big" id="fg_big">—</div>
-                <div class="sub" id="fg_sub">—</div>
+                <h5>Fear & Greed Gauge</h5>
+                <canvas id="fg_canvas" width="600" height="120"></canvas>
+                <div style="margin-top:8px;font-weight:700;font-size:18px" id="fg_big">—</div>
+                <div class="small" id="fg_sub">—</div>
               </div>
               <div class="viz">
-                <h5 data-i18n="ind.viz.dom">Dominance Split</h5>
-                <canvas id="dom_canvas" width="600" height="260"></canvas>
-                <div class="big" id="dom_big">—</div>
-                <div class="sub" id="dom_sub">—</div>
+                <h5>Dominance Split</h5>
+                <canvas id="dom_canvas" width="600" height="120"></canvas>
+                <div style="margin-top:8px;font-weight:700;font-size:18px" id="dom_big">—</div>
+                <div class="small" id="dom_sub">—</div>
               </div>
             </div>
           </div>
         </section>
 
-        <!-- History -->
-        <aside class="history">
-          <h4 data-i18n="hist.title">Calculation History</h4>
+        <div class="history">
+          <h4>History</h4>
           <div class="history-list" id="history_list"></div>
           <div class="controls">
-            <button class="btn ghost" id="clear_history" type="button" data-i18n="hist.clear">
-              <span class="ico">🗑️</span>
-              <span>Clear History</span>
-            </button>
+            <button class="btn ghost" id="clear_history">Clear History</button>
           </div>
-          <div class="note" data-i18n="hist.note">Saved locally in your browser. Data persists between sessions.</div>
-        </aside>
+          <div class="small">Saved locally in your browser</div>
+        </div>
       </div>
     </section>
 
-    
     <section id="main_support" class="main-screen">
       <div class="support-wrap">
-        <div class="card" style="width:min(900px,100%)">
-          <h3 data-i18n="support.title">Support & Connection</h3>
-
-          <div class="small" data-i18n="support.desc" style="margin-bottom:20px">
-            🔗 Connect your wallet for tips and donations. Get support through our channels.
+        <div class="card" style="max-width:600px">
+          <h3>Support</h3>
+          <div class="small" style="margin-bottom:16px">
+            Connect your wallet for tips and donations. Contact us through the links below.
           </div>
 
           <div class="controls">
-            <button class="btn" id="wallet_btn" type="button" aria-label="TON Wallet">
-              <span class="ico">👛</span>
-              <span data-i18n="wallet">Connect Wallet</span>
-            </button>
-
-            <button class="btn" id="tip_btn" type="button" aria-label="Tip TON">
-              <span class="ico">💝</span>
-              <span data-i18n="tip">Tip 0.05 TON</span>
-            </button>
-          </div>
-
-          <div class="small" style="margin-top:20px" data-i18n="support.docs">
-            📄 Terms & Privacy are available at /terms.html and /privacy.html
+            <button class="btn" id="wallet_btn">Connect Wallet</button>
+            <button class="btn" id="tip_btn">Tip 0.05 TON</button>
           </div>
 
           <div class="controls" style="margin-top:20px">
-            <button class="btn ghost" id="open_terms" type="button">
-              <span class="ico">📜</span>
-              <span>Terms of Service</span>
-            </button>
-            <button class="btn ghost" id="open_privacy" type="button">
-              <span class="ico">🔒</span>
-              <span>Privacy Policy</span>
-            </button>
-            <button class="btn ghost" id="open_support" type="button">
-              <span class="ico">💬</span>
-              <span>Contact Support</span>
-            </button>
+            <button class="btn ghost" id="open_terms">Terms</button>
+            <button class="btn ghost" id="open_privacy">Privacy</button>
+            <button class="btn ghost" id="open_support">Contact</button>
           </div>
         </div>
 
         <div style="text-align:center">
-          <div class="support-tags">AIRDROP • NEWS • TRADING SIGNALS</div>
+          <div style="color:var(--accent);font-weight:700;margin-bottom:12px">AIRDROP • NEWS • TRADING SIGNALS</div>
           <div class="support-links">
-            <a id="link_telegram" class="rainbow" href="https://t.me/ChalovCrypto" target="_blank" rel="noopener">
-              <span class="ico">✈️</span>
-              <span>TELEGRAM CHANNEL</span>
-            </a>
-            <a id="link_youtube" class="rainbow" href="https://www.youtube.com/@ChalovCrypto" target="_blank" rel="noopener">
-              <span class="ico">▶️</span>
-              <span>YOUTUBE</span>
-            </a>
+            <a id="link_telegram" href="https://t.me/ChalovCrypto" target="_blank">TELEGRAM</a>
+            <a id="link_youtube" href="https://www.youtube.com/@ChalovCrypto" target="_blank">YOUTUBE</a>
           </div>
         </div>
       </div>
     </section>
   </main>
 
-  
-  <nav class="bottomnav" aria-label="Main tabs">
+  <nav class="bottomnav">
     <div class="bar">
-      <button id="main_tab_calc" class="main-tab active" type="button">
-        <span class="ico">🧮</span>
-        <span data-i18n="main.calc">Calculator</span>
-      </button>
-      <button id="main_tab_support" class="main-tab" type="button">
-        <span class="ico">🛟</span>
-        <span data-i18n="main.support">Support</span>
-      </button>
+      <button id="main_tab_calc" class="main-tab active">Calculator</button>
+      <button id="main_tab_support" class="main-tab">Support</button>
     </div>
   </nav>
 </div>
 
 <div id="toast">—</div>
 
-<div id="modal_backdrop" role="dialog" aria-modal="true">
+<div id="modal_backdrop">
   <div id="modal">
     <div id="modal_header">
-      <b data-i18n="card.title">📊 Trade Card Generator</b>
-      <button id="modal_close" type="button">✕</button>
+      <b>Trade Card</b>
+      <button id="modal_close">×</button>
     </div>
     <div id="modal_body">
       <div id="modal_canvas_wrap">
-        <canvas id="card_canvas" width="900" height="600"></canvas>
+        <canvas id="card_canvas" width="600" height="200"></canvas>
       </div>
       <div id="modal_right">
-        <button class="btn" id="card_download" type="button" data-i18n="card.download">
-          <span class="ico">💾</span>
-          <span>Download PNG</span>
-        </button>
-        <button class="btn ghost" id="card_copy" type="button" data-i18n="card.copy">
-          <span class="ico">📋</span>
-          <span>Copy to Clipboard</span>
-        </button>
-        <div id="modal_help" data-i18n="card.help">
-          📱 If copy doesn't work on your device, use Download PNG.
-        </div>
+        <button class="btn" id="card_download">Download PNG</button>
+        <button class="btn ghost" id="card_copy">Copy</button>
+        <div id="modal_help">If copy doesn't work, use Download PNG</div>
       </div>
     </div>
   </div>
@@ -1835,255 +977,201 @@
 (function(){
   'use strict';
 
-  // Telegram Web App initialization
   const tg = window.Telegram?.WebApp || null;
-  try{ 
-    tg?.expand?.();
-    tg?.disableVerticalSwipes?.();
-    tg?.ready?.();
-    if (window.trackEvent) {
-      window.trackEvent('telegram_app_launch');
-    }
-  } catch(e) { console.log('Telegram Web App not available'); }
-
-  // Log events for analytics
-  function logEvent(eventName, params = {}) {
-    try {
-      if (window.trackEvent) {
-        window.trackEvent(eventName, params);
-      }
-      console.log('Event:', eventName, params);
-    } catch (e) {
-      console.error('Analytics error:', e);
-    }
+  if (tg) {
+    tg.expand();
+    tg.ready();
   }
 
-  // Main tab switching
   const mainCalc = document.getElementById('main_calc');
   const mainSupport = document.getElementById('main_support');
   const mainBtnCalc = document.getElementById('main_tab_calc');
   const mainBtnSupport = document.getElementById('main_tab_support');
 
   function setMainTab(which){
-    const isCalc = which === 'calc';
-    mainCalc.classList.toggle('active', isCalc);
-    mainSupport.classList.toggle('active', !isCalc);
-    
-    mainBtnCalc.classList.toggle('active', isCalc);
-    mainBtnSupport.classList.toggle('active', !isCalc);
-    
-    logEvent('switch_main_tab', { tab: which });
-    
-    setTimeout(()=>{ 
-      try{ 
-        drawAllIndicatorVisuals(lastIndicators); 
-        if (which === 'ind' && (!lastIndicators || Date.now() - (lastIndicators.timestamp || 0) > 300000)) {
-          fetchIndicators();
-        }
-      } catch(e){} 
-    }, 100);
+    mainCalc.classList.toggle('active', which === 'calc');
+    mainSupport.classList.toggle('active', which === 'support');
+    mainBtnCalc.classList.toggle('active', which === 'calc');
+    mainBtnSupport.classList.toggle('active', which === 'support');
   }
   
-  mainBtnCalc?.addEventListener('click', ()=>{
-    setMainTab('calc');
-    logEvent('click_calc_tab');
-  });
-  mainBtnSupport?.addEventListener('click', ()=>{
-    setMainTab('support');
-    logEvent('click_support_tab');
-  });
+  mainBtnCalc.addEventListener('click', () => setMainTab('calc'));
+  mainBtnSupport.addEventListener('click', () => setMainTab('support'));
 
-  // Analytics logging for all interactions
-  document.addEventListener('DOMContentLoaded', () => {
-    logEvent('page_view', { path: window.location.pathname });
-  });
-
-  // Locales
   const locales = {
     ru: {
-      "main.calc": "Калькулятор",
-      "main.support": "Поддержка",
-      "support.title": "Поддержка / Кошелёк",
-      "support.desc": "Подключите кошелёк для донатов. Контакты и ссылки ниже.",
-      "support.docs": "Документы: Terms и Privacy доступны по /terms.html и /privacy.html",
-      "tab.dca": "DCA", "tab.rr": "R/R", "tab.cap": "Капитал", "tab.ind": "Индикаторы",
-      "share": "Поделиться", "cardpng": "Карточка PNG", "wallet": "Кошелёк", "tip": "Донат TON",
-      "wallet.disconnectQ": "Отключить кошелёк?",
-      "toast.walletNeed": "Сначала подключите кошелёк",
-      "toast.sent": "Транзакция отправлена",
-      "toast.fail": "Ошибка",
-      "toast.tonManifest": "Укажите manifest URL",
-      "common.clear": "Очистить", "common.copy": "Копировать",
-      "toast.copied": "Скопировано!", "toast.saved": "Готово",
-      "theme.dark": "Тёмная", "theme.light": "Светлая",
-      "dca.title": "DCA Калькулятор",
-      "dca.tip": "💡 Совет: Добавьте несколько входов для расчёта средней цены, общего объёма и стоимости.",
-      "dca.add": "+ Добавить вход", "dca.avg": "Средняя цена", "dca.vol": "Общий объём", "dca.cost": "Общая стоимость",
-      "dca.goalHeader": "🎯 Цель DCA", "dca.goalOptional": "опционально",
-      "dca.goalTitle": "Целевая средняя цена", "dca.goalPrice": "Целевая цена", "dca.nextPrice": "Следующая цена покупки", "dca.need": "Нужный объём по следующей цене",
-      "rr.title": "Калькулятор Риск/Доход",
-      "rr.entry": "Вход", "rr.sl": "Стоп Лосс", "rr.tp": "Тейк Профит",
-      "rr.fee": "Комиссия % (вход+выход)", "rr.feeNote": "Показывает чистый R/R с учётом комиссий.",
-      "rr.gross": "Брутто R/R", "rr.net": "Нетто R/R (с комиссиями)",
-      "cap.title": "Управление Капиталом",
-      "cap.dep": "Депозит", "cap.risk": "Риск %", "cap.entry": "Вход", "cap.sl": "Стоп Лосс",
-      "cap.fee": "Комиссия % (вход+выход)", "cap.lev": "Плечо", "cap.presets": "Быстрые риски",
-      "cap.scenarios": "Сценарии",
-      "cap.pos": "Размер позиции", "cap.riskUsd": "Риск $", "cap.margin": "Маржа (с плечом)",
-      "ind.title": "Рыночные Индикаторы",
-      "ind.fg.label": "Индекс страха и жадности", "ind.fg.valueLabel": "Текущее значение",
-      "ind.tcap.label": "Общая капитализация",
-      "ind.alt.label": "Доля альткоинов",
-      "ind.mood.label": "Настроение рынка",
-      "ind.mood.hint": "Рассчитано на основе F&G + доли альткоинов",
-      "ind.refresh": "Обновить данные",
-      "ind.loading": "Обновляем...",
-      "ind.cached": "Показаны кэшированные данные",
-      "ind.rate": "Лимит API/ошибка — попробуйте позже",
-      "ind.viz.fg": "Индикатор F&G",
-      "ind.viz.dom": "Распределение доли",
-      "hist.title": "История расчётов", "hist.clear": "Очистить историю", "hist.note": "Сохранено локально в браузере",
-      "card.title": "Генератор торговой карточки",
-      "card.download": "Скачать PNG",
-      "card.copy": "Копировать в буфер",
-      "card.help": "📱 Если копирование не работает, используйте Скачать PNG."
+      "Calculator": "Калькулятор",
+      "Support": "Поддержка",
+      "DCA Calculator": "DCA Калькулятор",
+      "Add multiple entries to calculate average price, total volume and cost.": "Добавьте несколько входов для расчёта средней цены, общего объёма и стоимости.",
+      "Add entry": "Добавить вход",
+      "Clear": "Очистить",
+      "Average price": "Средняя цена",
+      "Copy": "Копировать",
+      "Total volume": "Общий объём",
+      "Total cost": "Общая стоимость",
+      "DCA Goal": "Цель DCA",
+      "optional": "опционально",
+      "Target avg price": "Целевая цена",
+      "Next buy price": "Следующая цена покупки",
+      "Needed volume at next price": "Нужный объём по следующей цене",
+      "Risk/Reward": "Риск/Доход",
+      "Entry": "Вход",
+      "Stop Loss": "Стоп Лосс",
+      "Take Profit": "Тейк Профит",
+      "Fee % (entry+exit)": "Комиссия % (вход+выход)",
+      "Gross R/R": "Брутто R/R",
+      "Net R/R (with fees)": "Нетто R/R (с комиссиями)",
+      "Capital Management": "Управление Капиталом",
+      "Deposit": "Депозит",
+      "Risk %": "Риск %",
+      "Leverage": "Плечо",
+      "Position size": "Размер позиции",
+      "Risk $": "Риск $",
+      "Margin (with leverage)": "Маржа (с плечом)",
+      "Market Indicators": "Рыночные Индикаторы",
+      "Fear & Greed Index": "Индекс страха и жадности",
+      "Market Mood": "Настроение рынка",
+      "Total Market Cap": "Общая капитализация",
+      "Altcoin Dominance": "Доля альткоинов",
+      "Refresh Data": "Обновить данные",
+      "Fear & Greed Gauge": "Индикатор F&G",
+      "Dominance Split": "Распределение доли",
+      "History": "История",
+      "Saved locally in your browser": "Сохранено локально в браузере",
+      "Connect your wallet for tips and donations. Contact us through the links below.": "Подключите кошелёк для донатов. Контакты и ссылки ниже.",
+      "Connect Wallet": "Подключить кошелёк",
+      "Tip 0.05 TON": "Донат 0.05 TON",
+      "Terms": "Условия",
+      "Privacy": "Конфиденциальность",
+      "Contact": "Контакты",
+      "Share": "Поделиться",
+      "Card": "Карточка",
+      "Copied!": "Скопировано!",
+      "Dark": "Тёмная",
+      "Light": "Светлая"
     },
     en: {
-      "main.calc": "Calculator",
-      "main.support": "Support",
-      "support.title": "Support & Wallet",
-      "support.desc": "Connect your wallet for tips and donations. Contact us below.",
-      "support.docs": "Docs: Terms & Privacy at /terms.html and /privacy.html",
-      "tab.dca": "DCA", "tab.rr": "R/R", "tab.cap": "Capital", "tab.ind": "Indicators",
-      "share": "Share", "cardpng": "Card PNG", "wallet": "Wallet", "tip": "Tip TON",
-      "wallet.disconnectQ": "Disconnect wallet?",
-      "toast.walletNeed": "Connect wallet first",
-      "toast.sent": "Transaction sent",
-      "toast.fail": "Error",
-      "toast.tonManifest": "Set manifest URL",
-      "common.clear": "Clear", "common.copy": "Copy",
-      "toast.copied": "Copied!", "toast.saved": "Done",
-      "theme.dark": "Dark", "theme.light": "Light",
-      "dca.title": "DCA Calculator",
-      "dca.tip": "💡 Tip: Add multiple entries to calculate average price, total volume and cost.",
-      "dca.add": "+ Add entry", "dca.avg": "Average price", "dca.vol": "Total volume", "dca.cost": "Total cost",
-      "dca.goalHeader": "🎯 DCA Goal", "dca.goalOptional": "optional",
-      "dca.goalTitle": "Target average price", "dca.goalPrice": "Target price", "dca.nextPrice": "Next buy price", "dca.need": "Needed volume at next price",
-      "rr.title": "Risk/Reward Calculator",
-      "rr.entry": "Entry", "rr.sl": "Stop Loss", "rr.tp": "Take Profit",
-      "rr.fee": "Fee % (entry+exit)", "rr.feeNote": "Shows net R/R with approximate fees.",
-      "rr.gross": "Gross R/R", "rr.net": "Net R/R (with fees)",
-      "cap.title": "Capital Management",
-      "cap.dep": "Deposit", "cap.risk": "Risk %", "cap.entry": "Entry", "cap.sl": "Stop Loss",
-      "cap.fee": "Fee % (entry+exit)", "cap.lev": "Leverage", "cap.presets": "Quick risks",
-      "cap.scenarios": "Save Scenarios",
-      "cap.pos": "Position size", "cap.riskUsd": "Risk $", "cap.margin": "Margin (with leverage)",
-      "ind.title": "Market Indicators",
-      "ind.fg.label": "Fear & Greed Index", "ind.fg.valueLabel": "Current Value",
-      "ind.tcap.label": "Total Market Cap",
-      "ind.alt.label": "Altcoin Dominance",
-      "ind.mood.label": "Market Mood",
-      "ind.mood.hint": "Derived from F&G + Alt dominance",
-      "ind.refresh": "Refresh Data",
-      "ind.loading": "Refreshing...",
-      "ind.cached": "Showing cached data",
-      "ind.rate": "API limit/error — try later",
-      "ind.viz.fg": "F&G Gauge",
-      "ind.viz.dom": "Dominance Split",
-      "hist.title": "Calculation History", "hist.clear": "Clear History", "hist.note": "Saved locally in your browser",
-      "card.title": "Trade Card Generator",
-      "card.download": "Download PNG",
-      "card.copy": "Copy to Clipboard",
-      "card.help": "📱 If copy doesn't work, use Download PNG."
+      "Calculator": "Calculator",
+      "Support": "Support",
+      "DCA Calculator": "DCA Calculator",
+      "Add multiple entries to calculate average price, total volume and cost.": "Add multiple entries to calculate average price, total volume and cost.",
+      "Add entry": "Add entry",
+      "Clear": "Clear",
+      "Average price": "Average price",
+      "Copy": "Copy",
+      "Total volume": "Total volume",
+      "Total cost": "Total cost",
+      "DCA Goal": "DCA Goal",
+      "optional": "optional",
+      "Target avg price": "Target avg price",
+      "Next buy price": "Next buy price",
+      "Needed volume at next price": "Needed volume at next price",
+      "Risk/Reward": "Risk/Reward",
+      "Entry": "Entry",
+      "Stop Loss": "Stop Loss",
+      "Take Profit": "Take Profit",
+      "Fee % (entry+exit)": "Fee % (entry+exit)",
+      "Gross R/R": "Gross R/R",
+      "Net R/R (with fees)": "Net R/R (with fees)",
+      "Capital Management": "Capital Management",
+      "Deposit": "Deposit",
+      "Risk %": "Risk %",
+      "Leverage": "Leverage",
+      "Position size": "Position size",
+      "Risk $": "Risk $",
+      "Margin (with leverage)": "Margin (with leverage)",
+      "Market Indicators": "Market Indicators",
+      "Fear & Greed Index": "Fear & Greed Index",
+      "Market Mood": "Market Mood",
+      "Total Market Cap": "Total Market Cap",
+      "Altcoin Dominance": "Altcoin Dominance",
+      "Refresh Data": "Refresh Data",
+      "Fear & Greed Gauge": "Fear & Greed Gauge",
+      "Dominance Split": "Dominance Split",
+      "History": "History",
+      "Saved locally in your browser": "Saved locally in your browser",
+      "Connect your wallet for tips and donations. Contact us through the links below.": "Connect your wallet for tips and donations. Contact us through the links below.",
+      "Connect Wallet": "Connect Wallet",
+      "Tip 0.05 TON": "Tip 0.05 TON",
+      "Terms": "Terms",
+      "Privacy": "Privacy",
+      "Contact": "Contact",
+      "Share": "Share",
+      "Card": "Card",
+      "Copied!": "Copied!",
+      "Dark": "Dark",
+      "Light": "Light"
     }
   };
 
   let lang = 'en';
   try {
     const tgl = tg?.initDataUnsafe?.user?.language_code;
-    if (tgl) lang = /^ru|uk|be/i.test(tgl) ? 'ru' : 'en';
-    logEvent('language_detected', { language: lang });
-  } catch(e) { lang = 'en'; }
+    if (tgl && tgl.startsWith('ru')) lang = 'ru';
+  } catch(e) {}
 
-  function t(key) { 
-    return (locales[lang] && locales[lang][key] !== undefined) ? locales[lang][key] : key; 
+  function t(key) {
+    const locale = locales[lang] || locales.en;
+    return locale[key] || key;
   }
 
   function translateAll() {
     document.querySelectorAll('[data-i18n]').forEach(el => {
-      const k = el.getAttribute('data-i18n');
-      if (locales[lang] && locales[lang][k] !== undefined) {
-        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-          el.placeholder = locales[lang][k];
-        } else {
-          el.textContent = locales[lang][k];
-        }
+      const key = el.getAttribute('data-i18n');
+      const translation = t(key);
+      if (el.tagName === 'INPUT') {
+        el.placeholder = translation;
+      } else {
+        el.textContent = translation;
       }
     });
-    updateThemeUI();
+    
+    const elements = document.querySelectorAll('button, label, div, span, h3, h4, h5');
+    elements.forEach(el => {
+      if (el.textContent in locales.en) {
+        el.textContent = t(el.textContent);
+      }
+    });
+    
+    document.getElementById('share_btn').textContent = t('Share');
+    document.getElementById('card_btn').textContent = t('Card');
+    document.getElementById('theme_text').textContent = document.documentElement.getAttribute('data-theme') === 'light' ? t('Light') : t('Dark');
   }
 
-  // Toast system
   let toastTimer = null;
-  function showToast(msg, type = 'info') {
+  function showToast(msg) {
     const el = document.getElementById('toast');
-    if (!el) return;
     el.textContent = msg;
-    el.style.background = type === 'error' ? 'var(--danger)' : 
-                         type === 'success' ? 'var(--success)' : 'var(--panel)';
     el.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
-    logEvent('toast_shown', { message: msg, type: type });
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
   }
 
-  // Theme system
-  const THEME_KEY = 'tc_theme_v12';
+  const THEME_KEY = 'tc_theme';
   function getInitialTheme() {
     const saved = localStorage.getItem(THEME_KEY);
     if (saved === 'dark' || saved === 'light') return saved;
     const tgScheme = (tg?.colorScheme || '').toLowerCase();
-    if (tgScheme === 'light') return 'light';
-    return 'dark';
+    return tgScheme === 'light' ? 'light' : 'dark';
   }
 
   function setTheme(theme) {
-    if (theme !== 'dark' && theme !== 'light') theme = 'dark';
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem(THEME_KEY, theme);
-    updateThemeUI();
-    drawAllIndicatorVisuals(lastIndicators);
-    logEvent('theme_changed', { theme: theme });
-  }
-
-  function updateThemeUI() {
-    const theme = document.documentElement.getAttribute('data-theme') || 'dark';
-    const icon = document.getElementById('theme_icon');
-    const text = document.getElementById('theme_text');
-    const btn = document.getElementById('theme_toggle');
-    if (!icon || !text || !btn) return;
-
-    if (theme === 'light') {
-      icon.textContent = '☀️';
-      text.textContent = t('theme.light');
-      btn.classList.add('active');
-    } else {
-      icon.textContent = '🌙';
-      text.textContent = t('theme.dark');
-      btn.classList.remove('active');
-    }
+    document.getElementById('theme_icon').textContent = theme === 'light' ? '☀️' : '🌙';
+    document.getElementById('theme_text').textContent = t(theme === 'light' ? 'Light' : 'Dark');
   }
 
   setTheme(getInitialTheme());
-  document.getElementById('theme_toggle')?.addEventListener('click', () => {
-    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  document.getElementById('theme_toggle').addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
     setTheme(current === 'dark' ? 'light' : 'dark');
   });
 
-  // Utility functions
-  function safeNum(v) { 
-    const x = parseFloat(v); 
-    return isFinite(x) ? x : 0; 
+  function safeNum(v) {
+    const x = parseFloat(v);
+    return isFinite(x) ? x : 0;
   }
 
   function fmt(v, digits = 8) {
@@ -2091,71 +1179,41 @@
     const n = Number(v);
     const abs = Math.abs(n);
     const d = abs >= 1000 ? 2 : (abs >= 1 ? 6 : digits);
-    return n.toLocaleString(undefined, { maximumFractionDigits: d });
+    return n.toLocaleString(undefined, {maximumFractionDigits: d});
   }
 
-  function haptic(type = 'impact', style = 'light') {
-    try {
-      if (!tg?.HapticFeedback) return;
-      if (type === 'impact') tg.HapticFeedback.impactOccurred(style);
-      if (type === 'notify') tg.HapticFeedback.notificationOccurred(style);
-      if (type === 'success') tg.HapticFeedback.notificationOccurred('success');
-      if (type === 'warning') tg.HapticFeedback.notificationOccurred('warning');
-      if (type === 'error') tg.HapticFeedback.notificationOccurred('error');
-    } catch(e) {}
-  }
-
-  // Language switching
   const btnRu = document.getElementById('btn_ru');
   const btnEn = document.getElementById('btn_en');
   
   function syncLangButtons() {
-    if (!btnRu || !btnEn) return;
-    if (lang === 'ru') {
-      btnRu.classList.add('active');
-      btnEn.classList.remove('active');
-    } else {
-      btnEn.classList.add('active');
-      btnRu.classList.remove('active');
-    }
+    btnRu.classList.toggle('active', lang === 'ru');
+    btnEn.classList.toggle('active', lang === 'en');
   }
   
   syncLangButtons();
   
-  btnRu?.addEventListener('click', () => { 
-    lang = 'ru'; 
-    syncLangButtons(); 
-    translateAll(); 
-    renderHistory(); 
-    refreshAll(); 
-    updateWalletUI();
-    logEvent('language_changed', { language: 'ru' });
+  btnRu.addEventListener('click', () => {
+    lang = 'ru';
+    syncLangButtons();
+    translateAll();
+    renderHistory();
   });
   
-  btnEn?.addEventListener('click', () => { 
-    lang = 'en'; 
-    syncLangButtons(); 
-    translateAll(); 
-    renderHistory(); 
-    refreshAll(); 
-    updateWalletUI();
-    logEvent('language_changed', { language: 'en' });
+  btnEn.addEventListener('click', () => {
+    lang = 'en';
+    syncLangButtons();
+    translateAll();
+    renderHistory();
   });
 
-  // Tab switching
   document.querySelectorAll('.subtab').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.subtab').forEach(tn => tn.classList.remove('active'));
+      document.querySelectorAll('.subtab').forEach(t => t.classList.remove('active'));
       btn.classList.add('active');
       const target = btn.dataset.tab;
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(target)?.classList.add('active');
-      
-      logEvent('switch_sub_tab', { tab: target });
-      
-      if (target === 'ind' && document.getElementById('tcap')?.textContent?.trim() === '—') {
-        fetchIndicators();
-      }
+      document.getElementById(target).classList.add('active');
+      if (target === 'ind' && !lastIndicators) fetchIndicators();
     });
   });
 
@@ -2164,7 +1222,6 @@
     return act?.dataset?.tab || 'dca';
   }
 
-  // DCA Calculator
   const dcaRowsEl = document.getElementById('dca_rows');
   const dcaAvgEl = document.getElementById('dca_avg');
   const dcaTotalVolEl = document.getElementById('dca_total_vol');
@@ -2176,21 +1233,19 @@
   let dcaRows = [];
   
   function addDcaRow(p = 0, v = 0) {
-    const rowId = String(Math.random()).slice(2);
+    const rowId = Date.now() + Math.random();
     const wrap = document.createElement('div');
-    wrap.className = 'row dca-row';
-    wrap.style.marginBottom = '12px';
+    wrap.className = 'row';
+    wrap.style.marginBottom = '8px';
     wrap.innerHTML = `
-      <div class="field" style="flex:1;margin:0">
-        <label>${lang === 'ru' ? 'Цена' : 'Price'}</label>
-        <input type="number" step="any" inputmode="decimal" value="${p || ''}" placeholder="0.00">
+      <div class="field" style="flex:2">
+        <input type="number" step="any" placeholder="${lang === 'ru' ? 'Цена' : 'Price'}" value="${p || ''}">
       </div>
-      <div class="field" style="flex:1;margin:0">
-        <label>${lang === 'ru' ? 'Объём' : 'Volume'}</label>
-        <input type="number" step="any" inputmode="decimal" value="${v || ''}" placeholder="0.00">
+      <div class="field" style="flex:2">
+        <input type="number" step="any" placeholder="${lang === 'ru' ? 'Объём' : 'Volume'}" value="${v || ''}">
       </div>
-      <div style="display:flex;align-items:flex-end">
-        <button class="btn ghost" type="button" aria-label="remove" style="padding:10px 14px">×</button>
+      <div class="field" style="flex:1">
+        <button class="btn ghost" type="button" style="width:100%">×</button>
       </div>
     `;
     
@@ -2199,30 +1254,18 @@
     const item = { id: rowId, el: wrap, pEl: inputs[0], vEl: inputs[1] };
     
     inputs.forEach(inp => inp.addEventListener('input', () => {
-      inp.classList.remove('error', 'success');
-      if (parseFloat(inp.value) > 0) {
-        inp.classList.add('success');
-      }
       calcDCA();
-      pushHistoryIfReady();
-      logEvent('dca_input_changed', { field: inp.parentElement.querySelector('label').textContent });
     }));
     
     btnRemove.addEventListener('click', () => {
       dcaRows = dcaRows.filter(r => r.id !== rowId);
       wrap.remove();
       calcDCA();
-      pushHistoryIfReady();
-      logEvent('dca_row_removed');
     });
     
     dcaRows.push(item);
     dcaRowsEl.appendChild(wrap);
     calcDCA();
-    
-    if (p > 0 || v > 0) {
-      logEvent('dca_row_added', { price: p, volume: v });
-    }
   }
 
   function clearDCA() {
@@ -2233,7 +1276,6 @@
     dcaGoal.value = '';
     dcaNext.value = '';
     calcDCA();
-    logEvent('dca_cleared');
   }
 
   function calcDCA() {
@@ -2275,112 +1317,44 @@
     return { avg, totalVol, totalCost };
   }
 
-  document.getElementById('dca_add')?.addEventListener('click', () => {
-    addDcaRow();
-    logEvent('dca_row_added_click');
-  });
-  
-  document.getElementById('dca_clear')?.addEventListener('click', () => {
-    clearDCA();
-    logEvent('dca_clear_click');
-  });
-  
-  dcaGoal?.addEventListener('input', () => {
-    dcaGoal.classList.remove('error', 'success');
-    if (parseFloat(dcaGoal.value) > 0) dcaGoal.classList.add('success');
-    calcDCA();
-    pushHistoryIfReady();
-    logEvent('dca_goal_changed');
-  });
-  
-  dcaNext?.addEventListener('input', () => {
-    dcaNext.classList.remove('error', 'success');
-    if (parseFloat(dcaNext.value) > 0) dcaNext.classList.add('success');
-    calcDCA();
-    pushHistoryIfReady();
-    logEvent('dca_next_price_changed');
-  });
+  document.getElementById('dca_add').addEventListener('click', () => addDcaRow());
+  document.getElementById('dca_clear').addEventListener('click', clearDCA);
+  dcaGoal.addEventListener('input', calcDCA);
+  dcaNext.addEventListener('input', calcDCA);
 
-  // Copy functionality
   async function copyText(text) {
     if (!text || text === '—') return false;
     try {
       await navigator.clipboard.writeText(String(text));
       return true;
     } catch (e) {
-      try {
-        const ta = document.createElement('textarea');
-        ta.value = String(text);
-        ta.style.position = 'fixed';
-        ta.style.top = '-1000px';
-        document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
-        const ok = document.execCommand('copy');
-        ta.remove();
-        return !!ok;
-      } catch (e2) {
-        return false;
-      }
+      return false;
     }
   }
 
-  function bindCopy(btn, getVal, eventName) {
-    if (!btn) return;
+  function bindCopy(btn, getVal) {
     btn.addEventListener('click', async () => {
       const val = getVal();
       const ok = await copyText(val);
-      if (ok) {
-        showToast(t('toast.copied'), 'success');
-        haptic('success');
-        logEvent(eventName, { value: val });
-      } else {
-        showToast('Copy failed', 'error');
-      }
+      if (ok) showToast(t('Copied!'));
     });
   }
 
-  bindCopy(document.getElementById('dca_copy'), () => dcaAvgEl.textContent, 'copy_dca_avg');
-  bindCopy(document.getElementById('dca_need_copy'), () => dcaNeedVol.textContent, 'copy_dca_need_vol');
+  bindCopy(document.getElementById('dca_copy'), () => dcaAvgEl.textContent);
+  bindCopy(document.getElementById('dca_need_copy'), () => dcaNeedVol.textContent);
 
-  // R/R Calculator
   const rrEntry = document.getElementById('rr_entry');
   const rrSl = document.getElementById('rr_sl');
   const rrTp = document.getElementById('rr_tp');
   const rrFee = document.getElementById('rr_fee');
   const rrGross = document.getElementById('rr_gross');
   const rrNet = document.getElementById('rr_net');
-  const rrWarning = document.getElementById('rr_warning');
-
-  function validateRR() {
-    const e = safeNum(rrEntry.value);
-    const sl = safeNum(rrSl.value);
-    const tp = safeNum(rrTp.value);
-    
-    rrEntry.classList.remove('error', 'success');
-    rrSl.classList.remove('error', 'success');
-    rrTp.classList.remove('error', 'success');
-    
-    if (e > 0) rrEntry.classList.add('success');
-    if (sl > 0) rrSl.classList.add('success');
-    if (tp > 0) rrTp.classList.add('success');
-    
-    if (sl === tp && e > 0 && sl > 0) {
-      rrSl.classList.add('error');
-      rrTp.classList.add('error');
-      rrWarning.style.display = 'block';
-    } else {
-      rrWarning.style.display = 'none';
-    }
-  }
 
   function calcRR() {
     const e = safeNum(rrEntry.value);
     const sl = safeNum(rrSl.value);
     const tp = safeNum(rrTp.value);
     const fee = safeNum(rrFee.value) / 100;
-    
-    validateRR();
     
     if (!e || !sl || !tp || e === sl) {
       rrGross.textContent = '—';
@@ -2409,16 +1383,10 @@
     return { gross, net };
   }
 
-  [rrEntry, rrSl, rrTp, rrFee].forEach(x => x?.addEventListener('input', () => { 
-    calcRR(); 
-    pushHistoryIfReady();
-    logEvent('rr_input_changed', { field: x.id });
-  }));
+  [rrEntry, rrSl, rrTp, rrFee].forEach(x => x.addEventListener('input', calcRR));
+  bindCopy(document.getElementById('rr_copy_gross'), () => rrGross.textContent);
+  bindCopy(document.getElementById('rr_copy_net'), () => rrNet.textContent);
 
-  bindCopy(document.getElementById('rr_copy_gross'), () => rrGross.textContent, 'copy_rr_gross');
-  bindCopy(document.getElementById('rr_copy_net'), () => rrNet.textContent, 'copy_rr_net');
-
-  // Capital Calculator
   const capDep = document.getElementById('cap_dep');
   const capRisk = document.getElementById('cap_risk');
   const capLev = document.getElementById('cap_lev');
@@ -2428,68 +1396,6 @@
   const capPos = document.getElementById('cap_pos');
   const capRiskUsd = document.getElementById('cap_risk_usd');
   const capMargin = document.getElementById('cap_margin');
-  const capRiskWarning = document.getElementById('cap_risk_warning');
-  const capRiskWarningText = document.getElementById('cap_risk_warning_text');
-
-  function validateCapital() {
-    const risk = safeNum(capRisk.value);
-    const lev = safeNum(capLev.value);
-    const dep = safeNum(capDep.value);
-    
-    capRiskWarning.style.display = 'none';
-    
-    if (risk > 5) {
-      capRiskWarningText.textContent = lang === 'ru' 
-        ? '⚠️ Высокий риск (' + risk + '%). Убедитесь, что это соответствует вашей стратегии.'
-        : '⚠️ High risk (' + risk + '%). Make sure this aligns with your strategy.';
-      capRiskWarning.style.display = 'block';
-      logEvent('high_risk_warning', { risk: risk });
-    }
-    
-    if (lev > 10 && risk > 2) {
-      capRiskWarningText.textContent = lang === 'ru'
-        ? '⚠️ Высокое плечо (' + lev + 'x) с риском ' + risk + '%. Будьте осторожны!'
-        : '⚠️ High leverage (' + lev + 'x) with ' + risk + '% risk. Be cautious!';
-      capRiskWarning.style.display = 'block';
-      logEvent('high_leverage_warning', { leverage: lev, risk: risk });
-    }
-    
-    if (dep > 0) capDep.classList.add('success');
-    if (risk > 0) capRisk.classList.add('success');
-    if (lev > 0) capLev.classList.add('success');
-  }
-
-  // Scenario presets
-  document.querySelectorAll('.scenario-preset').forEach(preset => {
-    preset.addEventListener('click', () => {
-      document.querySelectorAll('.scenario-preset').forEach(p => p.classList.remove('active'));
-      preset.classList.add('active');
-      
-      const type = preset.dataset.preset;
-      let risk = 1, lev = 1;
-      
-      switch(type) {
-        case 'conservative':
-          risk = 0.5;
-          lev = 1;
-          break;
-        case 'moderate':
-          risk = 2;
-          lev = 3;
-          break;
-        case 'aggressive':
-          risk = 5;
-          lev = 10;
-          break;
-      }
-      
-      capRisk.value = risk;
-      capLev.value = lev;
-      calcCap();
-      pushHistoryIfReady();
-      logEvent('scenario_selected', { scenario: type, risk: risk, leverage: lev });
-    });
-  });
 
   document.querySelectorAll('.chip[data-risk]').forEach(ch => {
     ch.addEventListener('click', () => {
@@ -2497,8 +1403,6 @@
       ch.classList.add('active');
       capRisk.value = ch.dataset.risk;
       calcCap();
-      pushHistoryIfReady();
-      logEvent('risk_preset_selected', { risk: ch.dataset.risk });
     });
   });
 
@@ -2509,14 +1413,6 @@
     const e = safeNum(capEntry.value);
     const sl = safeNum(capSl.value);
     const fee = safeNum(capFee.value) / 100;
-    
-    validateCapital();
-    
-    capEntry.classList.remove('error', 'success');
-    capSl.classList.remove('error', 'success');
-    
-    if (e > 0) capEntry.classList.add('success');
-    if (sl > 0) capSl.classList.add('success');
     
     if (dep <= 0 || rp <= 0 || e <= 0 || sl <= 0 || e === sl) {
       capPos.textContent = '—';
@@ -2538,52 +1434,21 @@
     return { pos };
   }
 
-  [capDep, capRisk, capLev, capEntry, capSl, capFee].forEach(x => x?.addEventListener('input', () => { 
-    calcCap(); 
-    pushHistoryIfReady();
-    logEvent('capital_input_changed', { field: x.id });
-  }));
+  [capDep, capRisk, capLev, capEntry, capSl, capFee].forEach(x => x.addEventListener('input', calcCap));
+  bindCopy(document.getElementById('cap_copy_pos'), () => capPos.textContent);
 
-  bindCopy(document.getElementById('cap_copy_pos'), () => capPos.textContent, 'copy_capital_pos');
-
-  // Indicators
   const fgText = document.getElementById('fg_text');
   const tcapText = document.getElementById('tcap_text');
   const altText = document.getElementById('alt_text');
   const moodEl = document.getElementById('mood');
   const indNote = document.getElementById('ind_note');
-  const fgLow = document.getElementById('fg_low');
-  const fgHigh = document.getElementById('fg_high');
-  const fgLowVal = document.getElementById('fg_low_val');
-  const fgHighVal = document.getElementById('fg_high_val');
 
   let lastIndicators = null;
-  let fgLowThreshold = 30;
-  let fgHighThreshold = 70;
-
-  fgLow?.addEventListener('input', () => {
-    fgLowThreshold = parseInt(fgLow.value);
-    fgLowVal.textContent = fgLowThreshold;
-    drawAllIndicatorVisuals(lastIndicators);
-    logEvent('fg_threshold_changed', { type: 'low', value: fgLowThreshold });
-  });
-
-  fgHigh?.addEventListener('input', () => {
-    fgHighThreshold = parseInt(fgHigh.value);
-    fgHighVal.textContent = fgHighThreshold;
-    drawAllIndicatorVisuals(lastIndicators);
-    logEvent('fg_threshold_changed', { type: 'high', value: fgHighThreshold });
-  });
-
-  const IND_CACHE_KEY = 'tc_ind_cache_v3';
+  const IND_CACHE_KEY = 'tc_ind_cache';
   
   function saveIndicatorsCache(data) {
-    try { 
-      localStorage.setItem(IND_CACHE_KEY, JSON.stringify({ 
-        t: Date.now(), 
-        data,
-        thresholds: { low: fgLowThreshold, high: fgHighThreshold }
-      })); 
+    try {
+      localStorage.setItem(IND_CACHE_KEY, JSON.stringify({ t: Date.now(), data }));
     } catch(e) {}
   }
   
@@ -2592,83 +1457,45 @@
       const raw = localStorage.getItem(IND_CACHE_KEY);
       if (!raw) return null;
       const j = JSON.parse(raw);
-      if (!j?.data) return null;
-      
-      if (j.thresholds) {
-        fgLowThreshold = j.thresholds.low || 30;
-        fgHighThreshold = j.thresholds.high || 70;
-        if (fgLow) fgLow.value = fgLowThreshold;
-        if (fgHigh) fgHigh.value = fgHighThreshold;
-        if (fgLowVal) fgLowVal.textContent = fgLowThreshold;
-        if (fgHighVal) fgHighVal.textContent = fgHighThreshold;
-      }
-      
       return j;
-    } catch(e) { 
-      return null; 
+    } catch(e) {
+      return null;
     }
   }
 
-  function computeMood(fgValue, altDom) {
-    if (!isFinite(fgValue) || !isFinite(altDom)) return '—';
-    
-    if (fgValue >= fgHighThreshold && altDom < 45) {
-      return lang === 'ru' ? 'Риск-он (BTC фокус)' : 'Risk-on (BTC focus)';
-    }
-    if (fgValue >= fgHighThreshold && altDom >= 45) {
-      return lang === 'ru' ? 'Альт-рост' : 'Alt rally';
-    }
-    if (fgValue <= fgLowThreshold && altDom < 45) {
-      return lang === 'ru' ? 'Страх / защита' : 'Fear / defensive';
-    }
-    if (fgValue <= fgLowThreshold && altDom >= 45) {
-      return lang === 'ru' ? 'Высокий риск (альты)' : 'High risk (alts in fear)';
-    }
+  function computeMood(fgValue) {
+    if (!isFinite(fgValue)) return '—';
+    if (fgValue >= 70) return lang === 'ru' ? 'Жадность' : 'Greed';
+    if (fgValue <= 30) return lang === 'ru' ? 'Страх' : 'Fear';
     return lang === 'ru' ? 'Нейтрально' : 'Neutral';
   }
 
   async function fetchIndicators() {
-    if (indNote) {
-      indNote.textContent = t('ind.loading');
-      indNote.classList.add('loading');
-    }
-    
-    logEvent('indicators_fetch_start');
+    indNote.textContent = lang === 'ru' ? 'Загрузка...' : 'Loading...';
     
     let fgVal = null, fgClass = '—', totalMc = null, btcDom = null;
-    let okF = false, okC = false;
 
     try {
-      const res = await fetch('https://api.alternative.me/fng/?limit=1&format=json', { cache: 'no-store' });
+      const res = await fetch('https://api.alternative.me/fng/?limit=1&format=json');
       if (res.ok) {
         const j = await res.json();
         const d = j?.data?.[0];
         fgVal = d ? Number(d.value) : null;
         fgClass = d?.value_classification || '—';
-        okF = isFinite(fgVal);
-        logEvent('indicators_fg_fetched', { value: fgVal });
       }
-    } catch(e) {
-      console.error('F&G fetch error:', e);
-      logEvent('indicators_fg_error', { error: e.message });
-    }
+    } catch(e) {}
 
     try {
-      const res2 = await fetch('https://api.coingecko.com/api/v3/global', { cache: 'no-store' });
+      const res2 = await fetch('https://api.coingecko.com/api/v3/global');
       if (res2.ok) {
         const j2 = await res2.json();
         totalMc = j2?.data?.total_market_cap?.usd ?? null;
         btcDom = j2?.data?.market_cap_percentage?.btc ?? null;
-        okC = isFinite(totalMc) || isFinite(btcDom);
-        logEvent('indicators_market_fetched');
       }
-    } catch(e) {
-      console.error('Market cap fetch error:', e);
-      logEvent('indicators_market_error', { error: e.message });
-    }
+    } catch(e) {}
 
     fgText.textContent = isFinite(fgVal) ? `${fgVal} · ${fgClass}` : '—';
-    tcapText.textContent = isFinite(totalMc) ? '$' + Number(totalMc).toLocaleString(undefined, { maximumFractionDigits: 0 }) : '—';
+    tcapText.textContent = isFinite(totalMc) ? '$' + Number(totalMc).toLocaleString() : '—';
 
     let altDom = null;
     if (typeof btcDom === 'number' && isFinite(btcDom)) {
@@ -2678,36 +1505,14 @@
       altText.textContent = '—';
     }
 
-    moodEl.textContent = computeMood(fgVal ?? NaN, altDom ?? NaN);
+    moodEl.textContent = computeMood(fgVal);
 
-    lastIndicators = { 
-      fgVal, 
-      fgClass, 
-      totalMc, 
-      btcDom, 
-      altDom,
-      timestamp: Date.now()
-    };
-    
+    lastIndicators = { fgVal, fgClass, totalMc, btcDom, altDom };
     saveIndicatorsCache(lastIndicators);
     drawAllIndicatorVisuals(lastIndicators);
 
-    if (indNote) {
-      indNote.classList.remove('loading');
-      indNote.textContent = (!okF && !okC) ? t('ind.rate') : '';
-    }
-    
-    logEvent('indicators_fetch_complete', { 
-      success: okF || okC,
-      fgValue: fgVal,
-      marketCap: totalMc 
-    });
+    indNote.textContent = '';
   }
-
-  document.getElementById('refresh_ind')?.addEventListener('click', () => {
-    fetchIndicators();
-    logEvent('indicators_refresh_click');
-  });
 
   function drawGauge(canvas, value) {
     if (!canvas) return;
@@ -2715,15 +1520,14 @@
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0, 0, w, h);
 
-    const cx = w / 2, cy = h * 0.9;
-    const r = Math.min(w * 0.42, h * 0.75);
+    const cx = w / 2, cy = h * 0.7;
+    const r = Math.min(w * 0.4, h * 0.6);
     const start = Math.PI, end = 0;
 
-    ctx.lineWidth = Math.max(18, r * 0.12);
+    ctx.lineWidth = 12;
     ctx.lineCap = 'round';
 
-    const borderColor = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#222';
-    ctx.strokeStyle = borderColor;
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#252525';
     ctx.beginPath();
     ctx.arc(cx, cy, r, start, end, false);
     ctx.stroke();
@@ -2733,44 +1537,10 @@
     const clamped = Math.max(0, Math.min(100, value));
     const angle = start + (end - start) * (clamped / 100);
 
-    let gaugeColor;
-    if (clamped <= fgLowThreshold) {
-      gaugeColor = '#ef4444'; // Red for fear
-    } else if (clamped >= fgHighThreshold) {
-      gaugeColor = '#22c55e'; // Green for greed
-    } else {
-      gaugeColor = '#f59e0b'; // Yellow for neutral
-    }
-
-    ctx.strokeStyle = gaugeColor;
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7CFC00';
     ctx.beginPath();
     ctx.arc(cx, cy, r, start, angle, false);
     ctx.stroke();
-
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(angle - Math.PI);
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#fff';
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(r * 0.72, -4);
-    ctx.lineTo(r * 0.72, 4);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#fff';
-    ctx.beginPath();
-    ctx.arc(cx, cy, 6, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = borderColor;
-    ctx.font = '12px Inter, Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('0', cx - r * 0.9, cy + 10);
-    ctx.fillText('100', cx + r * 0.9, cy + 10);
-    ctx.fillText('Fear', cx - r * 0.7, cy + r + 20);
-    ctx.fillText('Greed', cx + r * 0.7, cy + r + 20);
   }
 
   function drawDonutSplit(canvas, btcDom) {
@@ -2779,18 +1549,17 @@
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0, 0, w, h);
 
-    const cx = w / 2, cy = h / 2, r = Math.min(w, h) * 0.32;
-    const inner = r * 0.62;
+    const cx = w / 2, cy = h / 2, r = Math.min(w, h) * 0.3;
+    const inner = r * 0.6;
 
-    const border = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#222';
-    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent-solid').trim() || '#7CFC00';
-    const muted = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() || '#999';
+    const border = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#252525';
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7CFC00';
 
     ctx.fillStyle = border;
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--panel').trim() || '#0b0b0b';
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--chip').trim() || '#1a1a1a';
     ctx.beginPath();
     ctx.arc(cx, cy, inner, 0, Math.PI * 2);
     ctx.fill();
@@ -2807,27 +1576,6 @@
     ctx.arc(cx, cy, r, a0, aB, false);
     ctx.closePath();
     ctx.fill();
-
-    ctx.fillStyle = '#3b82f6';
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, r, aB, a0 + Math.PI * 2, false);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--panel').trim() || '#0b0b0b';
-    ctx.beginPath();
-    ctx.arc(cx, cy, inner, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#fff';
-    ctx.font = 'bold 16px Inter, Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('BTC', cx, cy - 20);
-    ctx.fillText(btc.toFixed(1) + '%', cx, cy + 5);
-    ctx.fillStyle = '#3b82f6';
-    ctx.fillText('ALTS', cx, cy + 40);
-    ctx.fillText((100 - btc).toFixed(1) + '%', cx, cy + 65);
   }
 
   function drawAllIndicatorVisuals(data) {
@@ -2842,674 +1590,345 @@
     if (isFinite(data?.fgVal)) {
       fgBig.textContent = String(Math.round(data.fgVal));
       fgSub.textContent = data.fgClass || '—';
-      
-      if (data.fgVal <= fgLowThreshold) {
-        fgBig.style.background = '#ef4444';
-        fgBig.style.webkitBackgroundClip = 'text';
-        fgBig.style.backgroundClip = 'text';
-      } else if (data.fgVal >= fgHighThreshold) {
-        fgBig.style.background = '#22c55e';
-        fgBig.style.webkitBackgroundClip = 'text';
-        fgBig.style.backgroundClip = 'text';
-      } else {
-        fgBig.style.background = 'var(--accent)';
-        fgBig.style.webkitBackgroundClip = 'text';
-        fgBig.style.backgroundClip = 'text';
-      }
     } else {
       fgBig.textContent = '—';
       fgSub.textContent = '—';
     }
 
     if (typeof data?.btcDom === 'number' && isFinite(data.btcDom)) {
-      domBig.textContent = `BTC ${data.btcDom.toFixed(2)}%`;
-      domSub.textContent = `ALTS ${(100 - data.btcDom).toFixed(2)}%`;
+      domBig.textContent = `BTC ${data.btcDom.toFixed(1)}%`;
+      domSub.textContent = `ALTS ${(100 - data.btcDom).toFixed(1)}%`;
     } else {
       domBig.textContent = '—';
       domSub.textContent = '—';
     }
   }
 
-  // Load cached indicators
   const cached = loadIndicatorsCache();
   if (cached?.data) {
     lastIndicators = cached.data;
-    fgText.textContent = isFinite(lastIndicators.fgVal) ? `${lastIndicators.fgVal} · ${lastIndicators.fgClass || '—'}` : '—';
-    tcapText.textContent = isFinite(lastIndicators.totalMc) ? '$' + Number(lastIndicators.totalMc).toLocaleString(undefined, { maximumFractionDigits: 0 }) : '—';
-    altText.textContent = (typeof lastIndicators.btcDom === 'number' && isFinite(lastIndicators.btcDom)) ? ((100 - lastIndicators.btcDom).toFixed(2) + '%') : '—';
-    moodEl.textContent = computeMood(lastIndicators.fgVal ?? NaN, lastIndicators.altDom ?? NaN);
-    indNote.textContent = t('ind.cached');
+    fgText.textContent = isFinite(lastIndicators.fgVal) ? `${lastIndicators.fgVal} · ${lastIndicators.fgClass}` : '—';
+    tcapText.textContent = isFinite(lastIndicators.totalMc) ? '$' + Number(lastIndicators.totalMc).toLocaleString() : '—';
+    altText.textContent = isFinite(lastIndicators.altDom) ? lastIndicators.altDom.toFixed(2) + '%' : '—';
+    moodEl.textContent = computeMood(lastIndicators.fgVal);
+    indNote.textContent = lang === 'ru' ? 'Кэшированные данные' : 'Cached data';
     drawAllIndicatorVisuals(lastIndicators);
   }
 
-  // History system
-  const HISTORY_KEY = 'tc_history_v12';
+  document.getElementById('refresh_ind').addEventListener('click', fetchIndicators);
+
+  const HISTORY_KEY = 'tc_history';
   
-  function loadHistory() { 
-    try { 
-      return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; 
+  function loadHistory() {
+    try {
+      return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
     } catch(e) {
       return [];
     }
   }
   
-  function saveHistory(arr) { 
-    try { 
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(arr)); 
+  function saveHistory(arr) {
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(arr));
     } catch(e) {}
   }
   
-  function pushHistory(item) {
-    const arr = loadHistory();
-    arr.unshift(item);
-    if (arr.length > 100) arr.pop();
-    saveHistory(arr);
-    renderHistory();
-    logEvent('history_item_added', { type: item.type });
-  }
-
   function renderHistory() {
     const list = document.getElementById('history_list');
-    if (!list) return;
     list.innerHTML = '';
     const arr = loadHistory();
     
     if (!arr.length) {
-      const el = document.createElement('div');
-      el.className = 'note';
-      el.textContent = t('hist.note');
-      list.appendChild(el);
+      list.innerHTML = '<div class="small">' + t('Saved locally in your browser') + '</div>';
       return;
     }
     
-    arr.forEach((it, index) => {
+    arr.forEach((it, idx) => {
+      if (idx >= 20) return;
       const node = document.createElement('div');
       node.className = 'hist-item';
       const dt = new Date(it.t).toLocaleString();
       const left = document.createElement('div');
-      left.innerHTML = `<b>${it.type}</b><div class="small">${dt}</div><div class="small">${it.summary || ''}</div>`;
+      left.innerHTML = `<b>${it.type}</b><div class="small">${dt}</div><div class="small">${it.summary}</div>`;
       const right = document.createElement('div');
       right.className = 'hist-actions';
 
-      const btnCard = document.createElement('button');
-      btnCard.className = 'mini';
-      btnCard.type = 'button';
-      btnCard.innerHTML = '<span class="ico">🖼️</span> PNG';
-      btnCard.addEventListener('click', () => { 
-        exportCardPNG({ fromHistory: true, historyItem: it });
-        logEvent('history_export_png', { index: index });
-      });
-
       const btnCopy = document.createElement('button');
       btnCopy.className = 'mini';
-      btnCopy.type = 'button';
-      btnCopy.innerHTML = '<span class="ico">📋</span> ' + t('common.copy');
+      btnCopy.textContent = t('Copy');
       btnCopy.addEventListener('click', async () => {
-        const ok = await copyText(it.summary || '');
-        if (ok) {
-          showToast(t('toast.copied'), 'success');
-          haptic('success');
-          logEvent('history_copy', { index: index });
-        }
+        const ok = await copyText(it.summary);
+        if (ok) showToast(t('Copied!'));
       });
 
-      right.appendChild(btnCard);
       right.appendChild(btnCopy);
-
       node.appendChild(left);
       node.appendChild(right);
       list.appendChild(node);
     });
   }
   
-  document.getElementById('clear_history')?.addEventListener('click', () => {
+  document.getElementById('clear_history').addEventListener('click', () => {
     localStorage.removeItem(HISTORY_KEY);
     renderHistory();
-    showToast(lang === 'ru' ? 'История очищена' : 'History cleared', 'success');
-    haptic('success');
-    logEvent('history_cleared');
+    showToast(lang === 'ru' ? 'История очищена' : 'History cleared');
   });
 
-  let lastPushAt = 0;
-  function pushHistoryIfReady() {
-    const tnow = Date.now();
-    if (tnow - lastPushAt < 2000) return;
-    lastPushAt = tnow;
+  document.getElementById('open_terms').addEventListener('click', () => {
+    window.open('/terms.html', '_blank');
+  });
+  
+  document.getElementById('open_privacy').addEventListener('click', () => {
+    window.open('/privacy.html', '_blank');
+  });
+  
+  document.getElementById('open_support').addEventListener('click', () => {
+    window.open('https://t.me/Trader_TradeSupportBot', '_blank');
+  });
 
-    const tab = activeTab();
-    if (tab === 'dca') {
-      const r = calcDCA();
-      if (r.avg) {
-        pushHistory({
-          t: tnow,
-          type: 'DCA',
-          summary: `AVG ${dcaAvgEl.textContent} | VOL ${dcaTotalVolEl.textContent} | COST ${dcaTotalCostEl.textContent}`
-        });
-      }
-    }
-    if (tab === 'rr') {
-      const r = calcRR();
-      if (r.gross) {
-        pushHistory({
-          t: tnow,
-          type: 'R/R',
-          summary: `Gross ${rrGross.textContent} | Net ${rrNet.textContent}`
-        });
-      }
-    }
-    if (tab === 'cap') {
-      const r = calcCap();
-      if (r.pos) {
-        pushHistory({
-          t: tnow,
-          type: 'Capital',
-          summary: `POS ${capPos.textContent} | Risk $${capRiskUsd.textContent} | Margin $${capMargin.textContent}`
-        });
-      }
-    }
-  }
-
-  // URL opening with analytics
-  function openUrl(url, platform = 'external') {
-    try {
-      logEvent('link_click', { url: url, platform: platform });
-      if (tg?.openLink) return tg.openLink(url);
-      if (tg?.openTelegramLink && url.startsWith('https://t.me/')) return tg.openTelegramLink(url);
-    } catch(e) {}
-    window.open(url, '_blank');
-  }
-
-  document.getElementById('link_telegram')?.addEventListener('click', e => {
+  document.getElementById('link_telegram').addEventListener('click', (e) => {
     e.preventDefault();
-    openUrl('https://t.me/ChalovCrypto', 'telegram');
+    window.open('https://t.me/ChalovCrypto', '_blank');
   });
   
-  document.getElementById('link_youtube')?.addEventListener('click', e => {
+  document.getElementById('link_youtube').addEventListener('click', (e) => {
     e.preventDefault();
-    openUrl('https://www.youtube.com/@ChalovCrypto', 'youtube');
+    window.open('https://www.youtube.com/@ChalovCrypto', '_blank');
   });
 
-  document.getElementById('open_terms')?.addEventListener('click', () => {
-    openUrl(location.origin + '/terms.html', 'terms');
-  });
-  
-  document.getElementById('open_privacy')?.addEventListener('click', () => {
-    openUrl(location.origin + '/privacy.html', 'privacy');
-  });
-  
-  document.getElementById('open_support')?.addEventListener('click', () => {
-    openUrl('https://t.me/Trader_TradeSupportBot', 'support');
-  });
-
-  // Modal system
   const modalBackdrop = document.getElementById('modal_backdrop');
   const modalClose = document.getElementById('modal_close');
   const cardCanvas = document.getElementById('card_canvas');
   const btnDownload = document.getElementById('card_download');
   const btnCopyImg = document.getElementById('card_copy');
 
-  function openModal() { 
-    modalBackdrop.style.display = 'flex'; 
-    logEvent('modal_opened', { type: 'trade_card' });
+  function openModal() {
+    modalBackdrop.style.display = 'flex';
   }
   
-  function closeModal() { 
-    modalBackdrop.style.display = 'none'; 
-    logEvent('modal_closed', { type: 'trade_card' });
+  function closeModal() {
+    modalBackdrop.style.display = 'none';
   }
   
-  modalClose?.addEventListener('click', closeModal);
-  modalBackdrop?.addEventListener('click', e => { 
-    if (e.target === modalBackdrop) closeModal(); 
+  modalClose.addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', (e) => {
+    if (e.target === modalBackdrop) closeModal();
   });
 
-  function roundRect(ctx, x, y, w, h, r) {
-    const rr = Math.min(r, w / 2, h / 2);
-    ctx.beginPath();
-    ctx.moveTo(x + rr, y);
-    ctx.arcTo(x + w, y, x + w, y + h, rr);
-    ctx.arcTo(x + w, y + h, x, y + h, rr);
-    ctx.arcTo(x, y + h, x, y, rr);
-    ctx.arcTo(x, y, x + w, y, rr);
-    ctx.closePath();
-  }
-
-  function drawCard({ title, lines }) {
+  function drawCard() {
     const ctx = cardCanvas.getContext('2d');
     const w = cardCanvas.width, h = cardCanvas.height;
     ctx.clearRect(0, 0, w, h);
 
-    const theme = document.documentElement.getAttribute('data-theme') || 'dark';
-    const bg = theme === 'light' ? '#f8fafc' : '#0a0a0a';
+    const theme = document.documentElement.getAttribute('data-theme');
+    const bg = theme === 'light' ? '#f5f7fa' : '#0a0a0a';
     const panel = theme === 'light' ? '#ffffff' : '#111111';
-    const border = theme === 'light' ? '#e2e8f0' : '#252525';
-    const text = theme === 'light' ? '#0f172a' : '#ffffff';
-    const muted = theme === 'light' ? '#64748b' : '#a0a0a0';
-    const accent = theme === 'light' ? '#3b82f6' : '#7CFC00';
+    const text = theme === 'light' ? '#1a1a1a' : '#ffffff';
+    const accent = theme === 'light' ? '#2d8cff' : '#7CFC00';
 
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, w, h);
 
-    const pad = 40;
-    const r = 28;
-    roundRect(ctx, pad, pad, w - pad * 2, h - pad * 2, r);
     ctx.fillStyle = panel;
-    ctx.fill();
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = border;
-    ctx.stroke();
+    ctx.fillRect(20, 20, w - 40, h - 40);
 
     ctx.fillStyle = text;
-    ctx.font = '900 48px "Inter", Arial';
-    ctx.fillText('Trader Calculator', pad + 32, pad + 72);
-
-    ctx.font = '900 42px "Inter", Arial';
-    ctx.fillStyle = accent;
-    ctx.fillText(title, pad + 32, pad + 132);
-
-    let y = pad + 200;
-    lines.forEach(line => {
-      ctx.fillStyle = muted;
-      ctx.font = '800 28px "Inter", Arial';
-      ctx.fillText(line.k, pad + 32, y);
-      ctx.fillStyle = text;
-      ctx.font = '900 32px "Inter", Arial';
-      ctx.fillText(line.v, pad + 380, y);
-      y += 52;
-    });
-
-    ctx.fillStyle = muted;
-    ctx.font = '900 24px "Inter", Arial';
-    ctx.fillText('TRADER CALCULATOR • ' + new Date().toLocaleDateString(), pad + 32, h - pad - 28);
-  }
-
-  function buildCardData({ fromHistory, historyItem }) {
-    if (fromHistory && historyItem) {
-      return {
-        title: historyItem.type,
-        lines: [
-          { k: 'Time', v: new Date(historyItem.t).toLocaleString() },
-          { k: 'Summary', v: historyItem.summary || '—' }
-        ]
-      };
-    }
+    ctx.font = 'bold 24px Inter';
+    ctx.fillText('Trader Calculator', 40, 60);
 
     const tab = activeTab();
+    let title = 'Trade Card';
+    let data = [];
+
     if (tab === 'dca') {
-      const goal = safeNum(dcaGoal.value);
-      const next = safeNum(dcaNext.value);
-
-      const lines = [
-        { k: 'AVG PRICE', v: dcaAvgEl.textContent },
-        { k: 'TOTAL VOL', v: dcaTotalVolEl.textContent },
-        { k: 'TOTAL COST', v: dcaTotalCostEl.textContent },
+      title = 'DCA Calculation';
+      data = [
+        `AVG: ${dcaAvgEl.textContent}`,
+        `VOL: ${dcaTotalVolEl.textContent}`,
+        `COST: ${dcaTotalCostEl.textContent}`
       ];
-
-      if (goal > 0) lines.push({ k: 'GOAL AVG', v: fmt(goal, 10) });
-      if (next > 0) lines.push({ k: 'NEXT PRICE', v: fmt(next, 10) });
-      if (dcaNeedVol.textContent.trim() !== '—') lines.push({ k: 'NEED VOL', v: dcaNeedVol.textContent });
-
-      return { title: 'DCA CALCULATION', lines };
+    } else if (tab === 'rr') {
+      title = 'Risk/Reward';
+      data = [
+        `Gross: ${rrGross.textContent}`,
+        `Net: ${rrNet.textContent}`
+      ];
+    } else if (tab === 'cap') {
+      title = 'Capital Management';
+      data = [
+        `POS: ${capPos.textContent}`,
+        `Risk: $${capRiskUsd.textContent}`,
+        `Margin: $${capMargin.textContent}`
+      ];
     }
 
-    if (tab === 'rr') {
-      return { 
-        title: 'RISK/REWARD', 
-        lines: [
-          { k: 'GROSS R/R', v: rrGross.textContent },
-          { k: 'NET R/R', v: rrNet.textContent }
-        ]
-      };
-    }
+    ctx.fillStyle = accent;
+    ctx.font = 'bold 20px Inter';
+    ctx.fillText(title, 40, 100);
 
-    if (tab === 'cap') {
-      return { 
-        title: 'CAPITAL MGMT', 
-        lines: [
-          { k: 'POSITION SIZE', v: capPos.textContent },
-          { k: 'RISK USD', v: capRiskUsd.textContent },
-          { k: 'MARGIN USD', v: capMargin.textContent }
-        ]
-      };
-    }
+    ctx.fillStyle = text;
+    ctx.font = '16px Inter';
+    data.forEach((line, i) => {
+      ctx.fillText(line, 40, 140 + i * 30);
+    });
 
-    return { title: 'TRADE CARD', lines: [{ k: '—', v: '—' }] };
+    ctx.fillStyle = '#666';
+    ctx.font = '12px Inter';
+    ctx.fillText(new Date().toLocaleDateString(), 40, h - 30);
   }
 
   async function canvasToBlob() {
-    return await new Promise(resolve => cardCanvas.toBlob(resolve, 'image/png'));
-  }
-
-  async function tryCopyImage() {
-    try {
-      const blob = await canvasToBlob();
-      if (!blob) throw new Error('No blob created');
-      if (!navigator.clipboard || !window.ClipboardItem) throw new Error('Clipboard API not available');
-      await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
-      return true;
-    } catch(e) {
-      console.error('Copy image failed:', e);
-      return false;
-    }
+    return new Promise(resolve => cardCanvas.toBlob(resolve, 'image/png'));
   }
 
   async function downloadPng() {
-    try {
-      const blob = await canvasToBlob();
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'trade-card-' + Date.now() + '.png';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      showToast(t('toast.saved'), 'success');
-      haptic('success');
-      logEvent('card_downloaded');
-    } catch(e) {
-      showToast('Download failed', 'error');
-      logEvent('card_download_error', { error: e.message });
-    }
+    const blob = await canvasToBlob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'trade-card.png';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast('Downloaded');
   }
 
-  async function exportCardPNG({ fromHistory = false, historyItem = null }) {
-    try {
-      const data = buildCardData({ fromHistory, historyItem });
-      drawCard(data);
-      openModal();
-      logEvent('card_generated', { fromHistory: fromHistory, type: historyItem?.type });
-    } catch(e) {
-      console.error('Export card error:', e);
-      showToast('Failed to generate card', 'error');
-      logEvent('card_generation_error', { error: e.message });
-    }
-  }
-
-  btnDownload?.addEventListener('click', downloadPng);
+  btnDownload.addEventListener('click', downloadPng);
   
-  btnCopyImg?.addEventListener('click', async () => {
-    const ok = await tryCopyImage();
-    if (ok) {
-      showToast(t('toast.copied'), 'success');
-      haptic('success');
-      logEvent('card_copied');
-    } else {
-      await downloadPng();
-      logEvent('card_copy_fallback_download');
+  btnCopyImg.addEventListener('click', async () => {
+    const blob = await canvasToBlob();
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+      showToast(t('Copied!'));
+    } catch (e) {
+      downloadPng();
     }
   });
 
-  document.getElementById('card_btn')?.addEventListener('click', () => { 
-    exportCardPNG({ fromHistory: false });
-    logEvent('card_button_click');
+  document.getElementById('card_btn').addEventListener('click', () => {
+    drawCard();
+    openModal();
   });
 
-  // TON Wallet integration
   const TONCONNECT_MANIFEST_URL = 'https://trade-calculator-five.vercel.app/tonconnect-manifest.json';
   const TIP_ADDRESS = 'UQD04FKshVmZaQjZq9y2AtBXWklkzQfK4sEJWrsYfqbNHGGz';
-  const TIP_AMOUNT_TON = 0.05;
-
   let tonConnectUI = null;
 
-  function shortAddr(addr) {
-    if (!addr) return '';
-    return addr.length > 12 ? (addr.slice(0, 4) + '…' + addr.slice(-4)) : addr;
-  }
-  
-  function toNanoStr(ton) {
-    const v = Number(ton);
-    if (!isFinite(v) || v <= 0) return '0';
-    return String(Math.floor(v * 1e9));
-  }
-  
-  async function confirmDialog(text) {
+  function initTonConnect() {
     try {
-      if (tg?.showConfirm) {
-        return await new Promise(resolve => tg.showConfirm(text, ok => resolve(!!ok)));
-      }
-    } catch(e) {}
-    return window.confirm(text);
+      if (!window.TON_CONNECT_UI?.TonConnectUI) return;
+      tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
+        manifestUrl: TONCONNECT_MANIFEST_URL
+      });
+
+      tonConnectUI.onStatusChange(() => {
+        updateWalletUI();
+      });
+
+      updateWalletUI();
+    } catch(e) {
+      console.error('TON Connect init error:', e);
+    }
   }
 
   function updateWalletUI() {
     const wBtn = document.getElementById('wallet_btn');
     const tipBtn = document.getElementById('tip_btn');
-    if (!wBtn || !tipBtn) return;
-
+    
     if (!tonConnectUI) {
       wBtn.disabled = true;
       tipBtn.disabled = true;
-      wBtn.innerHTML = '<span class="ico">👛</span> <span>' + t('wallet') + '</span>';
-      tipBtn.innerHTML = '<span class="ico">💝</span> <span>' + t('tip') + '</span>';
       return;
     }
     
     wBtn.disabled = false;
-
+    tipBtn.disabled = !tonConnectUI.connected;
+    
     if (tonConnectUI.connected) {
       const addr = tonConnectUI.account?.address || '';
-      wBtn.innerHTML = '<span class="ico">👛</span> <span>' + (shortAddr(addr) || t('wallet')) + '</span>';
-      tipBtn.disabled = false;
+      wBtn.textContent = addr.slice(0, 6) + '...' + addr.slice(-4);
     } else {
-      wBtn.innerHTML = '<span class="ico">👛</span> <span>' + t('wallet') + '</span>';
-      tipBtn.disabled = true;
+      wBtn.textContent = t('Connect Wallet');
     }
   }
 
-  function initTonConnect() {
-    try {
-      if (!window.TON_CONNECT_UI?.TonConnectUI) return;
-      tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({ 
-        manifestUrl: TONCONNECT_MANIFEST_URL,
-        buttonRootId: 'wallet_btn'
-      });
-
-      tonConnectUI.onStatusChange(() => {
-        updateWalletUI();
-        haptic('success');
-        logEvent('wallet_status_changed', { 
-          connected: tonConnectUI.connected,
-          address: tonConnectUI.account?.address 
-        });
-      });
-
-      tonConnectUI.connectionRestored?.then(() => {
-        updateWalletUI();
-        logEvent('wallet_connection_restored');
-      }).catch(() => {
-        logEvent('wallet_connection_restore_failed');
-      });
-      
-      updateWalletUI();
-      logEvent('tonconnect_initialized');
-    } catch(e) {
-      tonConnectUI = null;
-      updateWalletUI();
-      logEvent('tonconnect_init_error', { error: e.message });
-    }
-  }
-
-  document.getElementById('wallet_btn')?.addEventListener('click', async () => {
-    if (!tonConnectUI) {
-      showToast(t('toast.tonManifest'), 'error');
-      return;
-    }
+  document.getElementById('wallet_btn').addEventListener('click', async () => {
+    if (!tonConnectUI) return;
     
-    try {
-      if (tonConnectUI.connected) {
-        const ok = await confirmDialog(t('wallet.disconnectQ'));
-        if (ok) {
-          await tonConnectUI.disconnect();
-          updateWalletUI();
-          showToast(t('toast.saved'), 'success');
-          logEvent('wallet_disconnected');
-        }
-      } else {
-        await tonConnectUI.openModal();
-        logEvent('wallet_connect_modal_opened');
+    if (tonConnectUI.connected) {
+      const confirm = window.confirm(t('Disconnect wallet?'));
+      if (confirm) {
+        await tonConnectUI.disconnect();
+        updateWalletUI();
       }
-    } catch(e) {
-      updateWalletUI();
-      logEvent('wallet_action_error', { error: e.message });
+    } else {
+      await tonConnectUI.openModal();
     }
   });
 
-  document.getElementById('tip_btn')?.addEventListener('click', async () => {
+  document.getElementById('tip_btn').addEventListener('click', async () => {
     if (!tonConnectUI?.connected) {
-      showToast(t('toast.walletNeed'), 'warning');
-      haptic('warning');
-      logEvent('tip_no_wallet');
-      return;
-    }
-    
-    if (!TIP_ADDRESS || TIP_ADDRESS.startsWith('REPLACE_')) {
-      showToast('Set TIP_ADDRESS', 'error');
+      showToast(t('Connect wallet first'));
       return;
     }
     
     try {
       const tx = {
         validUntil: Math.floor(Date.now() / 1000) + 600,
-        messages: [{ 
-          address: TIP_ADDRESS, 
-          amount: toNanoStr(TIP_AMOUNT_TON),
-          payload: 'Thank you for supporting Trader Calculator!'
+        messages: [{
+          address: TIP_ADDRESS,
+          amount: '50000000'
         }]
       };
       await tonConnectUI.sendTransaction(tx);
-      showToast(t('toast.sent'), 'success');
-      haptic('success');
-      logEvent('tip_sent', { amount: TIP_AMOUNT_TON, address: TIP_ADDRESS });
+      showToast(t('Transaction sent'));
     } catch(e) {
-      showToast(t('toast.fail'), 'error');
-      haptic('error');
-      logEvent('tip_error', { error: e.message });
+      showToast(t('Error'));
     }
   });
 
   initTonConnect();
 
-  // Share functionality
-  document.getElementById('share_btn')?.addEventListener('click', async () => {
+  document.getElementById('share_btn').addEventListener('click', async () => {
     const tab = activeTab();
-    let text = '📊 *Trader Calculator*\n\n';
+    let text = 'Trader Calculator\n\n';
     
     if (tab === 'dca') {
-      text += `*DCA Calculation:*\n`;
+      text += `DCA Calculation:\n`;
       text += `Average: ${dcaAvgEl.textContent}\n`;
       text += `Volume: ${dcaTotalVolEl.textContent}\n`;
       text += `Cost: ${dcaTotalCostEl.textContent}\n`;
-      if (dcaNeedVol.textContent.trim() !== '—') {
-        text += `\n*DCA Goal:*\nNeed: ${dcaNeedVol.textContent}\n`;
-      }
     } else if (tab === 'rr') {
-      text += `*Risk/Reward:*\n`;
+      text += `Risk/Reward:\n`;
       text += `Gross: ${rrGross.textContent}\n`;
       text += `Net: ${rrNet.textContent}\n`;
     } else if (tab === 'cap') {
-      text += `*Capital Management:*\n`;
+      text += `Capital Management:\n`;
       text += `Position: ${capPos.textContent}\n`;
       text += `Risk: $${capRiskUsd.textContent}\n`;
       text += `Margin: $${capMargin.textContent}\n`;
     }
     
-    text += `\n👉 Try it: https://t.me/ChalovCrypto`;
+    text += `\nTry it: https://t.me/ChalovCrypto`;
 
     try {
-      if (navigator.share) {
-        await navigator.share({
-          title: 'Trader Calculator',
-          text: text,
-          url: 'https://t.me/ChalovCrypto'
-        });
-        logEvent('share_success', { method: 'navigator.share', tab: tab });
-        return;
-      }
+      await navigator.clipboard.writeText(text);
+      showToast(t('Copied!'));
     } catch(e) {
-      console.log('Share API error:', e);
-    }
-
-    const ok = await copyText(text);
-    if (ok) {
-      showToast(t('toast.copied'), 'success');
-      haptic('success');
-      logEvent('share_success', { method: 'copy', tab: tab });
-    } else {
-      showToast('Share failed', 'error');
-      logEvent('share_failed', { tab: tab });
+      showToast('Copy failed');
     }
   });
 
-  // Refresh all function
-  function refreshAll() {
-    dcaRows.forEach(r => {
-      const labels = r.el.querySelectorAll('label');
-      if (labels[0]) labels[0].innerHTML = '<span class="ico">💰</span> <span>' + (lang === 'ru' ? 'Цена' : 'Price') + '</span>';
-      if (labels[1]) labels[1].innerHTML = '<span class="ico">📊</span> <span>' + (lang === 'ru' ? 'Объём' : 'Volume') + '</span>';
-    });
-    
-    calcDCA();
-    calcRR();
-    calcCap();
-    drawAllIndicatorVisuals(lastIndicators);
-    
-    logEvent('refresh_all');
-  }
-
-  // Initialize everything
   translateAll();
   clearDCA();
   calcRR();
   calcCap();
   renderHistory();
 
-  setTimeout(() => {
-    try {
-      refreshAll();
-      if (!lastIndicators || Date.now() - (lastIndicators.timestamp || 0) > 300000) {
-        fetchIndicators();
-      }
-    } catch(e) {
-      console.error('Initialization error:', e);
-    }
-  }, 100);
-
-  // Visibility change handler
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-      drawAllIndicatorVisuals(lastIndicators);
-      logEvent('app_visible');
-    }
-  });
-
-  // Resize handler
-  window.addEventListener('resize', () => {
-    drawAllIndicatorVisuals(lastIndicators);
-  });
-
-  // Telegram viewport changes
-  try {
-    tg?.onEvent?.('viewportChanged', () => {
-      setTimeout(() => drawAllIndicatorVisuals(lastIndicators), 150);
-      logEvent('viewport_changed');
-    });
-  } catch(e) {}
-
-  // Export for debugging
-  window.refreshAll = refreshAll;
-  window.logEvent = logEvent;
-
-  // Send analytics that app loaded successfully
-  setTimeout(() => {
-    logEvent('app_loaded_successfully', {
-      theme: document.documentElement.getAttribute('data-theme'),
-      language: lang,
-      hasWallet: !!tonConnectUI
-    });
-  }, 2000);
-
+  if (window.trackEvent) {
+    window.trackEvent('app_loaded');
+  }
 })();
 </script>
 </body>
