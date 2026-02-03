@@ -35,6 +35,7 @@
       --text:#fff;
       --muted:#9a9a9a;
       --accent:#7CFC00;
+      --accent-gradient: linear-gradient(135deg, #7CFC00 0%, #00FFAA 100%);
 
       --chip:#111;
       --chip2:#0f0f0f;
@@ -57,6 +58,7 @@
       --text:#0b0b0b;
       --muted:#5f6675;
       --accent:#2d8cff;
+      --accent-gradient: linear-gradient(135deg, #2d8cff 0%, #00d4ff 100%);
 
       --chip:#f0f2f8;
       --chip2:#eef1f7;
@@ -146,9 +148,24 @@
       border-radius:12px;
       font-weight:900;
       border:1px solid transparent;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
     }
     .subtab:hover{border-color:var(--border)}
-    .subtab.active{color:var(--accent);border-color:var(--accent)}
+    .subtab.active{
+      color:var(--accent);
+      border-color:var(--accent);
+      background:var(--chip-bg);
+    }
+    .subtab.active::before {
+      content: "";
+      display:inline-block;
+      width:12px;
+      height:12px;
+      border-radius:50%;
+      background:var(--accent-gradient);
+    }
 
     .panels{display:flex;gap:14px;flex-wrap:wrap;flex:1}
     .screen{display:none;width:100%}
@@ -162,10 +179,40 @@
       max-width:820px;
       box-shadow:var(--shadow);
     }
-    .card h3{margin:0 0 10px 0}
+    .card h3{
+      margin:0 0 10px 0;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .card h3::before{
+      content:"";
+      display:inline-block;
+      width:6px;
+      height:20px;
+      border-radius:3px;
+      background:var(--accent-gradient);
+    }
 
     .field{margin-bottom:10px}
-    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:800}
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:6px;
+      font-weight:800;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    label::before{
+      content:"";
+      display:inline-block;
+      width:10px;
+      height:2px;
+      background:color-mix(in srgb, var(--muted) 50%, transparent);
+      border-radius:1px;
+    }
     input, select{
       width:100%;
       padding:11px 10px;
@@ -175,11 +222,29 @@
       border-radius:12px;
       font-size:15px;
       outline:none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
-    input:focus, select:focus{border-color:color-mix(in srgb, var(--accent) 60%, var(--border))}
+    input:hover, select:hover{
+      border-color:color-mix(in srgb, var(--accent) 30%, var(--border));
+    }
+    input:focus, select:focus{
+      border-color:var(--accent);
+      box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+    input.error, select.error{
+      border-color:color-mix(in srgb, var(--danger) 60%, var(--border));
+    }
 
     .row{display:flex;gap:10px;flex-wrap:wrap}
     .row > *{flex:1;min-width:150px}
+    @media(max-width:420px){
+      .row.dca-mobile-stack{
+        flex-direction:column;
+      }
+      .row.dca-mobile-stack > *{
+        min-width:100%;
+      }
+    }
 
     .result{
       margin-top:8px;
@@ -192,9 +257,50 @@
       align-items:center;
       justify-content:space-between;
       font-weight:900;
+      transition: border-color 0.3s ease;
     }
-    .result .v{color:var(--accent)}
+    .result.success{
+      border-color:color-mix(in srgb, var(--accent) 40%, var(--border));
+    }
+    .result.error{
+      border-color:color-mix(in srgb, var(--danger) 40%, var(--border));
+    }
+    .result .v{
+      color:var(--accent);
+      background:var(--accent-gradient);
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+      font-weight:1000;
+    }
+    .result-value{
+      position:relative;
+      overflow:hidden;
+    }
+    .result-value .old{
+      position:absolute;
+      top:0;
+      left:0;
+      opacity:0;
+      transform:translateY(-5px);
+    }
+    .result-value .new{
+      display:inline-block;
+    }
+
     .small{font-size:12px;color:var(--muted);font-weight:700}
+    .small.hint{
+      padding:6px 8px;
+      background:color-mix(in srgb, var(--accent) 10%, transparent);
+      border-radius:8px;
+      border-left:3px solid var(--accent);
+      margin-top:4px;
+      animation:fadeInUp 0.3s ease;
+    }
+    .small.warning{
+      border-left-color:var(--danger);
+      background:color-mix(in srgb, var(--danger) 10%, transparent);
+    }
 
     .controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
     .btn{
@@ -205,11 +311,60 @@
       border-radius:12px;
       cursor:pointer;
       font-weight:900;
+      transition: all 0.2s ease;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      position:relative;
+      overflow:hidden;
     }
-    .btn:hover{border-color:var(--accent)}
+    .btn:hover{
+      border-color:var(--accent);
+      transform:translateY(-1px);
+    }
+    .btn:active{
+      transform:translateY(0);
+    }
+    .btn.accent{
+      background:var(--accent-gradient);
+      color:#000;
+      border:none;
+      font-weight:1000;
+    }
     .btn.ghost{color:var(--muted);border-color:var(--border)}
     .btn.danger{color:var(--danger);border-color:color-mix(in srgb, var(--danger) 40%, var(--border))}
-    .btn:disabled{opacity:.45;cursor:not-allowed}
+    .btn:disabled{opacity:.45;cursor:not-allowed;transform:none !important;}
+    .btn-copy{
+      min-width:70px;
+      transition:min-width 0.3s ease;
+    }
+    .btn-copy.copied{
+      min-width:40px;
+    }
+    .btn-copy.copied .copy-text{
+      opacity:0;
+      transform:translateX(-10px);
+    }
+    .btn-copy.copied::after{
+      content:"✓";
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%, -50%);
+      font-size:16px;
+      opacity:1;
+    }
+    .btn-copy::after{
+      content:"✓";
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%, -50%);
+      font-size:16px;
+      opacity:0;
+      transition:opacity 0.3s ease;
+    }
 
     .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
     .chip{
@@ -221,9 +376,30 @@
       color:var(--muted);
       font-weight:900;
       font-size:12px;
+      transition: all 0.2s ease;
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
     }
-    .chip:hover{border-color:color-mix(in srgb, var(--accent) 50%, var(--border))}
-    .chip.active{border-color:var(--accent);color:var(--accent)}
+    .chip:hover{
+      border-color:color-mix(in srgb, var(--accent) 50%, var(--border));
+      transform:translateY(-1px);
+    }
+    .chip.active{
+      border-color:var(--accent);
+      color:var(--accent);
+      background:color-mix(in srgb, var(--accent) 10%, transparent);
+      padding-right:30px;
+      position:relative;
+    }
+    .chip.active::after{
+      content:"✓";
+      position:absolute;
+      right:10px;
+      top:50%;
+      transform:translateY(-50%);
+      font-size:12px;
+    }
 
     .history{
       background:var(--panel);
@@ -234,8 +410,28 @@
       max-width:460px;
       box-shadow:var(--shadow);
     }
-    .history h4{margin:0 0 8px 0}
-    .history-list{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow:auto;padding-right:4px}
+    .history h4{
+      margin:0 0 8px 0;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .history h4::before{
+      content:"";
+      display:inline-block;
+      width:6px;
+      height:16px;
+      border-radius:3px;
+      background:var(--accent-gradient);
+    }
+    .history-list{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      max-height:360px;
+      overflow:auto;
+      padding-right:4px;
+    }
     .hist-item{
       border:1px solid var(--border);
       border-radius:12px;
@@ -245,6 +441,7 @@
       justify-content:space-between;
       gap:10px;
       background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
+      animation:slideIn 0.3s ease;
     }
     html[data-theme="light"] .hist-item{background:linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,0))}
     .hist-item b{display:block;font-size:13px}
@@ -258,8 +455,13 @@
       cursor:pointer;
       font-weight:900;
       font-size:12px;
+      transition: all 0.2s ease;
     }
-    .mini:hover{border-color:color-mix(in srgb, var(--accent) 45%, var(--border)); color:var(--accent)}
+    .mini:hover{
+      border-color:color-mix(in srgb, var(--accent) 45%, var(--border));
+      color:var(--accent);
+      transform:translateY(-1px);
+    }
     .note{font-size:12px;color:var(--muted);font-weight:700;margin-top:8px}
 
     .rainbow{
@@ -336,11 +538,16 @@
       align-items:center;
       justify-content:center;
       gap:10px;
+      transition: all 0.2s ease;
     }
-    .main-tab:hover{border-color:color-mix(in srgb, var(--accent) 50%, var(--border))}
+    .main-tab:hover{
+      border-color:color-mix(in srgb, var(--accent) 50%, var(--border));
+      transform:translateY(-1px);
+    }
     .main-tab.active{
       border-color:var(--accent);
       color:var(--accent);
+      background:color-mix(in srgb, var(--accent) 10%, transparent);
     }
     .main-tab .ico{font-size:16px}
 
@@ -380,10 +587,25 @@
       background:var(--panel);
       box-shadow:var(--shadow);
       padding:12px;
+      animation:modalAppear 0.3s ease;
     }
     #modal_header{display:flex;justify-content:space-between;align-items:center;gap:10px}
     #modal_header b{font-size:14px}
-    #modal_close{border:1px solid var(--border);background:transparent;border-radius:12px;color:var(--muted);padding:6px 10px;cursor:pointer;font-weight:1000}
+    #modal_close{
+      border:1px solid var(--border);
+      background:transparent;
+      border-radius:12px;
+      color:var(--muted);
+      padding:6px 10px;
+      cursor:pointer;
+      font-weight:1000;
+      transition: all 0.2s ease;
+    }
+    #modal_close:hover{
+      border-color:var(--accent);
+      color:var(--accent);
+      transform:rotate(90deg);
+    }
     #modal_body{margin-top:10px;display:flex;gap:12px;flex-wrap:wrap}
     #modal_canvas_wrap{
       flex:1;min-width:280px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--result-bg);
@@ -401,6 +623,7 @@
       border-radius:16px;
       padding:10px;
       background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
+      transition:border-color 0.3s ease;
     }
     html[data-theme="light"] .viz{background:linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,0))}
     .viz h5{margin:0 0 8px 0;font-size:12px;color:var(--muted);font-weight:1000;letter-spacing:.3px}
@@ -413,6 +636,104 @@
       .subtabs{gap:6px}
       .subtab{padding:6px 8px}
       #modal_right{width:100%;min-width:100%}
+    }
+
+    /* Анимации */
+    @keyframes fadeInUp {
+      from {
+        opacity:0;
+        transform:translateY(5px);
+      }
+      to {
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
+    @keyframes slideIn {
+      from {
+        opacity:0;
+        transform:translateY(-10px);
+      }
+      to {
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
+    @keyframes modalAppear {
+      from {
+        opacity:0;
+        transform:scale(0.95);
+      }
+      to {
+        opacity:1;
+        transform:scale(1);
+      }
+    }
+    @keyframes numberChange {
+      0% {
+        opacity:1;
+        transform:translateY(0);
+      }
+      50% {
+        opacity:0;
+        transform:translateY(-10px);
+      }
+      51% {
+        opacity:0;
+        transform:translateY(10px);
+      }
+      100% {
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
+
+    /* Новые стили для персонализации */
+    .scenario-controls {
+      display:flex;
+      gap:8px;
+      margin-top:12px;
+      flex-wrap:wrap;
+    }
+    .scenario-item {
+      display:flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 10px;
+      background:var(--chip-bg);
+      border:1px solid var(--border);
+      border-radius:10px;
+      font-size:12px;
+    }
+    .threshold-control {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-top:8px;
+    }
+    .threshold-control input {
+      width:60px;
+      text-align:center;
+    }
+    .color-picker {
+      display:flex;
+      gap:8px;
+      margin-top:10px;
+    }
+    .color-option {
+      width:30px;
+      height:30px;
+      border-radius:50%;
+      cursor:pointer;
+      border:2px solid var(--border);
+      transition:transform 0.2s ease;
+    }
+    .color-option:hover {
+      transform:scale(1.1);
+    }
+    .color-option.active {
+      border-color:var(--text);
+      transform:scale(1.1);
     }
   </style>
 </head>
@@ -447,16 +768,25 @@
     
     <section id="main_calc" class="main-screen active">
       <div class="subtabs" role="tablist" aria-label="Calculator tabs">
-        <button class="subtab active" data-tab="dca" data-i18n="tab.dca" type="button">DCA</button>
-        <button class="subtab" data-tab="rr" data-i18n="tab.rr" type="button">R/R</button>
-        <button class="subtab" data-tab="cap" data-i18n="tab.cap" type="button">Capital</button>
-        <button class="subtab" data-tab="ind" data-i18n="tab.ind" type="button">Indicators</button>
+        <button class="subtab active" data-tab="dca" data-i18n="tab.dca" type="button">
+          📈 DCA
+        </button>
+        <button class="subtab" data-tab="rr" data-i18n="tab.rr" type="button">
+          ⚖️ R/R
+        </button>
+        <button class="subtab" data-tab="cap" data-i18n="tab.cap" type="button">
+          💰 Capital
+        </button>
+        <button class="subtab" data-tab="ind" data-i18n="tab.ind" type="button">
+          📊 Indicators
+        </button>
       </div>
 
       <div class="panels">
         <!-- DCA -->
         <section id="dca" class="screen active">
           <div class="card">
+            <h3 data-i18n="dca.title">DCA Calculator</h3>
             <div class="small" style="margin-bottom:10px" data-i18n="dca.tip">
               Tip: add multiple entries — app will calculate avg, total volume and cost.
             </div>
@@ -464,29 +794,41 @@
             <div id="dca_rows"></div>
 
             <div class="controls" style="margin-top:10px">
-              <button class="btn" id="dca_add" type="button" data-i18n="dca.add">+ Add entry</button>
-              <button class="btn ghost" id="dca_clear" type="button" data-i18n="common.clear">Clear</button>
+              <button class="btn accent" id="dca_add" type="button" data-i18n="dca.add">
+                ➕ Add entry
+              </button>
+              <button class="btn ghost" id="dca_clear" type="button" data-i18n="common.clear">
+                🗑️ Clear
+              </button>
             </div>
 
-            <div class="result" style="margin-top:12px">
+            <div class="result" style="margin-top:12px" id="dca_avg_result">
               <div>
                 <div class="small" data-i18n="dca.avg">Average price</div>
-                <div><span class="v" id="dca_avg">—</span></div>
+                <div class="result-value">
+                  <span class="v new" id="dca_avg">—</span>
+                </div>
               </div>
-              <button class="btn ghost" id="dca_copy" type="button" data-i18n="common.copy">Copy</button>
+              <button class="btn ghost btn-copy" id="dca_copy" type="button" data-i18n="common.copy">
+                <span class="copy-text">📋 Copy</span>
+              </button>
             </div>
 
             <div class="row" style="margin-top:10px">
-              <div class="result" style="flex:1">
+              <div class="result" style="flex:1" id="dca_vol_result">
                 <div>
                   <div class="small" data-i18n="dca.vol">Total volume</div>
-                  <div><span class="v" id="dca_total_vol">—</span></div>
+                  <div class="result-value">
+                    <span class="v new" id="dca_total_vol">—</span>
+                  </div>
                 </div>
               </div>
-              <div class="result" style="flex:1">
+              <div class="result" style="flex:1" id="dca_cost_result">
                 <div>
                   <div class="small" data-i18n="dca.cost">Total cost</div>
-                  <div><span class="v" id="dca_total_cost">—</span></div>
+                  <div class="result-value">
+                    <span class="v new" id="dca_total_cost">—</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -494,7 +836,7 @@
             <!-- DCA GOAL -->
             <div style="margin-top:12px;border-top:1px dashed var(--border);padding-top:12px">
               <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
-                <b style="color:var(--accent);font-weight:1000" data-i18n="dca.goalHeader">DCA Goal</b>
+                <b style="color:var(--accent);font-weight:1000" data-i18n="dca.goalHeader">🎯 DCA Goal</b>
                 <span class="small" data-i18n="dca.goalOptional">optional</span>
               </div>
 
@@ -502,21 +844,25 @@
 
               <div class="row">
                 <div class="field" style="margin:0">
-                  <label data-i18n="dca.goalPrice">Target avg price</label>
+                  <label data-i18n="dca.goalPrice">🎯 Target avg price</label>
                   <input id="dca_goal" type="number" step="any" inputmode="decimal" />
                 </div>
                 <div class="field" style="margin:0">
-                  <label data-i18n="dca.nextPrice">Next buy price</label>
+                  <label data-i18n="dca.nextPrice">➡️ Next buy price</label>
                   <input id="dca_next_price" type="number" step="any" inputmode="decimal" />
                 </div>
               </div>
 
-              <div class="result">
+              <div class="result" id="dca_need_result">
                 <div>
                   <div class="small" data-i18n="dca.need">Needed volume at next price</div>
-                  <div><span class="v" id="dca_need_vol">—</span></div>
+                  <div class="result-value">
+                    <span class="v new" id="dca_need_vol">—</span>
+                  </div>
                 </div>
-                <button class="btn ghost" id="dca_need_copy" type="button" data-i18n="common.copy">Copy</button>
+                <button class="btn ghost btn-copy" id="dca_need_copy" type="button" data-i18n="common.copy">
+                  <span class="copy-text">📋 Copy</span>
+                </button>
               </div>
             </div>
           </div>
@@ -525,24 +871,25 @@
         <!-- R/R -->
         <section id="rr" class="screen">
           <div class="card">
+            <h3 data-i18n="rr.title">Risk/Reward Calculator</h3>
             <div class="row">
               <div class="field" style="flex:1">
-                <label data-i18n="rr.entry">Entry</label>
+                <label data-i18n="rr.entry">📥 Entry</label>
                 <input id="rr_entry" type="number" step="any" inputmode="decimal" />
               </div>
               <div class="field" style="flex:1">
-                <label data-i18n="rr.sl">Stop Loss</label>
+                <label data-i18n="rr.sl">🛑 Stop Loss</label>
                 <input id="rr_sl" type="number" step="any" inputmode="decimal" />
               </div>
               <div class="field" style="flex:1">
-                <label data-i18n="rr.tp">Take Profit</label>
+                <label data-i18n="rr.tp">🎯 Take Profit</label>
                 <input id="rr_tp" type="number" step="any" inputmode="decimal" />
               </div>
             </div>
 
             <div class="row">
               <div class="field" style="flex:1">
-                <label data-i18n="rr.fee">Fee % (entry+exit)</label>
+                <label data-i18n="rr.fee">💰 Fee % (entry+exit)</label>
                 <input id="rr_fee" type="number" step="any" inputmode="decimal" value="0.2" />
                 <div class="small" data-i18n="rr.feeNote" style="margin-top:4px">
                   Shows net R/R: approximates entry+exit fees.
@@ -550,38 +897,48 @@
               </div>
             </div>
 
-            <div class="result">
+            <div class="result" id="rr_gross_result">
               <div>
                 <div class="small" data-i18n="rr.gross">Gross R/R</div>
-                <div><span class="v" id="rr_gross">—</span></div>
+                <div class="result-value">
+                  <span class="v new" id="rr_gross">—</span>
+                </div>
               </div>
-              <button class="btn ghost" id="rr_copy_gross" type="button" data-i18n="common.copy">Copy</button>
+              <button class="btn ghost btn-copy" id="rr_copy_gross" type="button" data-i18n="common.copy">
+                <span class="copy-text">📋 Copy</span>
+              </button>
             </div>
 
-            <div class="result">
+            <div class="result" id="rr_net_result">
               <div>
                 <div class="small" data-i18n="rr.net">Net R/R (fees)</div>
-                <div><span class="v" id="rr_net">—</span></div>
+                <div class="result-value">
+                  <span class="v new" id="rr_net">—</span>
+                </div>
               </div>
-              <button class="btn ghost" id="rr_copy_net" type="button" data-i18n="common.copy">Copy</button>
+              <button class="btn ghost btn-copy" id="rr_copy_net" type="button" data-i18n="common.copy">
+                <span class="copy-text">📋 Copy</span>
+              </button>
             </div>
+            <div id="rr_hint"></div>
           </div>
         </section>
 
         <!-- Capital -->
         <section id="cap" class="screen">
           <div class="card">
+            <h3 data-i18n="cap.title">Capital Management</h3>
             <div class="row">
               <div class="field">
-                <label data-i18n="cap.dep">Deposit</label>
+                <label data-i18n="cap.dep">💰 Deposit</label>
                 <input id="cap_dep" type="number" step="any" inputmode="decimal" />
               </div>
               <div class="field">
-                <label data-i18n="cap.risk">Risk %</label>
+                <label data-i18n="cap.risk">⚠️ Risk %</label>
                 <input id="cap_risk" type="number" step="any" inputmode="decimal" value="1" />
               </div>
               <div class="field">
-                <label data-i18n="cap.lev">Leverage</label>
+                <label data-i18n="cap.lev">⚡ Leverage</label>
                 <input id="cap_lev" type="number" step="any" inputmode="decimal" value="1" />
               </div>
             </div>
@@ -594,98 +951,146 @@
               <button class="chip" data-risk="3" type="button">3%</button>
             </div>
 
+            <!-- Сохранение сценариев -->
+            <div class="scenario-controls">
+              <button class="btn ghost" id="cap_save_scenario" type="button" style="font-size:12px">
+                💾 Save preset
+              </button>
+              <select id="cap_load_scenario" style="flex:1; max-width:200px; font-size:12px; padding:6px 10px;">
+                <option value="">Load preset...</option>
+              </select>
+              <button class="btn ghost danger" id="cap_delete_scenario" type="button" style="font-size:12px" disabled>
+                🗑️ Delete
+              </button>
+            </div>
+
             <div class="row" style="margin-top:8px">
               <div class="field">
-                <label data-i18n="cap.entry">Entry</label>
+                <label data-i18n="cap.entry">📥 Entry</label>
                 <input id="cap_entry" type="number" step="any" inputmode="decimal" />
               </div>
               <div class="field">
-                <label data-i18n="cap.sl">Stop Loss</label>
+                <label data-i18n="cap.sl">🛑 Stop Loss</label>
                 <input id="cap_sl" type="number" step="any" inputmode="decimal" />
               </div>
               <div class="field">
-                <label data-i18n="cap.fee">Fee % (entry+exit)</label>
+                <label data-i18n="cap.fee">💰 Fee % (entry+exit)</label>
                 <input id="cap_fee" type="number" step="any" inputmode="decimal" value="0.2" />
               </div>
             </div>
 
             <div class="row">
-              <div class="result" style="flex:1">
+              <div class="result" style="flex:1" id="cap_pos_result">
                 <div>
-                  <div class="small" data-i18n="cap.pos">Position size</div>
-                  <div><span class="v" id="cap_pos">—</span></div>
+                  <div class="small" data-i18n="cap.pos">📊 Position size</div>
+                  <div class="result-value">
+                    <span class="v new" id="cap_pos">—</span>
+                  </div>
                 </div>
-                <button class="btn ghost" id="cap_copy_pos" type="button" data-i18n="common.copy">Copy</button>
+                <button class="btn ghost btn-copy" id="cap_copy_pos" type="button" data-i18n="common.copy">
+                  <span class="copy-text">📋 Copy</span>
+                </button>
               </div>
             </div>
 
             <div class="row">
-              <div class="result" style="flex:1">
+              <div class="result" style="flex:1" id="cap_risk_result">
                 <div>
-                  <div class="small" data-i18n="cap.riskUsd">Risk $</div>
-                  <div><span class="v" id="cap_risk_usd">—</span></div>
+                  <div class="small" data-i18n="cap.riskUsd">⚠️ Risk $</div>
+                  <div class="result-value">
+                    <span class="v new" id="cap_risk_usd">—</span>
+                  </div>
                 </div>
               </div>
-              <div class="result" style="flex:1">
+              <div class="result" style="flex:1" id="cap_margin_result">
                 <div>
-                  <div class="small" data-i18n="cap.margin">Margin (lev)</div>
-                  <div><span class="v" id="cap_margin">—</span></div>
+                  <div class="small" data-i18n="cap.margin">🏦 Margin (lev)</div>
+                  <div class="result-value">
+                    <span class="v new" id="cap_margin">—</span>
+                  </div>
                 </div>
               </div>
             </div>
+            <div id="cap_hint"></div>
           </div>
         </section>
 
         <!-- Indicators -->
         <section id="ind" class="screen">
           <div class="card">
-            <h3 data-i18n="ind.title">Indicators</h3>
+            <h3 data-i18n="ind.title">📊 Market Indicators</h3>
 
             <div class="row">
               <div class="field" style="flex:1">
-                <label data-i18n="ind.fg.label">Fear &amp; Greed</label>
+                <label data-i18n="ind.fg.label">😨😊 Fear & Greed</label>
                 <div id="fg_value" class="result">
                   <div>
                     <div class="small" data-i18n="ind.fg.valueLabel">Value</div>
-                    <div><span class="v" id="fg_text">—</span></div>
+                    <div class="result-value">
+                      <span class="v new" id="fg_text">—</span>
+                    </div>
                   </div>
                 </div>
               </div>
               <div class="field" style="flex:1">
-                <label data-i18n="ind.mood.label">Market Mood</label>
+                <label data-i18n="ind.mood.label">🌡️ Market Mood</label>
                 <div class="result">
                   <div>
                     <div class="small" data-i18n="ind.mood.hint">Derived from F&G + Alt dom</div>
-                    <div><span class="v" id="mood">—</span></div>
+                    <div class="result-value">
+                      <span class="v new" id="mood">—</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
+            <!-- Настройки порогов для индикаторов -->
+            <div style="margin-top:12px; border-top:1px dashed var(--border); padding-top:12px;">
+              <div class="small" style="margin-bottom:8px;">⚙️ Fear & Greed Thresholds</div>
+              <div class="threshold-control">
+                <label style="font-size:11px;">Fear (<)</label>
+                <input type="number" id="fg_fear_threshold" min="0" max="100" value="30" style="width:50px;"/>
+                <label style="font-size:11px;">Neutral</label>
+                <input type="number" id="fg_neutral_threshold" min="0" max="100" value="70" style="width:50px;" disabled/>
+                <label style="font-size:11px;">Greed (>)</label>
+              </div>
+            </div>
+
             <div class="row">
               <div class="field" style="flex:1">
-                <label data-i18n="ind.tcap.label">Total Market Cap (USD)</label>
-                <div id="tcap" class="result"><span class="v" id="tcap_text">—</span></div>
+                <label data-i18n="ind.tcap.label">🌍 Total Market Cap (USD)</label>
+                <div id="tcap" class="result">
+                  <div class="result-value">
+                    <span class="v new" id="tcap_text">—</span>
+                  </div>
+                </div>
               </div>
               <div class="field" style="flex:1">
-                <label data-i18n="ind.alt.label">Alt dominance (proxy Altseason)</label>
-                <div id="alt_dom" class="result"><span class="v" id="alt_text">—</span></div>
+                <label data-i18n="ind.alt.label">🔄 Alt dominance (proxy Altseason)</label>
+                <div id="alt_dom" class="result">
+                  <div class="result-value">
+                    <span class="v new" id="alt_text">—</span>
+                  </div>
+                </div>
               </div>
             </div>
 
             <div class="controls">
-              <button class="btn" id="refresh_ind" type="button" data-i18n="ind.refresh">Refresh</button>
+              <button class="btn accent" id="refresh_ind" type="button" data-i18n="ind.refresh">
+                🔄 Refresh
+              </button>
               <span class="small" id="ind_note"></span>
             </div>
 
             <div class="vizgrid">
-              <div class="viz">
+              <div class="viz" id="fg_viz">
                 <h5 data-i18n="ind.viz.fg">F&G Gauge</h5>
                 <canvas id="fg_canvas" width="600" height="260"></canvas>
                 <div class="big" id="fg_big">—</div>
                 <div class="sub" id="fg_sub">—</div>
               </div>
-              <div class="viz">
+              <div class="viz" id="dom_viz">
                 <h5 data-i18n="ind.viz.dom">Dominance Split</h5>
                 <canvas id="dom_canvas" width="600" height="260"></canvas>
                 <div class="big" id="dom_big">—</div>
@@ -697,10 +1102,12 @@
 
         <!-- history -->
         <aside class="history" aria-live="polite">
-          <h4 data-i18n="hist.title">History</h4>
+          <h4 data-i18n="hist.title">📜 History</h4>
           <div class="history-list" id="history_list"></div>
           <div class="controls" style="margin-top:8px">
-            <button class="btn ghost" id="clear_history" type="button" data-i18n="hist.clear">Clear</button>
+            <button class="btn ghost" id="clear_history" type="button" data-i18n="hist.clear">
+              🗑️ Clear
+            </button>
           </div>
           <div class="note" data-i18n="hist.note">Saved locally in your browser</div>
         </aside>
@@ -711,19 +1118,30 @@
     <section id="main_support" class="main-screen">
       <div class="support-wrap">
         <div class="card" style="width:min(820px,100%)">
-          <h3 data-i18n="support.title">Support</h3>
+          <h3 data-i18n="support.title">🛟 Support & Settings</h3>
 
           <div class="small" data-i18n="support.desc" style="margin-bottom:10px">
             Wallet connection & tips are here. You can also contact support below.
           </div>
 
-          <div class="controls" style="margin-top:8px">
+          <!-- Выбор цвета темы -->
+          <div style="margin-top:16px; border-top:1px dashed var(--border); padding-top:12px;">
+            <div class="small" style="margin-bottom:8px;">🎨 Accent Color Theme</div>
+            <div class="color-picker">
+              <div class="color-option active" style="background:linear-gradient(135deg, #7CFC00 0%, #00FFAA 100%);" data-color="#7CFC00"></div>
+              <div class="color-option" style="background:linear-gradient(135deg, #2d8cff 0%, #00d4ff 100%);" data-color="#2d8cff"></div>
+              <div class="color-option" style="background:linear-gradient(135deg, #FF6B8B 0%, #FF8E53 100%);" data-color="#FF6B8B"></div>
+              <div class="color-option" style="background:linear-gradient(135deg, #9D50BB 0%, #6E48AA 100%);" data-color="#9D50BB"></div>
+            </div>
+          </div>
+
+          <div class="controls" style="margin-top:16px">
             <button class="btn" id="wallet_btn" type="button" aria-label="TON Wallet">
-              <span data-i18n="wallet">Wallet</span>
+              <span data-i18n="wallet">👛 Wallet</span>
             </button>
 
             <button class="btn" id="tip_btn" type="button" aria-label="Tip TON">
-              <span data-i18n="tip">Tip TON</span>
+              <span data-i18n="tip">💎 Tip TON</span>
             </button>
           </div>
 
@@ -732,9 +1150,9 @@
           </div>
 
           <div class="controls" style="margin-top:10px">
-            <button class="btn ghost" id="open_terms" type="button">Terms</button>
-            <button class="btn ghost" id="open_privacy" type="button">Privacy</button>
-            <button class="btn ghost" id="open_support" type="button">Contact</button>
+            <button class="btn ghost" id="open_terms" type="button">📄 Terms</button>
+            <button class="btn ghost" id="open_privacy" type="button">🔒 Privacy</button>
+            <button class="btn ghost" id="open_support" type="button">💬 Contact</button>
           </div>
         </div>
 
@@ -770,7 +1188,7 @@
 <div id="modal_backdrop" role="dialog" aria-modal="true">
   <div id="modal">
     <div id="modal_header">
-      <b data-i18n="card.title">Trade Card</b>
+      <b data-i18n="card.title">🖼️ Trade Card</b>
       <button id="modal_close" type="button">✕</button>
     </div>
     <div id="modal_body">
@@ -778,8 +1196,8 @@
         <canvas id="card_canvas" width="900" height="600"></canvas>
       </div>
       <div id="modal_right">
-        <button class="btn" id="card_download" type="button" data-i18n="card.download">Download PNG</button>
-        <button class="btn ghost" id="card_copy" type="button" data-i18n="card.copy">Copy</button>
+        <button class="btn accent" id="card_download" type="button" data-i18n="card.download">📥 Download PNG</button>
+        <button class="btn ghost" id="card_copy" type="button" data-i18n="card.copy">📋 Copy</button>
         <div id="modal_help" data-i18n="card.help">If copy doesn't work on your device, use Download PNG.</div>
       </div>
     </div>
@@ -792,7 +1210,6 @@
   try{ tg?.expand?.(); }catch(e){}
   try{ tg?.disableVerticalSwipes?.(); }catch(e){}
   try{ tg?.ready?.(); }catch(e){}
-
 
   const mainCalc = document.getElementById('main_calc');
   const mainSupport = document.getElementById('main_support');
@@ -812,15 +1229,13 @@
   mainBtnCalc?.addEventListener('click', ()=>setMainTab('calc'));
   mainBtnSupport?.addEventListener('click', ()=>setMainTab('support'));
 
- 
   let lastIndicators = null;
 
-  
   const locales = {
     ru:{
       "main.calc":"Калькулятор",
       "main.support":"Поддержка",
-      "support.title":"Поддержка / Support",
+      "support.title":"Поддержка / Настройки",
       "support.desc":"Здесь подключение кошелька и донат. Контакты и ссылки — ниже.",
       "support.docs":"Документы: Terms и Privacy доступны по /terms.html и /privacy.html",
 
@@ -835,21 +1250,24 @@
       "toast.copied":"Скопировано!","toast.saved":"Готово",
       "theme.dark":"Тёмная","theme.light":"Светлая",
 
+      "dca.title":"Калькулятор DCA",
       "dca.tip":"Совет: добавляй несколько входов — калькулятор посчитает среднюю цену, общий объём и сумму.",
       "dca.add":"+ Добавить вход","dca.avg":"Средняя цена","dca.vol":"Общий объём","dca.cost":"Сумма",
-      "dca.goalHeader":"DCA Goal","dca.goalOptional":"опционально",
+      "dca.goalHeader":"Цель DCA","dca.goalOptional":"опционально",
       "dca.goalTitle":"Цель по средней (опционально)","dca.goalPrice":"Целевая средняя цена","dca.nextPrice":"Цена следующей покупки","dca.need":"Нужный объём по next-price",
 
+      "rr.title":"Калькулятор Риска/Прибыли",
       "rr.entry":"Entry","rr.sl":"Stop Loss","rr.tp":"Take Profit",
       "rr.fee":"Комиссия % (вход+выход)","rr.feeNote":"Показывает net R/R с учётом примерной комиссии.",
       "rr.gross":"Gross R/R","rr.net":"Net R/R (fees)",
 
+      "cap.title":"Управление Капиталом",
       "cap.dep":"Депозит","cap.risk":"Риск %","cap.entry":"Entry","cap.sl":"Stop Loss",
       "cap.fee":"Комиссия % (вход+выход)","cap.lev":"Плечо","cap.presets":"Быстрые риски",
       "cap.pos":"Объём позиции","cap.riskUsd":"Риск $","cap.margin":"Маржа (плечо)",
 
       "ind.title":"Индикаторы",
-      "ind.fg.label":"Fear &amp; Greed","ind.fg.valueLabel":"Значение",
+      "ind.fg.label":"Fear & Greed","ind.fg.valueLabel":"Значение",
       "ind.tcap.label":"Общая капитализация (USD)",
       "ind.alt.label":"Доминация альтов (proxy Altseason)",
       "ind.mood.label":"Режим рынка",
@@ -875,7 +1293,7 @@
     en:{
       "main.calc":"Calculator",
       "main.support":"Support",
-      "support.title":"Support",
+      "support.title":"Support & Settings",
       "support.desc":"Wallet connection & tips are here. Contacts and links are below.",
       "support.docs":"Docs: Terms & Privacy are available at /terms.html and /privacy.html",
 
@@ -890,20 +1308,23 @@
       "toast.copied":"Copied!","toast.saved":"Done",
       "theme.dark":"Dark","theme.light":"Light",
 
+      "dca.title":"DCA Calculator",
       "dca.tip":"Tip: add multiple entries — app will calculate avg, total volume and cost.",
       "dca.add":"+ Add entry","dca.avg":"Average price","dca.vol":"Total volume","dca.cost":"Total cost",
       "dca.goalHeader":"DCA Goal","dca.goalOptional":"optional",
       "dca.goalTitle":"Target average (optional)","dca.goalPrice":"Target avg price","dca.nextPrice":"Next buy price","dca.need":"Needed volume at next price",
 
+      "rr.title":"Risk/Reward Calculator",
       "rr.entry":"Entry","rr.sl":"Stop Loss","rr.tp":"Take Profit",
       "rr.fee":"Fee % (entry+exit)","rr.feeNote":"Shows net R/R: approximates entry+exit fees.",
       "rr.gross":"Gross R/R","rr.net":"Net R/R (fees)",
 
+      "cap.title":"Capital Management",
       "cap.dep":"Deposit","cap.risk":"Risk %","cap.entry":"Entry","cap.sl":"Stop Loss",
       "cap.fee":"Fee % (entry+exit)","cap.lev":"Leverage","cap.presets":"Quick risks",
       "cap.pos":"Position size","cap.riskUsd":"Risk $","cap.margin":"Margin (lev)",
 
-      "ind.title":"Indicators",
+      "ind.title":"Market Indicators",
       "ind.fg.label":"Fear & Greed","ind.fg.valueLabel":"Value",
       "ind.tcap.label":"Total Market Cap (USD)",
       "ind.alt.label":"Alt dominance (proxy Altseason)",
@@ -947,7 +1368,6 @@
     updateThemeUI();
   }
 
-  
   let toastTimer=null;
   function showToast(msg){
     const el=document.getElementById('toast');
@@ -958,8 +1378,11 @@
     toastTimer=setTimeout(()=>el.classList.remove('show'), 1200);
   }
 
-  
   const THEME_KEY='tc_theme_v10';
+  const ACCENT_COLOR_KEY='tc_accent_color_v1';
+  const SCENARIOS_KEY='tc_scenarios_v1';
+  const FGSETTINGS_KEY='tc_fg_settings_v1';
+
   function getInitialTheme(){
     const saved=localStorage.getItem(THEME_KEY);
     if(saved==='dark'||saved==='light') return saved;
@@ -967,6 +1390,11 @@
     if(tgScheme==='light') return 'light';
     return 'dark';
   }
+
+  function getAccentColor(){
+    return localStorage.getItem(ACCENT_COLOR_KEY) || '#7CFC00';
+  }
+
   function setTheme(theme){
     if(theme!=='dark' && theme!=='light') theme='dark';
     document.documentElement.setAttribute('data-theme', theme);
@@ -974,6 +1402,25 @@
     updateThemeUI();
     drawAllIndicatorVisuals(lastIndicators);
   }
+
+  function setAccentColor(color){
+    document.documentElement.style.setProperty('--accent', color);
+    const gradient = getGradientFromColor(color);
+    document.documentElement.style.setProperty('--accent-gradient', gradient);
+    localStorage.setItem(ACCENT_COLOR_KEY, color);
+    updateThemeUI();
+  }
+
+  function getGradientFromColor(color){
+    const gradients = {
+      '#7CFC00': 'linear-gradient(135deg, #7CFC00 0%, #00FFAA 100%)',
+      '#2d8cff': 'linear-gradient(135deg, #2d8cff 0%, #00d4ff 100%)',
+      '#FF6B8B': 'linear-gradient(135deg, #FF6B8B 0%, #FF8E53 100%)',
+      '#9D50BB': 'linear-gradient(135deg, #9D50BB 0%, #6E48AA 100%)'
+    };
+    return gradients[color] || gradients['#7CFC00'];
+  }
+
   function updateThemeUI(){
     const theme=document.documentElement.getAttribute('data-theme')||'dark';
     const icon=document.getElementById('theme_icon');
@@ -990,11 +1437,28 @@
       text.textContent=t('theme.dark');
       btn.classList.remove('active');
     }
+
+    // Обновляем выбранный цвет в палитре
+    const currentColor = getAccentColor();
+    document.querySelectorAll('.color-option').forEach(opt => {
+      opt.classList.toggle('active', opt.dataset.color === currentColor);
+    });
   }
+
+  // Инициализация темы и цвета
   setTheme(getInitialTheme());
+  setAccentColor(getAccentColor());
+  
   document.getElementById('theme_toggle')?.addEventListener('click', ()=>{
     const current=document.documentElement.getAttribute('data-theme')||'dark';
     setTheme(current==='dark'?'light':'dark');
+  });
+
+  // Выбор цвета темы
+  document.querySelectorAll('.color-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      setAccentColor(opt.dataset.color);
+    });
   });
 
   function safeNum(v){ const x=parseFloat(v); return isFinite(x)?x:0; }
@@ -1005,6 +1469,68 @@
     const d = abs>=1000 ? 2 : (abs>=1 ? 6 : digits);
     return n.toLocaleString(undefined,{maximumFractionDigits:d});
   }
+
+  function animateValueChange(element, newValue){
+    if(!element || element.textContent === newValue) return;
+    
+    const oldValue = element.textContent;
+    const container = element.parentElement;
+    
+    const oldSpan = document.createElement('span');
+    oldSpan.className = 'old';
+    oldSpan.textContent = oldValue;
+    oldSpan.style.color = element.style.color || getComputedStyle(element).color;
+    
+    const newSpan = document.createElement('span');
+    newSpan.className = 'new';
+    newSpan.textContent = newValue;
+    newSpan.style.animation = 'numberChange 0.4s ease';
+    
+    container.innerHTML = '';
+    container.appendChild(oldSpan);
+    container.appendChild(newSpan);
+    
+    element.textContent = newValue;
+    
+    setTimeout(() => {
+      container.innerHTML = '';
+      container.appendChild(newSpan);
+    }, 400);
+  }
+
+  function animateCopyButton(button){
+    if(!button) return;
+    
+    button.classList.add('copied');
+    setTimeout(() => {
+      button.classList.remove('copied');
+    }, 1500);
+  }
+
+  function showHint(elementId, text, isWarning=false){
+    const element = document.getElementById(elementId);
+    if(!element) return;
+    
+    // Удаляем старую подсказку
+    const oldHint = element.querySelector('.small.hint');
+    if(oldHint) oldHint.remove();
+    
+    if(!text) return;
+    
+    const hint = document.createElement('div');
+    hint.className = `small hint ${isWarning ? 'warning' : ''}`;
+    hint.textContent = text;
+    element.appendChild(hint);
+    
+    setTimeout(() => {
+      if(hint.parentElement === element){
+        hint.style.opacity = '0';
+        hint.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => hint.remove(), 300);
+      }
+    }, 5000);
+  }
+
   function haptic(type='impact', style='light'){
     try{
       if(!tg?.HapticFeedback) return;
@@ -1013,7 +1539,6 @@
     }catch(e){}
   }
 
-  
   const btnRu=document.getElementById('btn_ru');
   const btnEn=document.getElementById('btn_en');
   function syncLangButtons(){
@@ -1022,8 +1547,8 @@
     else { btnEn.classList.add('active'); btnRu.classList.remove('active'); }
   }
   syncLangButtons();
-  btnRu?.addEventListener('click', ()=>{ lang='ru'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); updateWalletUI(); });
-  btnEn?.addEventListener('click', ()=>{ lang='en'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); updateWalletUI(); });
+  btnRu?.addEventListener('click', ()=>{ lang='ru'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); updateWalletUI(); loadScenarios(); });
+  btnEn?.addEventListener('click', ()=>{ lang='en'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); updateWalletUI(); loadScenarios(); });
 
   document.querySelectorAll('.subtab').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -1040,7 +1565,6 @@
     return act?.dataset?.tab || 'dca';
   }
 
-  
   const dcaRowsEl=document.getElementById('dca_rows');
   const dcaAvgEl=document.getElementById('dca_avg');
   const dcaTotalVolEl=document.getElementById('dca_total_vol');
@@ -1053,52 +1577,88 @@
   function addDcaRow(p=0,v=0){
     const rowId=String(Math.random()).slice(2);
     const wrap=document.createElement('div');
-    wrap.className='row';
+    wrap.className='row dca-mobile-stack';
     wrap.style.marginBottom='8px';
     wrap.innerHTML=`
       <div class="field" style="flex:1;margin:0">
-        <label>${lang==='ru'?'Цена':'Price'}</label>
+        <label>💰 ${lang==='ru'?'Цена':'Price'}</label>
         <input type="number" step="any" inputmode="decimal" value="${p||''}">
       </div>
       <div class="field" style="flex:1;margin:0">
-        <label>${lang==='ru'?'Объём':'Volume'}</label>
+        <label>📊 ${lang==='ru'?'Объём':'Volume'}</label>
         <input type="number" step="any" inputmode="decimal" value="${v||''}">
       </div>
       <div style="display:flex;align-items:flex-end">
-        <button class="btn ghost" type="button" aria-label="remove" style="padding:9px 12px">×</button>
+        <button class="btn ghost" type="button" aria-label="remove" style="padding:9px 12px">🗑️</button>
       </div>
     `;
     const inputs=wrap.querySelectorAll('input');
     const btnRemove=wrap.querySelector('button');
     const item={id:rowId, el:wrap, pEl:inputs[0], vEl:inputs[1]};
-    inputs.forEach(inp=>inp.addEventListener('input', ()=>{
-      calcDCA();
-      pushHistoryIfReady();
-    }));
+    inputs.forEach(inp=>{
+      inp.addEventListener('input', ()=>{
+        calcDCA();
+        pushHistoryIfReady();
+        // Проверка на отрицательные значения
+        if(parseFloat(inp.value) < 0){
+          inp.classList.add('error');
+          showHint('dca', lang==='ru' ? 'Значение не может быть отрицательным' : 'Value cannot be negative', true);
+        } else {
+          inp.classList.remove('error');
+        }
+      });
+      inp.addEventListener('focus', ()=>inp.parentElement.style.transform='translateY(-1px)');
+      inp.addEventListener('blur', ()=>inp.parentElement.style.transform='');
+    });
     btnRemove.addEventListener('click', ()=>{
       dcaRows = dcaRows.filter(r=>r.id!==rowId);
-      wrap.remove();
-      calcDCA();
-      pushHistoryIfReady();
+      wrap.style.opacity='0';
+      wrap.style.transform='translateX(-10px)';
+      wrap.style.transition='all 0.3s ease';
+      setTimeout(()=>{
+        wrap.remove();
+        calcDCA();
+        pushHistoryIfReady();
+      }, 300);
     });
     dcaRows.push(item);
     dcaRowsEl.appendChild(wrap);
+    
+    // Анимация появления
+    wrap.style.opacity='0';
+    wrap.style.transform='translateY(10px)';
+    setTimeout(()=>{
+      wrap.style.opacity='1';
+      wrap.style.transform='translateY(0)';
+      wrap.style.transition='all 0.3s ease';
+    }, 10);
+    
     calcDCA();
   }
 
   function clearDCA(){
-    dcaRows=[];
-    dcaRowsEl.innerHTML='';
-    addDcaRow();
-    addDcaRow();
-    dcaGoal.value='';
-    dcaNext.value='';
-    calcDCA();
+    dcaRows.forEach(r=>{
+      r.el.style.opacity='0';
+      r.el.style.transform='translateX(-10px)';
+      r.el.style.transition='all 0.3s ease';
+    });
+    setTimeout(()=>{
+      dcaRows=[];
+      dcaRowsEl.innerHTML='';
+      addDcaRow();
+      addDcaRow();
+      dcaGoal.value='';
+      dcaNext.value='';
+      calcDCA();
+      showHint('dca', lang==='ru' ? 'Все поля очищены' : 'All fields cleared');
+    }, 300);
   }
 
   function calcDCA(){
     let totalVol=0;
     let totalCost=0;
+    let hasError = false;
+    
     dcaRows.forEach(r=>{
       const p=safeNum(r.pEl.value);
       const v=safeNum(r.vEl.value);
@@ -1106,35 +1666,66 @@
         totalVol += v;
         totalCost += p*v;
       }
+      if(p < 0 || v < 0) hasError = true;
     });
 
-    if(totalVol<=0){
-      dcaAvgEl.textContent='—';
-      dcaTotalVolEl.textContent='—';
-      dcaTotalCostEl.textContent='—';
-      dcaNeedVol.textContent='—';
+    const dcaAvgResult = document.getElementById('dca_avg_result');
+    const dcaVolResult = document.getElementById('dca_vol_result');
+    const dcaCostResult = document.getElementById('dca_cost_result');
+    const dcaNeedResult = document.getElementById('dca_need_result');
+
+    if(hasError){
+      [dcaAvgResult, dcaVolResult, dcaCostResult, dcaNeedResult].forEach(el=>{
+        if(el) el.classList.add('error');
+        el?.classList.remove('success');
+      });
+    } else if(totalVol<=0){
+      animateValueChange(dcaAvgEl, '—');
+      animateValueChange(dcaTotalVolEl, '—');
+      animateValueChange(dcaTotalCostEl, '—');
+      animateValueChange(dcaNeedVol, '—');
+      [dcaAvgResult, dcaVolResult, dcaCostResult, dcaNeedResult].forEach(el=>{
+        el?.classList.remove('success', 'error');
+      });
       return {avg:null, totalVol:0, totalCost:0};
+    } else {
+      const avg=totalCost/totalVol;
+      animateValueChange(dcaAvgEl, fmt(avg, 10));
+      animateValueChange(dcaTotalVolEl, fmt(totalVol, 8));
+      animateValueChange(dcaTotalCostEl, fmt(totalCost, 2));
+
+      const target=safeNum(dcaGoal.value);
+      const nextP=safeNum(dcaNext.value);
+      if(target>0 && nextP>0 && nextP!==target){
+        const x=(target*totalVol - totalCost) / (nextP - target);
+        animateValueChange(dcaNeedVol, (isFinite(x) && x>0) ? fmt(x, 8) : '—');
+        dcaNeedResult?.classList.add('success');
+      }else{
+        animateValueChange(dcaNeedVol, '—');
+        dcaNeedResult?.classList.remove('success');
+      }
+
+      [dcaAvgResult, dcaVolResult, dcaCostResult].forEach(el=>{
+        el?.classList.add('success');
+        el?.classList.remove('error');
+      });
+
+      if(target > 0 && nextP > 0 && nextP === target){
+        showHint('dca', lang==='ru' ? 'Цель и следующая цена не должны совпадать' : 'Target and next price should not be equal', true);
+      }
+
+      return {avg, totalVol, totalCost};
     }
-
-    const avg=totalCost/totalVol;
-    dcaAvgEl.textContent = fmt(avg, 10);
-    dcaTotalVolEl.textContent = fmt(totalVol, 8);
-    dcaTotalCostEl.textContent = fmt(totalCost, 2);
-
-    const target=safeNum(dcaGoal.value);
-    const nextP=safeNum(dcaNext.value);
-    if(target>0 && nextP>0 && nextP!==target){
-      const x=(target*totalVol - totalCost) / (nextP - target);
-      dcaNeedVol.textContent = (isFinite(x) && x>0) ? fmt(x, 8) : '—';
-    }else{
-      dcaNeedVol.textContent='—';
-    }
-
-    return {avg, totalVol, totalCost};
   }
 
-  document.getElementById('dca_add')?.addEventListener('click', ()=>addDcaRow());
-  document.getElementById('dca_clear')?.addEventListener('click', clearDCA);
+  document.getElementById('dca_add')?.addEventListener('click', ()=>{
+    addDcaRow();
+    haptic('impact', 'light');
+  });
+  document.getElementById('dca_clear')?.addEventListener('click', ()=>{
+    clearDCA();
+    haptic('impact', 'medium');
+  });
   dcaGoal?.addEventListener('input', ()=>{
     calcDCA();
     pushHistoryIfReady();
@@ -1144,72 +1735,117 @@
     pushHistoryIfReady();
   });
 
-  
-  async function copyText(text){
+  async function copyText(text, button){
     if(!text || text==='—') return false;
     try{
-      await navigator.clipboard.writeText(String(text));
+      await navigator.clipboard.writeText(String(text).replace(/[^0-9.,-]/g, ''));
+      showToast(t('toast.copied'));
+      haptic('notify','success');
+      if(button) animateCopyButton(button);
       return true;
     }catch(e){
       try{
         const ta=document.createElement('textarea');
-        ta.value=String(text);
+        ta.value=String(text).replace(/[^0-9.,-]/g, '');
         ta.style.position='fixed';
         ta.style.top='-1000px';
         document.body.appendChild(ta);
         ta.focus(); ta.select();
         const ok=document.execCommand('copy');
         ta.remove();
+        if(ok){
+          showToast(t('toast.copied'));
+          haptic('notify','success');
+          if(button) animateCopyButton(button);
+        }
         return !!ok;
       }catch(e2){ return false; }
     }
   }
+
   function bindCopy(btn, getVal){
     if(!btn) return;
     btn.addEventListener('click', async ()=>{
       const val=getVal();
-      const ok = await copyText(val);
-      if(ok){
-        showToast(t('toast.copied'));
-        haptic('notify','success');
-      }
+      await copyText(val, btn);
     });
   }
+
   bindCopy(document.getElementById('dca_copy'), ()=>dcaAvgEl.textContent);
   bindCopy(document.getElementById('dca_need_copy'), ()=>dcaNeedVol.textContent);
 
-  
   const rrEntry=document.getElementById('rr_entry');
   const rrSl=document.getElementById('rr_sl');
   const rrTp=document.getElementById('rr_tp');
   const rrFee=document.getElementById('rr_fee');
   const rrGross=document.getElementById('rr_gross');
   const rrNet=document.getElementById('rr_net');
+  const rrHint=document.getElementById('rr_hint');
 
   function calcRR(){
     const e=safeNum(rrEntry.value), sl=safeNum(rrSl.value), tp=safeNum(rrTp.value);
     const fee=safeNum(rrFee.value)/100;
+    
+    const grossResult = document.getElementById('rr_gross_result');
+    const netResult = document.getElementById('rr_net_result');
+    
+    // Проверка на одинаковые значения
+    if(e !== 0 && sl !== 0 && e === sl){
+      showHint('rr_hint', lang==='ru' ? 'Entry и Stop Loss не должны совпадать' : 'Entry and Stop Loss should not be equal', true);
+      rrEntry.classList.add('error');
+      rrSl.classList.add('error');
+      grossResult?.classList.remove('success');
+      netResult?.classList.remove('success');
+      return {gross:null, net:null};
+    } else {
+      rrEntry.classList.remove('error');
+      rrSl.classList.remove('error');
+    }
+    
     if(!e || !sl || !tp || e===sl){
-      rrGross.textContent='—';
-      rrNet.textContent='—';
+      animateValueChange(rrGross, '—');
+      animateValueChange(rrNet, '—');
+      grossResult?.classList.remove('success');
+      netResult?.classList.remove('success');
       return {gross:null, net:null};
     }
     const risk=Math.abs(e-sl);
     const reward=Math.abs(tp-e);
     if(!risk || !reward){
-      rrGross.textContent='—'; rrNet.textContent='—'; return {gross:null, net:null};
+      animateValueChange(rrGross, '—'); animateValueChange(rrNet, '—'); return {gross:null, net:null};
     }
     const gross=(reward/risk);
-    rrGross.textContent = '1:' + gross.toFixed(2);
+    animateValueChange(rrGross, '1:' + gross.toFixed(2));
 
     const feeEntry = e*fee;
     const feeExit  = tp*fee;
     const netReward = Math.max(0, reward - (feeEntry+feeExit));
     const net=(netReward / (risk + feeEntry));
-    rrNet.textContent = '1:' + net.toFixed(2);
+    animateValueChange(rrNet, '1:' + net.toFixed(2));
+    
+    grossResult?.classList.add('success');
+    netResult?.classList.add('success');
+    
+    // Контекстная подсказка
+    if(gross > 3){
+      showHint('rr_hint', lang==='ru' ? 'Отличное соотношение риска!' : 'Great risk ratio!');
+    } else if(gross < 1){
+      showHint('rr_hint', lang==='ru' ? 'Риск превышает потенциальную прибыль' : 'Risk exceeds potential profit', true);
+    }
+    
     return {gross, net};
   }
-  [rrEntry,rrSl,rrTp,rrFee].forEach(x=>x?.addEventListener('input', ()=>{ calcRR(); pushHistoryIfReady(); }));
+
+  [rrEntry,rrSl,rrTp,rrFee].forEach(x=>{
+    x?.addEventListener('input', ()=>{ 
+      calcRR(); 
+      pushHistoryIfReady();
+      if(x === rrFee && parseFloat(x.value) > 5){
+        showHint('rr_hint', lang==='ru' ? 'Высокая комиссия' : 'High fee percentage', true);
+      }
+    });
+  });
+  
   bindCopy(document.getElementById('rr_copy_gross'), ()=>rrGross.textContent);
   bindCopy(document.getElementById('rr_copy_net'), ()=>rrNet.textContent);
 
@@ -1222,6 +1858,98 @@
   const capPos=document.getElementById('cap_pos');
   const capRiskUsd=document.getElementById('cap_risk_usd');
   const capMargin=document.getElementById('cap_margin');
+  const capHint=document.getElementById('cap_hint');
+
+  // Управление сценариями
+  function loadScenarios(){
+    try{
+      const scenarios = JSON.parse(localStorage.getItem(SCENARIOS_KEY)) || [];
+      const select = document.getElementById('cap_load_scenario');
+      if(!select) return;
+      
+      select.innerHTML = '<option value="">Load preset...</option>';
+      scenarios.forEach((scenario, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = scenario.name + (scenario.date ? ` (${scenario.date})` : '');
+        select.appendChild(option);
+      });
+      
+      const deleteBtn = document.getElementById('cap_delete_scenario');
+      deleteBtn.disabled = scenarios.length === 0;
+    }catch(e){}
+  }
+
+  function saveScenario(){
+    const name = prompt(lang==='ru' ? 'Введите название пресета:' : 'Enter preset name:', 
+                       lang==='ru' ? 'Мой сценарий' : 'My Scenario');
+    if(!name) return;
+    
+    const scenario = {
+      name,
+      date: new Date().toLocaleDateString(),
+      dep: capDep.value,
+      risk: capRisk.value,
+      lev: capLev.value,
+      entry: capEntry.value,
+      sl: capSl.value,
+      fee: capFee.value
+    };
+    
+    try{
+      const scenarios = JSON.parse(localStorage.getItem(SCENARIOS_KEY)) || [];
+      scenarios.push(scenario);
+      localStorage.setItem(SCENARIOS_KEY, JSON.stringify(scenarios));
+      loadScenarios();
+      showToast(lang==='ru' ? 'Сценарий сохранён' : 'Scenario saved');
+    }catch(e){
+      showToast(lang==='ru' ? 'Ошибка сохранения' : 'Save error');
+    }
+  }
+
+  function loadScenario(index){
+    try{
+      const scenarios = JSON.parse(localStorage.getItem(SCENARIOS_KEY)) || [];
+      const scenario = scenarios[index];
+      if(!scenario) return;
+      
+      capDep.value = scenario.dep;
+      capRisk.value = scenario.risk;
+      capLev.value = scenario.lev;
+      capEntry.value = scenario.entry;
+      capSl.value = scenario.sl;
+      capFee.value = scenario.fee;
+      
+      calcCap();
+      pushHistoryIfReady();
+      showToast(lang==='ru' ? 'Сценарий загружен' : 'Scenario loaded');
+    }catch(e){
+      showToast(lang==='ru' ? 'Ошибка загрузки' : 'Load error');
+    }
+  }
+
+  function deleteScenario(){
+    const select = document.getElementById('cap_load_scenario');
+    if(!select || !select.value) return;
+    
+    if(confirm(lang==='ru' ? 'Удалить выбранный сценарий?' : 'Delete selected scenario?')){
+      try{
+        const scenarios = JSON.parse(localStorage.getItem(SCENARIOS_KEY)) || [];
+        scenarios.splice(parseInt(select.value), 1);
+        localStorage.setItem(SCENARIOS_KEY, JSON.stringify(scenarios));
+        loadScenarios();
+        showToast(lang==='ru' ? 'Сценарий удалён' : 'Scenario deleted');
+      }catch(e){
+        showToast(lang==='ru' ? 'Ошибка удаления' : 'Delete error');
+      }
+    }
+  }
+
+  document.getElementById('cap_save_scenario')?.addEventListener('click', saveScenario);
+  document.getElementById('cap_load_scenario')?.addEventListener('change', function(){
+    if(this.value) loadScenario(parseInt(this.value));
+  });
+  document.getElementById('cap_delete_scenario')?.addEventListener('click', deleteScenario);
 
   document.querySelectorAll('.chip[data-risk]').forEach(ch=>{
     ch.addEventListener('click', ()=>{
@@ -1230,6 +1958,7 @@
       capRisk.value=ch.dataset.risk;
       calcCap();
       pushHistoryIfReady();
+      haptic('impact', 'light');
     });
   });
 
@@ -1240,11 +1969,31 @@
     const e=safeNum(capEntry.value);
     const sl=safeNum(capSl.value);
     const fee=safeNum(capFee.value)/100;
+    
+    const posResult = document.getElementById('cap_pos_result');
+    const riskResult = document.getElementById('cap_risk_result');
+    const marginResult = document.getElementById('cap_margin_result');
+
+    if(e !== 0 && sl !== 0 && e === sl){
+      showHint('cap_hint', lang==='ru' ? 'Entry и Stop Loss не должны совпадать' : 'Entry and Stop Loss should not be equal', true);
+      capEntry.classList.add('error');
+      capSl.classList.add('error');
+      posResult?.classList.remove('success');
+      riskResult?.classList.remove('success');
+      marginResult?.classList.remove('success');
+      return {pos:null};
+    } else {
+      capEntry.classList.remove('error');
+      capSl.classList.remove('error');
+    }
 
     if(dep<=0 || rp<=0 || e<=0 || sl<=0 || e===sl){
-      capPos.textContent='—';
-      capRiskUsd.textContent='—';
-      capMargin.textContent='—';
+      animateValueChange(capPos, '—');
+      animateValueChange(capRiskUsd, '—');
+      animateValueChange(capMargin, '—');
+      posResult?.classList.remove('success');
+      riskResult?.classList.remove('success');
+      marginResult?.classList.remove('success');
       return {pos:null};
     }
 
@@ -1252,14 +2001,36 @@
     const move=Math.abs(e-sl) + (e*fee);
     const pos = riskUsd / move;
 
-    capPos.textContent = fmt(pos, 8);
-    capRiskUsd.textContent = fmt(riskUsd, 2);
+    animateValueChange(capPos, fmt(pos, 8));
+    animateValueChange(capRiskUsd, fmt(riskUsd, 2));
 
     const notional = pos * e;
-    capMargin.textContent = fmt(notional/lev, 2);
+    animateValueChange(capMargin, fmt(notional/lev, 2));
+    
+    posResult?.classList.add('success');
+    riskResult?.classList.add('success');
+    marginResult?.classList.add('success');
+    
+    // Контекстные подсказки
+    if(rp > 0.05){
+      showHint('cap_hint', lang==='ru' ? 'Высокий уровень риска' : 'High risk level', true);
+    } else if(lev > 10){
+      showHint('cap_hint', lang==='ru' ? 'Высокое кредитное плечо' : 'High leverage', true);
+    }
+    
     return {pos};
   }
-  [capDep,capRisk,capLev,capEntry,capSl,capFee].forEach(x=>x?.addEventListener('input', ()=>{ calcCap(); pushHistoryIfReady(); }));
+
+  [capDep,capRisk,capLev,capEntry,capSl,capFee].forEach(x=>{
+    x?.addEventListener('input', ()=>{ 
+      calcCap(); 
+      pushHistoryIfReady();
+      if(x === capRisk && parseFloat(x.value) > 10){
+        showHint('cap_hint', lang==='ru' ? 'Очень высокий риск' : 'Very high risk', true);
+      }
+    });
+  });
+  
   bindCopy(document.getElementById('cap_copy_pos'), ()=>capPos.textContent);
 
   const fgText=document.getElementById('fg_text');
@@ -1267,6 +2038,77 @@
   const altText=document.getElementById('alt_text');
   const moodEl=document.getElementById('mood');
   const indNote=document.getElementById('ind_note');
+  const fgFearThreshold = document.getElementById('fg_fear_threshold');
+  const fgNeutralThreshold = document.getElementById('fg_neutral_threshold');
+
+  // Загрузка настроек индикаторов
+  function loadFgSettings(){
+    try{
+      const settings = JSON.parse(localStorage.getItem(FGSETTINGS_KEY));
+      if(settings){
+        if(fgFearThreshold) fgFearThreshold.value = settings.fearThreshold || 30;
+        if(fgNeutralThreshold) fgNeutralThreshold.value = settings.neutralThreshold || 70;
+      }
+    }catch(e){}
+  }
+
+  // Сохранение настроек индикаторов
+  function saveFgSettings(){
+    try{
+      const settings = {
+        fearThreshold: parseInt(fgFearThreshold?.value) || 30,
+        neutralThreshold: parseInt(fgNeutralThreshold?.value) || 70
+      };
+      localStorage.setItem(FGSETTINGS_KEY, JSON.stringify(settings));
+    }catch(e){}
+  }
+
+  if(fgFearThreshold){
+    fgFearThreshold.addEventListener('change', ()=>{
+      if(fgNeutralThreshold){
+        const fear = parseInt(fgFearThreshold.value) || 30;
+        const neutral = parseInt(fgNeutralThreshold.value) || 70;
+        if(fear >= neutral){
+          fgFearThreshold.value = neutral - 1;
+        }
+      }
+      saveFgSettings();
+      updateIndicatorColors();
+    });
+  }
+
+  if(fgNeutralThreshold){
+    fgNeutralThreshold.addEventListener('change', ()=>{
+      if(fgFearThreshold){
+        const fear = parseInt(fgFearThreshold.value) || 30;
+        const neutral = parseInt(fgNeutralThreshold.value) || 70;
+        if(neutral <= fear){
+          fgNeutralThreshold.value = fear + 1;
+        }
+      }
+      saveFgSettings();
+      updateIndicatorColors();
+    });
+  }
+
+  function updateIndicatorColors(){
+    const fgValue = lastIndicators?.fgVal;
+    if(!isFinite(fgValue)) return;
+    
+    const fearThreshold = parseInt(fgFearThreshold?.value) || 30;
+    const neutralThreshold = parseInt(fgNeutralThreshold?.value) || 70;
+    
+    const fgViz = document.getElementById('fg_viz');
+    if(fgViz){
+      if(fgValue < fearThreshold){
+        fgViz.style.borderColor = 'var(--danger)';
+      } else if(fgValue > neutralThreshold){
+        fgViz.style.borderColor = 'var(--accent)';
+      } else {
+        fgViz.style.borderColor = 'var(--border)';
+      }
+    }
+  }
 
   const IND_CACHE_KEY='tc_ind_cache_v2';
   function saveIndicatorsCache(data){
@@ -1316,29 +2158,33 @@
       }
     }catch(e){}
 
-    fgText.textContent = isFinite(fgVal) ? `${fgVal} · ${fgClass}` : '—';
-    tcapText.textContent = isFinite(totalMc) ? '$' + Number(totalMc).toLocaleString(undefined,{maximumFractionDigits:0}) : '—';
+    animateValueChange(fgText, isFinite(fgVal) ? `${fgVal} · ${fgClass}` : '—');
+    animateValueChange(tcapText, isFinite(totalMc) ? '$' + Number(totalMc).toLocaleString(undefined,{maximumFractionDigits:0}) : '—');
 
     let altDom=null;
     if(typeof btcDom==='number' && isFinite(btcDom)){
       altDom = 100 - btcDom;
-      altText.textContent = altDom.toFixed(2) + '%';
+      animateValueChange(altText, altDom.toFixed(2) + '%');
     }else{
-      altText.textContent='—';
+      animateValueChange(altText, '—');
     }
 
-    moodEl.textContent = computeMood(fgVal ?? NaN, altDom ?? NaN);
+    animateValueChange(moodEl, computeMood(fgVal ?? NaN, altDom ?? NaN));
 
     lastIndicators = { fgVal, fgClass, totalMc, btcDom, altDom };
     saveIndicatorsCache(lastIndicators);
 
     drawAllIndicatorVisuals(lastIndicators);
+    updateIndicatorColors();
 
     if(indNote){
       indNote.textContent = (!okF && !okC) ? t('ind.rate') : '';
     }
   }
-  document.getElementById('refresh_ind')?.addEventListener('click', fetchIndicators);
+  document.getElementById('refresh_ind')?.addEventListener('click', ()=>{
+    fetchIndicators();
+    haptic('impact', 'light');
+  });
 
   function drawGauge(canvas, value){
     if(!canvas) return;
@@ -1461,12 +2307,13 @@
   const cached=loadIndicatorsCache();
   if(cached?.data){
     lastIndicators=cached.data;
-    fgText.textContent = isFinite(lastIndicators.fgVal) ? `${lastIndicators.fgVal} · ${lastIndicators.fgClass||'—'}` : '—';
-    tcapText.textContent = isFinite(lastIndicators.totalMc) ? '$' + Number(lastIndicators.totalMc).toLocaleString(undefined,{maximumFractionDigits:0}) : '—';
-    altText.textContent = (typeof lastIndicators.btcDom==='number' && isFinite(lastIndicators.btcDom)) ? ((100-lastIndicators.btcDom).toFixed(2)+'%') : '—';
-    moodEl.textContent = computeMood(lastIndicators.fgVal ?? NaN, lastIndicators.altDom ?? NaN);
-    indNote.textContent = t('ind.cached');
+    animateValueChange(fgText, isFinite(lastIndicators.fgVal) ? `${lastIndicators.fgVal} · ${lastIndicators.fgClass||'—'}` : '—');
+    animateValueChange(tcapText, isFinite(lastIndicators.totalMc) ? '$' + Number(lastIndicators.totalMc).toLocaleString(undefined,{maximumFractionDigits:0}) : '—');
+    animateValueChange(altText, (typeof lastIndicators.btcDom==='number' && isFinite(lastIndicators.btcDom)) ? ((100-lastIndicators.btcDom).toFixed(2)+'%') : '—');
+    animateValueChange(moodEl, computeMood(lastIndicators.fgVal ?? NaN, lastIndicators.altDom ?? NaN));
+    if(indNote) indNote.textContent = t('ind.cached');
     drawAllIndicatorVisuals(lastIndicators);
+    updateIndicatorColors();
   }
 
   const HISTORY_KEY='tc_history_v10';
@@ -1504,13 +2351,13 @@
       const btnCard=document.createElement('button');
       btnCard.className='mini';
       btnCard.type='button';
-      btnCard.textContent='PNG';
+      btnCard.textContent='🖼️ PNG';
       btnCard.addEventListener('click', ()=>{ exportCardPNG({fromHistory:true, historyItem:it}); });
 
       const btnCopy=document.createElement('button');
       btnCopy.className='mini';
       btnCopy.type='button';
-      btnCopy.textContent=t('common.copy');
+      btnCopy.textContent='📋 ' + t('common.copy');
       btnCopy.addEventListener('click', async ()=>{
         const ok = await copyText(it.summary || '');
         if(ok){ showToast(t('toast.copied')); haptic('notify','success'); }
@@ -1527,6 +2374,8 @@
   document.getElementById('clear_history')?.addEventListener('click', ()=>{
     localStorage.removeItem(HISTORY_KEY);
     renderHistory();
+    showToast(lang==='ru' ? 'История очищена' : 'History cleared');
+    haptic('impact', 'medium');
   });
 
   let lastPushAt=0;
@@ -1575,8 +2424,8 @@
     }catch(e){}
     window.open(url,'_blank');
   }
-  document.getElementById('link_telegram')?.addEventListener('click', e=>{ e.preventDefault(); openUrl('https://t.me/ChalovCrypto');});
-  document.getElementById('link_youtube')?.addEventListener('click', e=>{ e.preventDefault(); openUrl('https://www.youtube.com/@ChalovCrypto');});
+  document.getElementById('link_telegram')?.addEventListener('click', e=>{ e.preventDefault(); openUrl('https://t.me/InvestTraderTrade');});
+  document.getElementById('link_youtube')?.addEventListener('click', e=>{ e.preventDefault(); openUrl('https://www.youtube.com/@TRADER_TRADE');});
 
   document.getElementById('open_terms')?.addEventListener('click', ()=>openUrl(location.origin + '/terms.html'));
   document.getElementById('open_privacy')?.addEventListener('click', ()=>openUrl(location.origin + '/privacy.html'));
@@ -1588,8 +2437,18 @@
   const btnDownload=document.getElementById('card_download');
   const btnCopyImg=document.getElementById('card_copy');
 
-  function openModal(){ modalBackdrop.style.display='flex'; }
-  function closeModal(){ modalBackdrop.style.display='none'; }
+  function openModal(){ 
+    modalBackdrop.style.display='flex';
+    setTimeout(() => {
+      modalBackdrop.style.opacity = '1';
+    }, 10);
+  }
+  function closeModal(){ 
+    modalBackdrop.style.opacity = '0';
+    setTimeout(() => {
+      modalBackdrop.style.display='none';
+    }, 300);
+  }
   modalClose?.addEventListener('click', closeModal);
   modalBackdrop?.addEventListener('click', (e)=>{ if(e.target===modalBackdrop) closeModal(); });
 
@@ -1616,6 +2475,7 @@
     const text = theme==='light' ? '#0b0b0b' : '#ffffff';
     const muted = theme==='light' ? '#5f6675' : '#a8a8a8';
     const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || (theme==='light' ? '#2d8cff' : '#7CFC00');
+    const accentGradient = getComputedStyle(document.documentElement).getPropertyValue('--accent-gradient').trim();
 
     ctx.fillStyle=bg;
     ctx.fillRect(0,0,w,h);
@@ -1633,8 +2493,13 @@
     ctx.font='800 44px Inter, Arial';
     ctx.fillText('Trader Calculator', pad+28, pad+64);
 
+    // Заголовок с градиентом
+    const gradient = ctx.createLinearGradient(pad+28, 0, pad+300, 0);
+    gradient.addColorStop(0, accent);
+    gradient.addColorStop(1, accentGradient.includes('00FFAA') ? '#00FFAA' : accent);
+    
     ctx.font='900 36px Inter, Arial';
-    ctx.fillStyle=accent;
+    ctx.fillStyle=gradient;
     ctx.fillText(title, pad+28, pad+118);
 
     let y=pad+175;
@@ -1735,7 +2600,10 @@
     openModal();
   }
 
-  btnDownload?.addEventListener('click', downloadPng);
+  btnDownload?.addEventListener('click', ()=>{
+    downloadPng();
+    haptic('impact', 'medium');
+  });
   btnCopyImg?.addEventListener('click', async ()=>{
     const ok = await tryCopyImage();
     if(ok){
@@ -1746,7 +2614,10 @@
     }
   });
 
-  document.getElementById('card_btn')?.addEventListener('click', ()=>{ exportCardPNG({fromHistory:false}); });
+  document.getElementById('card_btn')?.addEventListener('click', ()=>{ 
+    exportCardPNG({fromHistory:false});
+    haptic('impact', 'light');
+  });
 
   const TONCONNECT_MANIFEST_URL = 'https://trade-calculator-five.vercel.app/tonconnect-manifest.json';
   const TIP_ADDRESS = 'UQD04FKshVmZaQjZq9y2AtBXWklkzQfK4sEJWrsYfqbNHGGz';
@@ -1826,6 +2697,7 @@
           await tonConnectUI.disconnect();
           updateWalletUI();
           showToast(t('toast.saved'));
+          haptic('impact', 'medium');
         }
       }else{
         await tonConnectUI.openModal();
@@ -1889,8 +2761,8 @@
   function refreshAll(){
     dcaRows.forEach(r=>{
       const labels=r.el.querySelectorAll('label');
-      if(labels[0]) labels[0].textContent = (lang==='ru'?'Цена':'Price');
-      if(labels[1]) labels[1].textContent = (lang==='ru'?'Объём':'Volume');
+      if(labels[0]) labels[0].textContent = '💰 ' + (lang==='ru'?'Цена':'Price');
+      if(labels[1]) labels[1].textContent = '📊 ' + (lang==='ru'?'Объём':'Volume');
     });
     calcDCA();
     calcRR();
@@ -1898,10 +2770,13 @@
     drawAllIndicatorVisuals(lastIndicators);
   }
 
+  // Инициализация
   translateAll();
   clearDCA();
   calcRR(); calcCap();
   renderHistory();
+  loadScenarios();
+  loadFgSettings();
 
   setTimeout(()=>{ try{ refreshAll(); }catch(e){} }, 60);
 
