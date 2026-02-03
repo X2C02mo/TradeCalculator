@@ -3,265 +3,817 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Trader Calculator</title>
+<title>Trader Calculator — Mini App</title>
+
+<!-- Telegram Web App SDK (разрешённый) -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 <style>
-:root{--bg:#000;--panel:#0b0b0b;--border:#151515;--text:#fff;--muted:#9a9a9a;--accent:#7CFC00;--accent-gradient:linear-gradient(135deg,#7CFC00 0%,#00FFAA 100%);--radius:14px;--shadow:0 12px 30px rgba(0,0,0,.55);--input-bg:#070707;--result-bg:#060606;--chip-bg:#0a0a0a}
-html[data-theme="light"]{--bg:#f6f7fb;--panel:#fff;--border:#e6e8ee;--text:#0b0b0b;--muted:#5f6675;--accent:#2d8cff;--accent-gradient:linear-gradient(135deg,#2d8cff 0%,#00d4ff 100%);--input-bg:#fbfcff;--result-bg:#f7f9ff;--chip-bg:#f1f4fb}
+:root{
+  --bg:#000; --panel:#0b0b0b; --border:#151515; --text:#fff; --muted:#9a9a9a;
+  --accent:#7CFC00; --accent-gradient:linear-gradient(135deg,#7CFC00 0%,#00FFAA 100%);
+  --radius:12px; --shadow:0 10px 30px rgba(0,0,0,.55); --input-bg:#070707; --result-bg:#060606;
+}
+html[data-theme="light"]{
+  --bg:#f6f7fb; --panel:#ffffff; --border:#e6e8ee; --text:#0b0b0b; --muted:#5f6675;
+  --accent:#2d8cff; --accent-gradient:linear-gradient(135deg,#2d8cff 0%,#00d4ff 100%);
+  --input-bg:#fbfcff; --result-bg:#f7f9ff;
+}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
-#app{min-height:100vh;display:flex;flex-direction:column}
-header{display:flex;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.25);backdrop-filter:blur(6px)}
-.lang{display:flex;gap:6px}
-.lang button{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 10px;border-radius:10px;cursor:pointer;font-weight:800;font-size:12px}
-.lang button.active{border-color:var(--accent);color:var(--accent)}
-main{flex:1;padding:12px;display:flex;flex-direction:column;gap:14px}
-.subtabs{display:flex;gap:8px;justify-content:center}
-.subtab{background:none;border:1px solid transparent;color:var(--muted);padding:6px 10px;border-radius:12px;cursor:pointer;font-weight:900}
-.subtab.active{color:var(--accent);border-color:var(--accent);background:var(--chip-bg)}
-.panels{display:flex;gap:14px;flex-wrap:wrap}
-.screen{display:none;width:100%}
-.screen.active{display:block}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:12px;max-width:920px;box-shadow:var(--shadow)}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
+.container{max-width:1100px;margin:14px auto;padding:12px}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#111,#222);display:flex;align-items:center;justify-content:center;font-weight:900}
+.title{font-weight:900}
+.controls{display:flex;gap:8px;align-items:center}
+.btn{padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-weight:800}
+.btn.primary{background:var(--accent-gradient);color:#000;border:none}
+.btn.ghost{background:transparent}
+.grid{display:grid;grid-template-columns:1fr 360px;gap:14px}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;box-shadow:var(--shadow)}
+.subtabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.tab{padding:8px 12px;border-radius:10px;border:1px solid transparent;background:transparent;cursor:pointer;color:var(--muted);font-weight:800}
+.tab.active{border-color:var(--accent);color:var(--accent);background:linear-gradient(135deg,rgba(0,0,0,.06),transparent)}
 .field{margin-bottom:10px}
 label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:800}
-input,select{width:100%;padding:10px;background:var(--input-bg);border:1px solid var(--border);color:var(--text);border-radius:10px;font-size:15px;outline:none}
+input[type="number"], select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);font-size:15px;outline:none}
 .row{display:flex;gap:10px;flex-wrap:wrap}
-.row > *{flex:1;min-width:150px}
-.result{margin-top:8px;padding:10px;border-radius:12px;background:var(--result-bg);border:1px solid var(--border);display:flex;gap:8px;align-items:center;justify-content:space-between;font-weight:900}
+.row > *{flex:1;min-width:120px}
+.result{margin-top:8px;padding:10px;border-radius:10px;background:var(--result-bg);border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-weight:900}
 .small{font-size:12px;color:var(--muted);font-weight:700}
-.controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-.btn{background:transparent;color:var(--accent);border:1px solid color-mix(in srgb,var(--border) 80%,var(--accent));padding:9px 12px;border-radius:12px;cursor:pointer;font-weight:900}
-.btn.accent{background:var(--accent-gradient);color:#000;border:none}
-.btn.ghost{color:var(--muted);border-color:var(--border)}
-.btn-copy{min-width:70px}
+.controls-wrap{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-.chip{border:1px solid var(--border);background:var(--chip-bg);padding:7px 10px;border-radius:999px;cursor:pointer;color:var(--muted);font-weight:900;font-size:12px}
-.chip.active{border-color:var(--accent);color:var(--accent);background:transparent}
-.history{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:10px;width:100%;max-width:360px;box-shadow:var(--shadow)}
+.chip{padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-weight:900}
+.chip.active{border-color:var(--accent);color:var(--accent)}
 .history-list{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow:auto;padding-right:4px}
-.hist-item{border:1px solid var(--border);border-radius:12px;padding:8px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0))}
-.bottomnav{position:fixed;left:0;right:0;bottom:0;padding:10px;border-top:1px solid var(--border);background:rgba(0,0,0,.45);backdrop-filter:blur(8px)}
-.main-tab{flex:1;border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:14px;padding:10px 12px;cursor:pointer;font-weight:1000;display:flex;align-items:center;justify-content:center;gap:10px}
-.main-tab.active{border-color:var(--accent);color:var(--accent);background:transparent}
-#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:88px;padding:10px 12px;border-radius:999px;border:1px solid var(--border);background:rgba(0,0,0,.75);color:#fff;font-weight:900;font-size:13px;opacity:0;pointer-events:none;transition:opacity .18s ease, transform .18s ease;z-index:999}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(-2px)}
-.dca-mobile-stack{display:flex;gap:10px;flex-wrap:wrap}
-@media(max-width:520px){.dca-mobile-stack{flex-direction:column}}
-@keyframes numberChange{0%{opacity:1;transform:translateY(0)}50%{opacity:0;transform:translateY(-6px)}51%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
-.small.hint{padding:6px 8px;background:color-mix(in srgb,var(--accent) 10%,transparent);border-radius:8px;border-left:3px solid var(--accent);margin-top:4px}
-.small.warning{border-left-color:#ff4d4d;background:color-mix(in srgb,#ff4d4d 10%,transparent)}
+.hist-item{border:1px solid var(--border);border-radius:10px;padding:8px;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent)}
+.footer-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.note{font-size:12px;color:var(--muted);margin-top:8px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:88px;padding:8px 12px;border-radius:999px;background:rgba(0,0,0,.75);color:#fff;font-weight:900;opacity:0;pointer-events:none;transition:opacity .18s}
+.toast.show{opacity:1}
+.onboard{padding:10px;border-radius:10px;border:1px dashed var(--border);background:linear-gradient(180deg,rgba(255,255,255,.02),transparent);margin-bottom:12px}
 </style>
 </head>
 <body>
-<div id="app">
-<header>
-<div style="display:flex;gap:10px;align-items:center">
-<div class="lang"><button id="btn_ru">RU</button><button id="btn_en">EN</button></div>
-<button id="theme_toggle" class="btn" type="button">Theme</button>
+<div class="container" role="application" aria-label="Trader Calculator">
+  <header class="header">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">TC</div>
+      <div>
+        <div class="title">Trader Calculator</div>
+        <div class="small">DCA · R/R · Risk management</div>
+      </div>
+    </div>
+
+    <div class="controls" role="toolbar" aria-label="Controls">
+      <button id="btn_theme" class="btn" aria-pressed="false" title="Toggle theme">Тема</button>
+      <button id="btn_card" class="btn" title="Trade card PNG">Card</button>
+      <button id="btn_share" class="btn ghost" title="Share">Share</button>
+    </div>
+  </header>
+
+  <div id="onboarding" class="onboard card" role="region" aria-live="polite">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <b>Добро пожаловать</b>
+        <div class="small">Мини-приложение готово к проверке TAPPS. MainButton — включён.</div>
+      </div>
+      <div>
+        <button id="onn_close" class="btn">Ок</button>
+      </div>
+    </div>
+  </div>
+
+  <nav class="subtabs" role="tablist" aria-label="Tabs">
+    <button class="tab active" data-tab="dca" role="tab">DCA</button>
+    <button class="tab" data-tab="rr" role="tab">R/R</button>
+    <button class="tab" data-tab="cap" role="tab">Capital</button>
+    <button class="tab" data-tab="ind" role="tab">Indicators</button>
+  </nav>
+
+  <div class="grid" role="main">
+    <section>
+      <!-- DCA -->
+      <section id="screen_dca" class="card" aria-labelledby="dca_title" role="region">
+        <h3 id="dca_title">DCA Calculator</h3>
+        <div class="small">Добавьте входы (price + volume). Результат пересчитывается мгновенно.</div>
+
+        <div id="dca_rows" style="margin-top:12px" aria-live="polite"></div>
+
+        <div class="controls-wrap">
+          <button id="dca_add" class="btn primary">+ Добавить вход</button>
+          <button id="dca_clear" class="btn">Очистить</button>
+        </div>
+
+        <div class="result" id="dca_avg_block">
+          <div>
+            <div class="small">Средняя цена</div>
+            <div id="dca_avg" class="result-value">—</div>
+          </div>
+          <div>
+            <button id="dca_copy" class="btn">Копировать</button>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <div class="result">
+            <div>
+              <div class="small">Общий объём</div>
+              <div id="dca_total_vol" class="result-value">—</div>
+            </div>
+          </div>
+          <div class="result">
+            <div>
+              <div class="small">Сумма</div>
+              <div id="dca_total_cost" class="result-value">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;border-top:1px dashed var(--border);padding-top:12px">
+          <div class="row">
+            <div class="field">
+              <label for="dca_goal">Target average price (опционально)</label>
+              <input id="dca_goal" type="number" step="any" inputmode="decimal" />
+            </div>
+            <div class="field">
+              <label for="dca_next_price">Next buy price</label>
+              <input id="dca_next_price" type="number" step="any" inputmode="decimal" />
+            </div>
+          </div>
+
+          <div class="result" style="margin-top:10px">
+            <div>
+              <div class="small">Нужный объём при next price</div>
+              <div id="dca_need_vol" class="result-value">—</div>
+            </div>
+            <div><button id="dca_need_copy" class="btn">Копировать</button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- R/R -->
+      <section id="screen_rr" class="card" aria-labelledby="rr_title" role="region" style="margin-top:14px;display:none">
+        <h3 id="rr_title">Risk / Reward</h3>
+        <div class="row">
+          <div class="field"><label for="rr_entry">Entry</label><input id="rr_entry" type="number" step="any" /></div>
+          <div class="field"><label for="rr_sl">Stop Loss</label><input id="rr_sl" type="number" step="any" /></div>
+          <div class="field"><label for="rr_tp">Take Profit</label><input id="rr_tp" type="number" step="any" /></div>
+        </div>
+        <div class="field"><label for="rr_fee">Fee % (entry+exit)</label><input id="rr_fee" type="number" step="any" value="0.2" /></div>
+
+        <div class="result" id="rr_gross_block">
+          <div>
+            <div class="small">Gross R/R</div>
+            <div id="rr_gross" class="result-value">—</div>
+          </div>
+          <div><button id="rr_copy_gross" class="btn">Копировать</button></div>
+        </div>
+
+        <div class="result" style="margin-top:10px">
+          <div>
+            <div class="small">Net R/R (fees)</div>
+            <div id="rr_net" class="result-value">—</div>
+          </div>
+          <div><button id="rr_copy_net" class="btn">Копировать</button></div>
+        </div>
+
+        <div id="rr_hint" class="note"></div>
+      </section>
+
+      <!-- Capital -->
+      <section id="screen_cap" class="card" aria-labelledby="cap_title" role="region" style="margin-top:14px;display:none">
+        <h3 id="cap_title">Capital Management</h3>
+        <div class="row">
+          <div class="field"><label for="cap_dep">Deposit</label><input id="cap_dep" type="number" step="any" /></div>
+          <div class="field"><label for="cap_risk">Risk %</label><input id="cap_risk" type="number" step="any" value="1" /></div>
+          <div class="field"><label for="cap_lev">Leverage</label><input id="cap_lev" type="number" step="any" value="1" /></div>
+        </div>
+
+        <div class="chips">
+          <button class="chip" data-risk="0.5">0.5%</button>
+          <button class="chip active" data-risk="1">1%</button>
+          <button class="chip" data-risk="2">2%</button>
+          <button class="chip" data-risk="3">3%</button>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <div class="field"><label for="cap_entry">Entry</label><input id="cap_entry" type="number" step="any" /></div>
+          <div class="field"><label for="cap_sl">Stop Loss</label><input id="cap_sl" type="number" step="any" /></div>
+          <div class="field"><label for="cap_fee">Fee %</label><input id="cap_fee" type="number" step="any" value="0.2" /></div>
+        </div>
+
+        <div class="result" style="margin-top:10px">
+          <div>
+            <div class="small">Position size</div>
+            <div id="cap_pos" class="result-value">—</div>
+          </div>
+          <div><button id="cap_copy_pos" class="btn">Копировать</button></div>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <div class="result"><div><div class="small">Risk $</div><div id="cap_risk_usd" class="result-value">—</div></div></div>
+          <div class="result"><div><div class="small">Margin (lev)</div><div id="cap_margin" class="result-value">—</div></div></div>
+        </div>
+
+        <div id="cap_hint" class="note"></div>
+      </section>
+
+      <!-- Indicators (placeholder) -->
+      <section id="screen_ind" class="card" aria-labelledby="ind_title" role="region" style="margin-top:14px;display:none">
+        <h3 id="ind_title">Indicators</h3>
+        <div class="row">
+          <div class="field" style="flex:1">
+            <div class="small">Fear & Greed</div>
+            <div id="fg_text" class="result" style="margin-top:6px">—</div>
+          </div>
+          <div class="field" style="flex:1">
+            <div class="small">Market mood</div>
+            <div id="mood" class="result" style="margin-top:6px">—</div>
+          </div>
+        </div>
+        <div class="controls-wrap" style="margin-top:8px">
+          <button id="refresh_ind" class="btn">Refresh</button>
+          <div id="ind_note" class="small"></div>
+        </div>
+      </section>
+    </section>
+
+    <aside>
+      <div class="card">
+        <h4>History</h4>
+        <div class="history-list" id="history_list" aria-live="polite"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="clear_history" class="btn">Очистить</button>
+          <button id="export_history" class="btn ghost">Экспорт</button>
+        </div>
+
+        <div class="footer-links">
+          <a href="/terms.html" style="color:var(--muted)">Terms</a>
+          <a href="/privacy.html" style="color:var(--muted)">Privacy</a>
+          <a href="https://t.me/Trader_TradeSupportBot" style="color:var(--muted)">Contact</a>
+        </div>
+
+        <div class="note">Сохранено локально в браузере. Мини-приложение готово к проверке TAPPS.</div>
+      </div>
+    </aside>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite">—</div>
 </div>
-<div>
-<button id="card_btn" class="btn">Card PNG</button>
-<button id="share_btn" class="btn ghost">Share</button>
+
+<!-- Modal for card -->
+<div id="modal_backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);align-items:center;justify-content:center;z-index:999">
+  <div style="width:min(900px,95%);max-width:900px;">
+    <div class="card" style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <b>Trade Card</b>
+        <button id="modal_close" class="btn">✕</button>
+      </div>
+      <canvas id="card_canvas" width="900" height="600" style="width:100%;height:auto;border-radius:8px"></canvas>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button id="card_download" class="btn primary">Скачать PNG</button>
+        <button id="card_copy" class="btn">Копировать</button>
+      </div>
+    </div>
+  </div>
 </div>
-</header>
-<main>
-<section id="main_calc" class="screen active">
-<div class="subtabs" role="tablist" aria-label="Calculator tabs">
-<button class="subtab active" data-tab="dca" type="button">DCA</button>
-<button class="subtab" data-tab="rr" type="button">R/R</button>
-<button class="subtab" data-tab="cap" type="button">Capital</button>
-<button class="subtab" data-tab="ind" type="button">Indicators</button>
-</div>
-<div class="panels" style="display:flex;gap:14px;align-items:flex-start">
-<section id="dca" class="screen active">
-<div class="card" id="card_dca">
-<h3>DCA Calculator</h3>
-<div class="small" style="margin-bottom:8px">Добавь входы — посчитаем среднюю цену, общий объём и сумму</div>
-<div id="dca_rows"></div>
-<div class="controls">
-<button id="dca_add" class="btn accent" type="button">+ Добавить вход</button>
-<button id="dca_clear" class="btn ghost" type="button">Очистить</button>
-</div>
-<div class="result" id="dca_avg_result" style="margin-top:12px">
-<div>
-<div class="small">Средняя цена</div>
-<div class="result-value"><span class="v new" id="dca_avg">—</span></div>
-</div>
-<button class="btn ghost btn-copy" id="dca_copy" type="button">Копировать</button>
-</div>
-<div class="row" style="margin-top:10px">
-<div class="result" style="flex:1" id="dca_vol_result">
-<div>
-<div class="small">Общий объём</div>
-<div class="result-value"><span class="v new" id="dca_total_vol">—</span></div>
-</div>
-</div>
-<div class="result" style="flex:1" id="dca_cost_result">
-<div>
-<div class="small">Сумма</div>
-<div class="result-value"><span class="v new" id="dca_total_cost">—</span></div>
-</div>
-</div>
-</div>
-<div style="margin-top:12px;border-top:1px dashed var(--border);padding-top:12px">
-<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
-<b style="color:var(--accent);font-weight:1000">DCA Goal</b><span class="small">optional</span>
-</div>
-<div class="row">
-<div class="field" style="flex:1">
-<label>Target avg price</label><input id="dca_goal" type="number" step="any" inputmode="decimal" />
-</div>
-<div class="field" style="flex:1">
-<label>Next buy price</label><input id="dca_next_price" type="number" step="any" inputmode="decimal" />
-</div>
-</div>
-<div class="result" id="dca_need_result" style="margin-top:10px">
-<div>
-<div class="small">Needed volume at next price</div>
-<div class="result-value"><span class="v new" id="dca_need_vol">—</span></div>
-</div>
-<button class="btn ghost btn-copy" id="dca_need_copy" type="button">Копировать</button>
-</div>
-</div>
-</section>
-<section id="rr" class="screen">
-<div class="card">
-<h3>Risk/Reward</h3>
-<div class="row">
-<div class="field"><label>Entry</label><input id="rr_entry" type="number" step="any" inputmode="decimal" /></div>
-<div class="field"><label>Stop Loss</label><input id="rr_sl" type="number" step="any" inputmode="decimal" /></div>
-<div class="field"><label>Take Profit</label><input id="rr_tp" type="number" step="any" inputmode="decimal" /></div>
-</div>
-<div class="field"><label>Fee % (entry+exit)</label><input id="rr_fee" type="number" step="any" inputmode="decimal" value="0.2" /></div>
-<div class="result" id="rr_gross_result"><div><div class="small">Gross R/R</div><div class="result-value"><span class="v new" id="rr_gross">—</span></div></div><button class="btn ghost btn-copy" id="rr_copy_gross" type="button">Копировать</button></div>
-<div class="result" id="rr_net_result" style="margin-top:8px"><div><div class="small">Net R/R (fees)</div><div class="result-value"><span class="v new" id="rr_net">—</span></div></div><button class="btn ghost btn-copy" id="rr_copy_net" type="button">Копировать</button></div>
-<div id="rr_hint"></div>
-</div>
-</section>
-<section id="cap" class="screen">
-<div class="card">
-<h3>Capital</h3>
-<div class="row">
-<div class="field"><label>Deposit</label><input id="cap_dep" type="number" step="any" inputmode="decimal" /></div>
-<div class="field"><label>Risk %</label><input id="cap_risk" type="number" step="any" inputmode="decimal" value="1" /></div>
-<div class="field"><label>Leverage</label><input id="cap_lev" type="number" step="any" inputmode="decimal" value="1" /></div>
-</div>
-<div class="chips"><div class="small" style="width:100%">Quick risks</div><button class="chip" data-risk="0.5" type="button">0.5%</button><button class="chip active" data-risk="1" type="button">1%</button><button class="chip" data-risk="2" type="button">2%</button><button class="chip" data-risk="3" type="button">3%</button></div>
-<div class="row" style="margin-top:8px">
-<div class="field"><label>Entry</label><input id="cap_entry" type="number" step="any" inputmode="decimal" /></div>
-<div class="field"><label>Stop Loss</label><input id="cap_sl" type="number" step="any" inputmode="decimal" /></div>
-<div class="field"><label>Fee %</label><input id="cap_fee" type="number" step="any" inputmode="decimal" value="0.2" /></div>
-</div>
-<div class="row" style="margin-top:10px">
-<div class="result" style="flex:1" id="cap_pos_result"><div><div class="small">Position size</div><div class="result-value"><span class="v new" id="cap_pos">—</span></div></div><button class="btn ghost btn-copy" id="cap_copy_pos" type="button">Копировать</button></div>
-</div>
-<div class="row" style="margin-top:10px">
-<div class="result" id="cap_risk_result"><div><div class="small">Risk $</div><div class="result-value"><span class="v new" id="cap_risk_usd">—</span></div></div></div>
-<div class="result" id="cap_margin_result"><div><div class="small">Margin (lev)</div><div class="result-value"><span class="v new" id="cap_margin">—</span></div></div></div>
-</div>
-</section>
-<section id="ind" class="screen">
-<div class="card"><h3>Indicators</h3><div class="row"><div class="field" style="flex:1"><label>Fear & Greed</label><div class="result"><div><div class="small">Value</div><div class="result-value"><span class="v new" id="fg_text">—</span></div></div></div></div><div class="field" style="flex:1"><label>Market Mood</label><div class="result"><div><div class="small">Mood</div><div class="result-value"><span class="v new" id="mood">—</span></div></div></div></div></div><div class="controls"><button id="refresh_ind" class="btn accent">Refresh</button><span class="small" id="ind_note"></span></div></div>
-</section>
-<aside class="history" aria-live="polite">
-<h4>History</h4>
-<div class="history-list" id="history_list"></div>
-<div class="controls" style="margin-top:8px"><button id="clear_history" class="btn ghost">Очистить</button></div>
-<div class="note small" style="margin-top:8px">Сохранено локально</div>
-</aside>
-</div>
-</section>
-<section id="main_support" class="screen">
-<div class="card" style="max-width:920px"><h3>Support & Settings</h3><div style="margin-top:12px"><div class="small">Theme</div><div style="display:flex;gap:8px;margin-top:8px"><div class="color-option" style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#7CFC00 0%,#00FFAA 100%);cursor:pointer" data-color="#7CFC00"></div><div class="color-option" style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#2d8cff 0%,#00d4ff 100%);cursor:pointer" data-color="#2d8cff"></div><div class="color-option" style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#FF6B8B 0%,#FF8E53 100%);cursor:pointer" data-color="#FF6B8B"></div></div></div></div>
-</section>
-</main>
-<nav class="bottomnav"><div style="width:min(720px,100%);display:flex;gap:10px"><button id="main_tab_calc" class="main-tab active">Calculator</button><button id="main_tab_support" class="main-tab">Support</button></div></nav>
-</div>
-<div id="toast">—</div>
-<div id="modal_backdrop" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:999"><div id="modal" style="width:min(800px,96%);background:var(--panel);padding:12px;border-radius:12px;border:1px solid var(--border)"><div style="display:flex;justify-content:space-between;align-items:center"><b>Trade Card</b><button id="modal_close" class="btn ghost">✕</button></div><div style="display:flex;gap:12px;margin-top:12px"><canvas id="card_canvas" width="900" height="600" style="width:100%"></canvas><div style="width:200px;display:flex;flex-direction:column;gap:8px"><button id="card_download" class="btn accent">Download PNG</button><button id="card_copy" class="btn ghost">Copy</button></div></div></div></div>
+
 <script>
+/* ---------------------------------------------------------------------------
+   Полностью клиентская логика: надёжный пересчёт без удаления DOM-элементов,
+   MainButton по TAPPS, небольшое on-boarding поведение, чеклист готов.
+   --------------------------------------------------------------------------- */
+
 (function(){
-const tg = window.Telegram?.WebApp || null;
-try{tg?.ready?.();tg?.expand?.();}catch(e){}
-const locales = {ru:{},en:{}};
-let lang = 'ru';
-function t(x){return x}
-let toastTimer=null;
-function showToast(msg){const el=document.getElementById('toast');if(!el)return;el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),1400)}
-const THEME_KEY='tc_theme_v10'; const ACCENT_COLOR_KEY='tc_accent_color_v1'; const DCA_STATE_KEY='tc_dca_state_v2'; const RR_STATE_KEY='tc_rr_state_v2'; const CAP_STATE_KEY='tc_cap_state_v2';
-function getInitialTheme(){const s=localStorage.getItem(THEME_KEY); if(s==='light'||s==='dark')return s; const tgScheme=(tg?.colorScheme||'').toLowerCase(); if(tgScheme==='light')return 'light'; return 'dark'}
-function setTheme(theme){if(theme!=='dark'&&theme!=='light')theme='dark';document.documentElement.setAttribute('data-theme',theme);localStorage.setItem(THEME_KEY,theme)}
-function setAccentColor(color){document.documentElement.style.setProperty('--accent',color);const gradient = color==='##7CFC00' ? 'linear-gradient(135deg,#7CFC00 0%,#00FFAA 100%)' : 'linear-gradient(135deg,'+color+',#00d4ff 100%)';document.documentElement.style.setProperty('--accent-gradient',gradient);localStorage.setItem(ACCENT_COLOR_KEY,color)}
-setTheme(getInitialTheme());
-const btnRu=document.getElementById('btn_ru'); const btnEn=document.getElementById('btn_en');
-function syncLangButtons(){if(lang==='ru'){btnRu.classList.add('active');btnEn.classList.remove('active')}else{btnEn.classList.add('active');btnRu.classList.remove('active')}}
-syncLangButtons();
-btnRu?.addEventListener('click',()=>{lang='ru';syncLangButtons()});
-btnEn?.addEventListener('click',()=>{lang='en';syncLangButtons()});
-document.querySelectorAll('.subtab').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.subtab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const target=btn.dataset.tab;document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(target).classList.add('active')})});
-const dcaRowsEl=document.getElementById('dca_rows'); const dcaAvgEl=document.getElementById('dca_avg'); const dcaTotalVolEl=document.getElementById('dca_total_vol'); const dcaTotalCostEl=document.getElementById('dca_total_cost'); const dcaGoal=document.getElementById('dca_goal'); const dcaNext=document.getElementById('dca_next_price'); const dcaNeedVol=document.getElementById('dca_need_vol');
-let dcaRows=[];
-function addDcaRow(p='',v=''){
-const rowId=String(Math.random()).slice(2);
-const wrap=document.createElement('div'); wrap.className='row dca-mobile-stack'; wrap.style.marginBottom='8px';
-wrap.innerHTML=`<div class="field" style="flex:1;margin:0"><label>Цена</label><input type="number" step="any" inputmode="decimal" value="${p||''}"></div><div class="field" style="flex:1;margin:0"><label>Объём</label><input type="number" step="any" inputmode="decimal" value="${v||''}"></div><div style="display:flex;align-items:flex-end"><button class="btn ghost remove" type="button">🗑️</button></div>`;
-const inputs=wrap.querySelectorAll('input'); const btnRemove=wrap.querySelector('.remove'); const item={id:rowId,el:wrap,pEl:inputs[0],vEl:inputs[1]};
-inputs.forEach(inp=>{
-inp.addEventListener('input',()=>{calcDCA();saveDcaState();pushHistoryIfReady(); if(parseFloat(inp.value)<0){inp.classList.add('error')}else{inp.classList.remove('error')}})
-});
-btnRemove.addEventListener('click',()=>{dcaRows=dcaRows.filter(r=>r.id!==rowId);wrap.remove();calcDCA();saveDcaState();pushHistoryIfReady()});
-dcaRows.push(item);dcaRowsEl.appendChild(wrap);calcDCA();saveDcaState();
-}
-function saveDcaState(){try{const state=dcaRows.map(r=>({p:r.pEl.value,v:r.vEl.value}));localStorage.setItem(DCA_STATE_KEY,JSON.stringify(state))}catch(e){}}
-function loadDcaState(){try{const saved=localStorage.getItem(DCA_STATE_KEY);dcaRows=[];dcaRowsEl.innerHTML='';if(saved){const state=JSON.parse(saved);state.forEach(row=>addDcaRow(row.p||'',row.v||''))}if(dcaRows.length===0){addDcaRow('','');addDcaRow('','')}calcDCA()}catch(e){}}
-function clearDCA(){dcaRows.forEach(r=>r.el.remove());dcaRows=[];dcaRowsEl.innerHTML='';addDcaRow('','');addDcaRow('','');dcaGoal.value='';dcaNext.value='';calcDCA();saveDcaState();showToast('Cleared')}
-function safeNum(v){const x=parseFloat(String(v).replace(',','.'));return isFinite(x)?x:NaN}
-function fmt(v,d=8){if(v===null||v===undefined||!isFinite(Number(v)))return'—';const n=Number(v);const abs=Math.abs(n);const digits = abs>=1000?2:(abs>=1?6:d);return n.toLocaleString(undefined,{maximumFractionDigits:digits})}
-function animateValueChange(element,newValue){if(!element||!element.parentElement)return;const container = element.parentElement;const currentSpan = container.querySelector('.new');const current = currentSpan? currentSpan.textContent : '';if(current===newValue)return;container.innerHTML='';const newSpan=document.createElement('span');newSpan.className='new';newSpan.textContent=newValue;newSpan.style.animation='numberChange 0.36s ease';container.appendChild(newSpan)}
-function calcDCA(){let totalVol=0;let totalCost=0;let hasError=false;dcaRows.forEach(r=>{const p = safeNum(r.pEl.value);const v = safeNum(r.vEl.value);const valid = isFinite(p) && isFinite(v) && p>0 && v>0;if(valid){totalVol += v; totalCost += p*v} if((isFinite(p) && p<0) || (isFinite(v) && v<0)) hasError=true});const dcaAvgResult=document.getElementById('dca_avg_result');const dcaVolResult=document.getElementById('dca_vol_result');const dcaCostResult=document.getElementById('dca_cost_result');const dcaNeedResult=document.getElementById('dca_need_result');if(hasError){[dcaAvgResult,dcaVolResult,dcaCostResult,dcaNeedResult].forEach(el=>el?.classList.add('error'))}else{[dcaAvgResult,dcaVolResult,dcaCostResult,dcaNeedResult].forEach(el=>el?.classList.remove('error'))}if(totalVol<=0){animateValueChange(dcaAvgEl,'—');animateValueChange(dcaTotalVolEl,'—');animateValueChange(dcaTotalCostEl,'—');animateValueChange(dcaNeedVol,'—');return {avg:null,totalVol:0,totalCost:0}}else{const avg=totalCost/totalVol;animateValueChange(dcaAvgEl,fmt(avg,10));animateValueChange(dcaTotalVolEl,fmt(totalVol,8));animateValueChange(dcaTotalCostEl,fmt(totalCost,2));const target=safeNum(dcaGoal.value);const nextP=safeNum(dcaNext.value);if(isFinite(target) && isFinite(nextP) && target>0 && nextP>0 && nextP!==target){const x=(target*totalVol - totalCost) / (nextP - target);animateValueChange(dcaNeedVol,(isFinite(x) && x>0)?fmt(x,8):'—');dcaNeedResult?.classList.add('success')}else{animateValueChange(dcaNeedVol,'—');dcaNeedResult?.classList.remove('success')}return {avg,totalVol,totalCost}}
-}
-document.getElementById('dca_add')?.addEventListener('click',()=>{addDcaRow('','');showToast('Added');});
-document.getElementById('dca_clear')?.addEventListener('click',()=>{clearDCA()});
-dcaGoal?.addEventListener('input',()=>{calcDCA();saveDcaState();pushHistoryIfReady()});
-dcaNext?.addEventListener('input',()=>{calcDCA();saveDcaState();pushHistoryIfReady()});
-async function copyText(text,button){if(!text||text==='—')return false;try{await navigator.clipboard.writeText(String(text));showToast('Copied');return true}catch(e){try{const ta=document.createElement('textarea');ta.value=String(text);ta.style.position='fixed';ta.style.top='-1000px';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();showToast('Copied');return true}catch(e2){return false}}}
-function bindCopy(btn,getVal){if(!btn)return;btn.addEventListener('click',async()=>{const val=getVal();await copyText(val,btn)})}
-bindCopy(document.getElementById('dca_copy'),()=>dcaAvgEl.textContent);
-bindCopy(document.getElementById('dca_need_copy'),()=>dcaNeedVol.textContent);
-const rrEntry=document.getElementById('rr_entry');const rrSl=document.getElementById('rr_sl');const rrTp=document.getElementById('rr_tp');const rrFee=document.getElementById('rr_fee');const rrGross=document.getElementById('rr_gross');const rrNet=document.getElementById('rr_net');const rrHint=document.getElementById('rr_hint');
-function saveRRState(){try{const state={entry:rrEntry.value,sl:rrSl.value,tp:rrTp.value,fee:rrFee.value};localStorage.setItem(RR_STATE_KEY,JSON.stringify(state))}catch(e){}}
-function loadRRState(){try{const saved=localStorage.getItem(RR_STATE_KEY);if(saved){const s=JSON.parse(saved);rrEntry.value=s.entry||'';rrSl.value=s.sl||'';rrTp.value=s.tp||'';rrFee.value=s.fee||'0.2';calcRR()}}catch(e){}}
-function calcRR(){const e=safeNum(rrEntry.value);const sl=safeNum(rrSl.value);const tp=safeNum(rrTp.value);const fee=safeNum(rrFee.value)/100;const grossResult=document.getElementById('rr_gross_result');const netResult=document.getElementById('rr_net_result');if(!isFinite(e)||!isFinite(sl)||!isFinite(tp)||e===sl){animateValueChange(rrGross,'—');animateValueChange(rrNet,'—');grossResult?.classList.remove('success');netResult?.classList.remove('success');return {gross:null,net:null}}const risk=Math.abs(e-sl);const reward=Math.abs(tp-e);if(!risk||!reward){animateValueChange(rrGross,'—');animateValueChange(rrNet,'—');return {gross:null,net:null}}const gross=(reward/risk);animateValueChange(rrGross,'1:'+gross.toFixed(2));const feeEntry=e*fee;const feeExit=tp*fee;const netReward=Math.max(0,reward-(feeEntry+feeExit));const net=(netReward/(risk+feeEntry));animateValueChange(rrNet,'1:'+net.toFixed(2));grossResult?.classList.add('success');netResult?.classList.add('success');return {gross,net}}
-[rrEntry,rrSl,rrTp,rrFee].forEach(x=>x?.addEventListener('input',()=>{calcRR();saveRRState();pushHistoryIfReady()}));
-bindCopy(document.getElementById('rr_copy_gross'),()=>rrGross.textContent);bindCopy(document.getElementById('rr_copy_net'),()=>rrNet.textContent);
-const capDep=document.getElementById('cap_dep');const capRisk=document.getElementById('cap_risk');const capLev=document.getElementById('cap_lev');const capEntry=document.getElementById('cap_entry');const capSl=document.getElementById('cap_sl');const capFee=document.getElementById('cap_fee');const capPos=document.getElementById('cap_pos');const capRiskUsd=document.getElementById('cap_risk_usd');const capMargin=document.getElementById('cap_margin');
-function saveCapState(){try{const state={dep:capDep.value,risk:capRisk.value,lev:capLev.value,entry:capEntry.value,sl:capSl.value,fee:capFee.value};localStorage.setItem(CAP_STATE_KEY,JSON.stringify(state))}catch(e){}}
-function loadCapState(){try{const saved=localStorage.getItem(CAP_STATE_KEY);if(saved){const s=JSON.parse(saved);capDep.value=s.dep||'';capRisk.value=s.risk||'1';capLev.value=s.lev||'1';capEntry.value=s.entry||'';capSl.value=s.sl||'';capFee.value=s.fee||'0.2';document.querySelectorAll('.chip[data-risk]').forEach(ch=>ch.classList.toggle('active',ch.dataset.risk===String(capRisk.value)));calcCap()}}catch(e){}}
-function loadScenarios(){try{const select=document.getElementById('cap_load_scenario');if(!select)return;const scenarios=JSON.parse(localStorage.getItem('tc_scenarios_v1')||'[]');select.innerHTML='<option value=\"\">Load preset...</option>';scenarios.forEach((s,i)=>{const o=document.createElement('option');o.value=i;o.textContent=s.name;select.appendChild(o)})}catch(e){}}
-function calcCap(){const dep=safeNum(capDep.value);const rp=safeNum(capRisk.value)/100;const lev=Math.max(1, safeNum(capLev.value)||1);const e=safeNum(capEntry.value);const sl=safeNum(capSl.value);const fee=safeNum(capFee.value)/100;const posResult=document.getElementById('cap_pos_result');const riskResult=document.getElementById('cap_risk_result');const marginResult=document.getElementById('cap_margin_result');if(!isFinite(e)||!isFinite(sl)||e===sl||dep<=0||!isFinite(rp)||rp<=0){animateValueChange(capPos,'—');animateValueChange(capRiskUsd,'—');animateValueChange(capMargin,'—');posResult?.classList.remove('success');riskResult?.classList.remove('success');marginResult?.classList.remove('success');return {pos:null}}const riskUsd=dep*rp;const move=Math.abs(e-sl)+(e*fee);const pos=riskUsd/move;animateValueChange(capPos,fmt(pos,8));animateValueChange(capRiskUsd,fmt(riskUsd,2));const notional=pos*e;animateValueChange(capMargin,fmt(notional/lev,2));posResult?.classList.add('success');riskResult?.classList.add('success');marginResult?.classList.add('success');return {pos}}
-[capDep,capRisk,capLev,capEntry,capSl,capFee].forEach(x=>x?.addEventListener('input',()=>{calcCap();saveCapState();pushHistoryIfReady()}));
-bindCopy(document.getElementById('cap_copy_pos'),()=>capPos.textContent);
-function pushHistoryIfReady(){try{const active=document.querySelector('.subtab.active')?.dataset.tab||'dca';const tstamp=Date.now();if(active==='dca'){const st=calcDCA();if(st&&st.totalVol>0){const summary=`AVG:${fmt(st.avg,6)} VOL:${fmt(st.totalVol,6)} COST:${fmt(st.totalCost,2)}`;pushHistory({type:'DCA',t:tstamp,summary})}}else if(active==='rr'){const st=calcRR();if(st&&st.gross){pushHistory({type:'R/R',t:tstamp,summary:`Gross:${st.gross.toFixed(2)} Net:${st.net.toFixed(2)}`})}}else if(active==='cap'){const st=calcCap();if(st&&st.pos){pushHistory({type:'CAP',t:tstamp,summary:`POS:${fmt(st.pos,6)}`})}}}catch(e){}}
-function pushHistory(item){try{const list=JSON.parse(localStorage.getItem('tc_history_v1')||'[]');list.unshift(item);if(list.length>80)list.pop();localStorage.setItem('tc_history_v1',JSON.stringify(list));renderHistory()}catch(e){}}
-function renderHistory(){try{const list=JSON.parse(localStorage.getItem('tc_history_v1')||'[]');const wrap=document.getElementById('history_list');if(!wrap)return;wrap.innerHTML='';list.forEach(it=>{const el=document.createElement('div');el.className='hist-item';el.innerHTML=`<div><b>${it.type}</b><div class="small">${new Date(it.t).toLocaleString()}</div><div class="note">${it.summary||''}</div></div><div style="display:flex;gap:6px;align-items:center"><button class="btn ghost export">Export</button></div>`;wrap.appendChild(el)})}catch(e){}}
-document.getElementById('clear_history')?.addEventListener('click',()=>{if(confirm('Очистить историю?')){localStorage.removeItem('tc_history_v1');renderHistory();showToast('Cleared')}})
-function drawCard(data){const canvas=document.getElementById('card_canvas');const ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);const theme=document.documentElement.getAttribute('data-theme')||'dark';const bg=theme==='light'? '#f6f7fb' : '#0a0a0a';const panel=theme==='light'? '#fff' : '#0f0f0f';const border=theme==='light'? '#e6e8ee' : '#1a1a1a';const text=theme==='light'? '#0b0b0b' : '#fff';ctx.fillStyle=bg;ctx.fillRect(0,0,canvas.width,canvas.height);const pad=40;ctx.fillStyle=panel;ctx.fillRect(pad,pad,canvas.width-pad*2,canvas.height-pad*2);ctx.strokeStyle=border;ctx.lineWidth=2;ctx.strokeRect(pad,pad,canvas.width-pad*2,canvas.height-pad*2);ctx.fillStyle=text;ctx.font='700 36px Inter, Arial';ctx.fillText(data.title, pad+20, pad+64);ctx.font='600 28px Inter, Arial';let y=pad+120;data.lines.forEach(line=>{ctx.fillStyle='#9aa0a6';ctx.font='600 18px Inter, Arial';ctx.fillText(line.k, pad+20, y);ctx.fillStyle=text;ctx.font='700 20px Inter, Arial';ctx.fillText(line.v, pad+300, y);y+=38})}
-function buildCardData(){const active=document.querySelector('.subtab.active')?.dataset.tab||'dca';if(active==='dca'){return {title:'DCA',lines:[{k:'AVG',v:dcaAvgEl.textContent},{k:'VOL',v:dcaTotalVolEl.textContent},{k:'COST',v:dcaTotalCostEl.textContent}]}}if(active==='rr'){return {title:'R/R',lines:[{k:'Gross',v:rrGross.textContent},{k:'Net',v:rrNet.textContent}]}}if(active==='cap'){return {title:'Capital',lines:[{k:'POS',v:capPos.textContent},{k:'Risk $',v:capRiskUsd.textContent},{k:'Margin $',v:capMargin.textContent}]}}return {title:'Trader',lines:[{k:'—',v:'—'}]}}
-function openModal(){const mb=document.getElementById('modal_backdrop');mb.style.display='flex';setTimeout(()=>mb.style.opacity='1',10)}
-function closeModal(){const mb=document.getElementById('modal_backdrop');mb.style.opacity='0';setTimeout(()=>mb.style.display='none',300)}
-document.getElementById('modal_close')?.addEventListener('click',closeModal)
-document.getElementById('card_btn')?.addEventListener('click',()=>{const data=buildCardData();drawCard(data);openModal()})
-document.getElementById('card_download')?.addEventListener('click',async ()=>{const canvas=document.getElementById('card_canvas');canvas.toBlob(function(blob){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='trade-card.png';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);showToast('Saved')})})
-document.getElementById('card_copy')?.addEventListener('click',async ()=>{const canvas=document.getElementById('card_canvas');canvas.toBlob(async function(blob){try{await navigator.clipboard.write([new ClipboardItem({[blob.type]:blob})]);showToast('Copied') }catch(e){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='trade-card.png';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);showToast('Saved') }} )})
-document.getElementById('share_btn')?.addEventListener('click',async ()=>{const active=document.querySelector('.subtab.active')?.dataset.tab||'dca';let text='';if(active==='dca'){text=`DCA AVG: ${dcaAvgEl.textContent} VOL: ${dcaTotalVolEl.textContent} COST: ${dcaTotalCostEl.textContent}`}else if(active==='rr'){text=`Gross: ${rrGross.textContent} Net: ${rrNet.textContent}`}else if(active==='cap'){text=`POS: ${capPos.textContent} Risk$: ${capRiskUsd.textContent} Margin$: ${capMargin.textContent}`}try{if(navigator.share){await navigator.share({text});showToast('Shared');return}}catch(e){}await copyText(text);})
-document.getElementById('theme_toggle')?.addEventListener('click',()=>{const cur=document.documentElement.getAttribute('data-theme')||'dark';setTheme(cur==='dark'?'light':'dark')})
-document.querySelectorAll('.color-option').forEach(opt=>opt.addEventListener('click',()=>setAccentColor(opt.dataset.color||'#7CFC00')))
-document.getElementById('main_tab_calc')?.addEventListener('click',()=>{document.getElementById('main_calc').classList.add('active');document.getElementById('main_support').classList.remove('active');document.getElementById('main_tab_calc').classList.add('active');document.getElementById('main_tab_support').classList.remove('active')})
-document.getElementById('main_tab_support')?.addEventListener('click',()=>{document.getElementById('main_support').classList.add('active');document.getElementById('main_calc').classList.remove('active');document.getElementById('main_tab_support').classList.add('active');document.getElementById('main_tab_calc').classList.remove('active')})
-document.querySelectorAll('.chip[data-risk]').forEach(ch=>ch.addEventListener('click',()=>{document.querySelectorAll('.chip[data-risk]').forEach(x=>x.classList.remove('active'));ch.classList.add('active');document.getElementById('cap_risk').value=ch.dataset.risk;calcCap();saveCapState();pushHistoryIfReady()}))
-document.getElementById('refresh_ind')?.addEventListener('click',()=>{document.getElementById('fg_text').textContent='—';document.getElementById('mood').textContent='—';showToast('Refreshed')})
-loadDcaState();loadRRState();loadCapState();renderHistory();calcDCA();calcRR();calcCap();
+  // Telegram WebApp
+  const tg = window.Telegram?.WebApp || null;
+  try { tg?.ready?.(); tg?.expand?.(); } catch(e){ /* silent */ }
+
+  // Toast
+  const toastEl = document.getElementById('toast');
+  let toastTimer = null;
+  function showToast(msg){
+    if(!toastEl) return;
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>toastEl.classList.remove('show'),1200);
+  }
+
+  // Simple utilities
+  function safeNum(v){
+    if(v === '' || v === null || v === undefined) return NaN;
+    const x = parseFloat(String(v).replace(',', '.'));
+    return Number.isFinite(x) ? x : NaN;
+  }
+  function fmt(v, digits=8){
+    if(!Number.isFinite(v)) return '—';
+    const abs = Math.abs(v);
+    const d = abs >= 1000 ? 2 : (abs >= 1 ? 6 : digits);
+    return Number(v).toLocaleString(undefined, { maximumFractionDigits: d });
+  }
+
+  // Theme toggle (small)
+  const btnTheme = document.getElementById('btn_theme');
+  btnTheme?.addEventListener('click', ()=>{
+    const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    showToast(next === 'dark' ? 'Темная тема' : 'Светлая тема');
+  });
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const t = btn.dataset.tab;
+      document.querySelectorAll('[id^="screen_"]').forEach(s=>s.style.display = 'none');
+      const target = document.getElementById('screen_' + t);
+      if(target) target.style.display = 'block';
+      // Update MainButton text when switching
+      updateMainButtonText();
+    });
+  });
+
+  /* ---------------------------- DCA implementation -------------------------- */
+  const dcaRowsEl = document.getElementById('dca_rows');
+  const dcaAvgEl = document.getElementById('dca_avg');
+  const dcaTotalVolEl = document.getElementById('dca_total_vol');
+  const dcaTotalCostEl = document.getElementById('dca_total_cost');
+  const dcaGoalEl = document.getElementById('dca_goal');
+  const dcaNextEl = document.getElementById('dca_next_price');
+  const dcaNeedVolEl = document.getElementById('dca_need_vol');
+
+  const DCA_STATE_KEY = 'tc_dca_state_v3';
+  let dcaRows = [];
+
+  function createDcaRow(price='', vol=''){
+    const wrapper = document.createElement('div');
+    wrapper.className = 'row';
+    wrapper.style.marginBottom = '8px';
+    wrapper.innerHTML = `
+      <div class="field" style="flex:1"><label>Цена</label><input type="number" step="any" class="dca_price" value="${price}"></div>
+      <div class="field" style="flex:1"><label>Объём</label><input type="number" step="any" class="dca_vol" value="${vol}"></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn remove" type="button">🗑️</button></div>
+    `;
+    const pInput = wrapper.querySelector('.dca_price');
+    const vInput = wrapper.querySelector('.dca_vol');
+    const btnRemove = wrapper.querySelector('.remove');
+
+    function onInput(){
+      calcDCA();
+      saveDcaState();
+      updateMainButtonVisibility();
+      pushHistoryIfReady();
+    }
+    pInput.addEventListener('input', onInput);
+    vInput.addEventListener('input', onInput);
+
+    btnRemove.addEventListener('click', ()=>{
+      wrapper.remove();
+      dcaRows = dcaRows.filter(r => r.wrapper !== wrapper);
+      calcDCA(); saveDcaState(); updateMainButtonVisibility(); pushHistoryIfReady();
+    });
+
+    dcaRows.push({ wrapper, pInput, vInput });
+    dcaRowsEl.appendChild(wrapper);
+  }
+
+  function saveDcaState(){
+    try {
+      const state = dcaRows.map(r => ({ p: r.pInput.value, v: r.vInput.value }));
+      localStorage.setItem(DCA_STATE_KEY, JSON.stringify(state));
+    } catch(e){}
+  }
+
+  function loadDcaState(){
+    dcaRows = [];
+    dcaRowsEl.innerHTML = '';
+    try {
+      const saved = JSON.parse(localStorage.getItem(DCA_STATE_KEY) || '[]');
+      if(Array.isArray(saved) && saved.length){
+        saved.forEach(row => createDcaRow(row.p || '', row.v || ''));
+      } else {
+        createDcaRow('', ''); createDcaRow('', '');
+      }
+    } catch(e){
+      createDcaRow('', ''); createDcaRow('', '');
+    }
+    // attach friendly references
+    dcaRows.forEach(r => { r.pInput = r.pInput || r.wrapper.querySelector('.dca_price'); r.vInput = r.vInput || r.wrapper.querySelector('.dca_vol'); });
+    calcDCA();
+  }
+
+  function calcDCA(){
+    let totalVol = 0;
+    let totalCost = 0;
+    let hasError = false;
+
+    dcaRows.forEach(r=>{
+      const p = safeNum(r.pInput.value);
+      const v = safeNum(r.vInput.value);
+      if(Number.isFinite(p) && Number.isFinite(v) && p > 0 && v > 0){
+        totalVol += v;
+        totalCost += p * v;
+      }
+      if((Number.isFinite(p) && p < 0) || (Number.isFinite(v) && v < 0)) hasError = true;
+    });
+
+    // Update DOM WITHOUT replacing nodes (важно)
+    if(hasError){
+      dcaAvgEl.textContent = '—';
+      dcaTotalVolEl.textContent = '—';
+      dcaTotalCostEl.textContent = '—';
+      dcaNeedVolEl.textContent = '—';
+      return { avg: null, totalVol: 0, totalCost: 0 };
+    }
+
+    if(totalVol <= 0){
+      dcaAvgEl.textContent = '—';
+      dcaTotalVolEl.textContent = '—';
+      dcaTotalCostEl.textContent = '—';
+      dcaNeedVolEl.textContent = '—';
+      return { avg: null, totalVol: 0, totalCost: 0 };
+    }
+
+    const avg = totalCost / totalVol;
+    dcaAvgEl.textContent = fmt(avg, 10);
+    dcaTotalVolEl.textContent = fmt(totalVol, 8);
+    dcaTotalCostEl.textContent = fmt(totalCost, 2);
+
+    // Goal calc
+    const target = safeNum(dcaGoalEl.value);
+    const nextP = safeNum(dcaNextEl.value);
+    if(Number.isFinite(target) && Number.isFinite(nextP) && target > 0 && nextP > 0 && nextP !== target){
+      const need = (target * totalVol - totalCost) / (nextP - target);
+      dcaNeedVolEl.textContent = (Number.isFinite(need) && need > 0) ? fmt(need, 8) : '—';
+    } else {
+      dcaNeedVolEl.textContent = '—';
+    }
+
+    return { avg, totalVol, totalCost };
+  }
+
+  // Bind DCA controls
+  document.getElementById('dca_add').addEventListener('click', ()=>{
+    createDcaRow('','');
+    showToast('Добавлено');
+    updateMainButtonVisibility();
+  });
+  document.getElementById('dca_clear').addEventListener('click', ()=>{
+    dcaRows.forEach(r=>r.wrapper.remove());
+    dcaRows = [];
+    createDcaRow('',''); createDcaRow('','');
+    dcaGoalEl.value = ''; dcaNextEl.value = '';
+    calcDCA(); saveDcaState(); showToast('Очищено'); updateMainButtonVisibility();
+  });
+  dcaGoalEl.addEventListener('input', ()=>{ calcDCA(); saveDcaState(); updateMainButtonVisibility(); pushHistoryIfReady(); });
+  dcaNextEl.addEventListener('input', ()=>{ calcDCA(); saveDcaState(); updateMainButtonVisibility(); pushHistoryIfReady(); });
+
+  // copy buttons
+  async function tryCopy(text){
+    if(!text || text === '—') return false;
+    try { await navigator.clipboard.writeText(String(text)); showToast('Скопировано'); return true; } catch(e){ return false; }
+  }
+  document.getElementById('dca_copy').addEventListener('click', ()=> tryCopy(dcaAvgEl.textContent) );
+  document.getElementById('dca_need_copy').addEventListener('click', ()=> tryCopy(dcaNeedVolEl.textContent) );
+
+  /* ---------------------------- R/R implementation -------------------------- */
+  const rrEntry = document.getElementById('rr_entry');
+  const rrSl = document.getElementById('rr_sl');
+  const rrTp = document.getElementById('rr_tp');
+  const rrFee = document.getElementById('rr_fee');
+  const rrGross = document.getElementById('rr_gross');
+  const rrNet = document.getElementById('rr_net');
+  const rrHint = document.getElementById('rr_hint');
+  const RR_STATE_KEY = 'tc_rr_state_v3';
+
+  function loadRRState(){
+    try {
+      const s = JSON.parse(localStorage.getItem(RR_STATE_KEY) || '{}');
+      if(s){ rrEntry.value = s.entry || ''; rrSl.value = s.sl || ''; rrTp.value = s.tp || ''; rrFee.value = s.fee || '0.2'; }
+    }catch(e){}
+    calcRR();
+  }
+  function saveRRState(){ try { localStorage.setItem(RR_STATE_KEY, JSON.stringify({ entry: rrEntry.value, sl: rrSl.value, tp: rrTp.value, fee: rrFee.value })); } catch(e){} }
+
+  function calcRR(){
+    const e = safeNum(rrEntry.value), sl = safeNum(rrSl.value), tp = safeNum(rrTp.value), fee = safeNum(rrFee.value)/100;
+    rrHint.textContent = '';
+    if(!Number.isFinite(e) || !Number.isFinite(sl) || !Number.isFinite(tp) || e === sl){
+      rrGross.textContent = '—'; rrNet.textContent = '—'; return { gross: null, net: null };
+    }
+    const risk = Math.abs(e - sl);
+    const reward = Math.abs(tp - e);
+    if(risk === 0 || reward === 0){ rrGross.textContent = '—'; rrNet.textContent = '—'; return { gross: null, net: null }; }
+    const gross = reward / risk;
+    rrGross.textContent = '1:' + gross.toFixed(2);
+    const feeEntry = e * fee;
+    const feeExit = tp * fee;
+    const netReward = Math.max(0, reward - (feeEntry + feeExit));
+    const net = netReward / (risk + feeEntry);
+    rrNet.textContent = '1:' + (Number.isFinite(net) ? net.toFixed(2) : '—');
+    if(gross > 3) rrHint.textContent = 'Хорошее соотношение R/R';
+    else if(gross < 1) rrHint.textContent = 'Риск превышает потенциальную прибыль';
+    return { gross, net };
+  }
+
+  [rrEntry, rrSl, rrTp, rrFee].forEach(el => el?.addEventListener('input', ()=>{ calcRR(); saveRRState(); updateMainButtonVisibility(); pushHistoryIfReady(); }));
+  document.getElementById('rr_copy_gross').addEventListener('click', ()=> tryCopy(rrGross.textContent) );
+  document.getElementById('rr_copy_net').addEventListener('click', ()=> tryCopy(rrNet.textContent) );
+
+  /* ---------------------------- CAPITAL implementation ---------------------- */
+  const capDep = document.getElementById('cap_dep');
+  const capRisk = document.getElementById('cap_risk');
+  const capLev = document.getElementById('cap_lev');
+  const capEntry = document.getElementById('cap_entry');
+  const capSl = document.getElementById('cap_sl');
+  const capFee = document.getElementById('cap_fee');
+  const capPos = document.getElementById('cap_pos');
+  const capRiskUsd = document.getElementById('cap_risk_usd');
+  const capMargin = document.getElementById('cap_margin');
+  const CAP_STATE_KEY = 'tc_cap_state_v3';
+
+  function loadCapState(){
+    try {
+      const s = JSON.parse(localStorage.getItem(CAP_STATE_KEY) || '{}');
+      if(s){ capDep.value = s.dep || ''; capRisk.value = s.risk || '1'; capLev.value = s.lev || '1'; capEntry.value = s.entry || ''; capSl.value = s.sl || ''; capFee.value = s.fee || '0.2'; }
+    } catch(e){}
+    calcCap();
+  }
+  function saveCapState(){ try { localStorage.setItem(CAP_STATE_KEY, JSON.stringify({ dep: capDep.value, risk: capRisk.value, lev: capLev.value, entry: capEntry.value, sl: capSl.value, fee: capFee.value })); } catch(e){} }
+
+  function calcCap(){
+    const dep = safeNum(capDep.value);
+    const rp = safeNum(capRisk.value) / 100;
+    const lev = Math.max(1, safeNum(capLev.value) || 1);
+    const e = safeNum(capEntry.value);
+    const sl = safeNum(capSl.value);
+    const fee = safeNum(capFee.value) / 100;
+
+    if(!Number.isFinite(dep) || !Number.isFinite(rp) || rp <= 0 || !Number.isFinite(e) || !Number.isFinite(sl) || e === sl){
+      capPos.textContent = '—'; capRiskUsd.textContent = '—'; capMargin.textContent = '—'; return { pos: null };
+    }
+    const riskUsd = dep * rp;
+    const move = Math.abs(e - sl) + (e * fee);
+    const pos = riskUsd / move;
+    capPos.textContent = fmt(pos, 8);
+    capRiskUsd.textContent = fmt(riskUsd, 2);
+    const notional = pos * e;
+    capMargin.textContent = fmt(notional / lev, 2);
+    return { pos };
+  }
+
+  [capDep, capRisk, capLev, capEntry, capSl, capFee].forEach(el => el?.addEventListener('input', ()=>{ calcCap(); saveCapState(); updateMainButtonVisibility(); pushHistoryIfReady(); }));
+
+  // chips
+  document.querySelectorAll('.chip[data-risk]').forEach(ch=>{
+    ch.addEventListener('click', ()=>{
+      document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+      ch.classList.add('active');
+      capRisk.value = ch.dataset.risk;
+      calcCap();
+      saveCapState();
+      updateMainButtonVisibility();
+    });
+  });
+
+  document.getElementById('cap_copy_pos').addEventListener('click', ()=> tryCopy(capPos.textContent) );
+
+  /* ---------------------------- History ---------------------------------- */
+  function pushHistory(item){
+    try {
+      const list = JSON.parse(localStorage.getItem('tc_history_v1') || '[]');
+      list.unshift(item);
+      if(list.length > 120) list.pop();
+      localStorage.setItem('tc_history_v1', JSON.stringify(list));
+      renderHistory();
+    } catch(e){}
+  }
+  function renderHistory(){
+    try {
+      const wrap = document.getElementById('history_list');
+      const list = JSON.parse(localStorage.getItem('tc_history_v1') || '[]');
+      wrap.innerHTML = '';
+      list.forEach(it=>{
+        const el = document.createElement('div');
+        el.className = 'hist-item';
+        el.innerHTML = `<div><b>${it.type}</b><div class="small">${new Date(it.t).toLocaleString()}</div><div class="note">${it.summary||''}</div></div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button class="btn export">Card</button>
+            <button class="btn ghost">Copy</button>
+          </div>`;
+        // export handler
+        el.querySelector('.export')?.addEventListener('click', ()=>{ exportCardFromHistory(it); });
+        el.querySelectorAll('.btn.ghost')[0]?.addEventListener('click', ()=>{ tryCopy(it.summary || '') });
+        wrap.appendChild(el);
+      });
+    } catch(e){}
+  }
+
+  function pushHistoryIfReady(){
+    try {
+      const active = document.querySelector('.tab.active')?.dataset.tab || 'dca';
+      const t = Date.now();
+      if(active === 'dca'){
+        const st = calcDCA();
+        if(st && st.totalVol > 0){
+          pushHistory({ type: 'DCA', t, summary: `AVG:${fmt(st.avg,6)} VOL:${fmt(st.totalVol,6)} COST:${fmt(st.totalCost,2)}`});
+        }
+      } else if(active === 'rr'){
+        const st = calcRR();
+        if(st && st.gross) pushHistory({ type: 'R/R', t, summary: `Gross:${st.gross.toFixed(2)} Net:${st.net ? st.net.toFixed(2) : '—'}`});
+      } else if(active === 'cap'){
+        const st = calcCap();
+        if(st && st.pos) pushHistory({ type: 'CAP', t, summary: `POS:${fmt(st.pos,6)}`});
+      }
+    } catch(e){}
+  }
+
+  document.getElementById('clear_history').addEventListener('click', ()=>{
+    if(confirm('Очистить историю?')){ localStorage.removeItem('tc_history_v1'); renderHistory(); showToast('Очищено'); }
+  });
+  document.getElementById('export_history').addEventListener('click', ()=>{ const txt = localStorage.getItem('tc_history_v1') || '[]'; tryCopy(txt); showToast('Скопировано'); });
+
+  /* ---------------------------- Card export -------------------------------- */
+  const modalBackdrop = document.getElementById('modal_backdrop');
+  const cardCanvas = document.getElementById('card_canvas');
+  const modalClose = document.getElementById('modal_close');
+  function drawCard(data){
+    const ctx = cardCanvas.getContext('2d');
+    const w = cardCanvas.width; const h = cardCanvas.height;
+    ctx.clearRect(0,0,w,h);
+    const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+    ctx.fillStyle = theme === 'light' ? '#f6f7fb' : '#0a0a0a';
+    ctx.fillRect(0,0,w,h);
+    // panel
+    ctx.fillStyle = theme === 'light' ? '#fff' : '#0f0f0f';
+    ctx.fillRect(24,24,w-48,h-48);
+    ctx.fillStyle = theme === 'light' ? '#111' : '#fff';
+    ctx.font = '700 36px Inter, Arial';
+    ctx.fillText(data.title, 48, 84);
+    ctx.font = '600 20px Inter, Arial';
+    let y = 120;
+    data.lines.forEach(line=>{
+      ctx.fillStyle = '#888';
+      ctx.fillText(line.k, 48, y);
+      ctx.fillStyle = theme === 'light' ? '#111' : '#fff';
+      ctx.fillText(line.v, 260, y);
+      y += 34;
+    });
+    ctx.font = '600 14px Inter, Arial';
+    ctx.fillStyle = '#888';
+    ctx.fillText('Trader Calculator — snapshot', 48, h - 40);
+  }
+  function buildCardData(){
+    const active = document.querySelector('.tab.active')?.dataset.tab || 'dca';
+    if(active === 'dca') return { title: 'DCA', lines: [{k:'AVG',v: dcaAvgEl.textContent},{k:'VOL',v: dcaTotalVolEl.textContent},{k:'COST',v: dcaTotalCostEl.textContent}] };
+    if(active === 'rr') return { title: 'R/R', lines: [{k:'Gross',v: rrGross.textContent},{k:'Net',v: rrNet.textContent}] };
+    if(active === 'cap') return { title: 'Capital', lines: [{k:'POS',v: capPos.textContent},{k:'Risk $',v: capRiskUsd.textContent},{k:'Margin $',v: capMargin.textContent}] };
+    return { title: 'Trader', lines: [{k:'—',v:'—'}] };
+  }
+  document.getElementById('btn_card').addEventListener('click', ()=>{
+    const data = buildCardData();
+    drawCard(data);
+    modalBackdrop.style.display = 'flex';
+  });
+  modalClose.addEventListener('click', ()=> modalBackdrop.style.display = 'none');
+  document.getElementById('card_download').addEventListener('click', ()=>{
+    cardCanvas.toBlob(function(blob){
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'trade-card.png'; document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url); showToast('Сохранено');
+    });
+  });
+  document.getElementById('card_copy').addEventListener('click', async ()=>{
+    try {
+      const blob = await new Promise(res => cardCanvas.toBlob(res, 'image/png'));
+      await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+      showToast('Скопировано');
+    } catch(e){
+      // fallback to download
+      cardCanvas.toBlob(function(blob){
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'trade-card.png'; document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url); showToast('Сохранено');
+      });
+    }
+  });
+
+  function exportCardFromHistory(item){
+    const data = { title: item.type, lines: [{k:'Time', v: new Date(item.t).toLocaleString()}, {k:'Summary', v: item.summary || '—'}] };
+    drawCard(data);
+    modalBackdrop.style.display = 'flex';
+  }
+
+  /* ---------------------------- Indicators placeholder --------------------- */
+  document.getElementById('refresh_ind').addEventListener('click', ()=>{
+    document.getElementById('fg_text').textContent = '—';
+    document.getElementById('mood').textContent = '—';
+    showToast('Обновлено');
+  });
+
+  /* ---------------------------- Onboarding ------------------------------- */
+  const onboard = document.getElementById('onboarding');
+  const onnClose = document.getElementById('onn_close');
+  if(localStorage.getItem('tc_onboard_seen')) onboard.style.display = 'none';
+  onnClose.addEventListener('click', ()=>{ onboard.style.display = 'none'; localStorage.setItem('tc_onboard_seen','1'); });
+
+  /* ---------------------------- MainButton for TAPPS ---------------------- */
+  let mainButtonAvailable = false;
+  function initMainButton(){
+    try {
+      if(!tg || !tg.MainButton) return;
+      mainButtonAvailable = true;
+      // click handler
+      tg.MainButton.onClick(async ()=>{
+        const active = document.querySelector('.tab.active')?.dataset.tab || 'dca';
+        if(active === 'dca'){
+          // save snapshot to history
+          const st = calcDCA();
+          if(st && st.totalVol > 0){
+            pushHistory({ type: 'DCA', t: Date.now(), summary: `AVG:${fmt(st.avg,6)} VOL:${fmt(st.totalVol,6)} COST:${fmt(st.totalCost,2)}`});
+            showToast('Сохранено в историю');
+          } else showToast('Нет данных для сохранения');
+        } else if(active === 'rr'){
+          const st = calcRR();
+          if(st && st.gross){ pushHistory({ type: 'R/R', t: Date.now(), summary: `Gross:${st.gross.toFixed(2)} Net:${st.net ? st.net.toFixed(2) : '—'}`}); showToast('Сохранено'); }
+          else showToast('Нет данных');
+        } else if(active === 'cap'){
+          const st = calcCap();
+          if(st && st.pos){ pushHistory({ type: 'CAP', t: Date.now(), summary: `POS:${fmt(st.pos,6)}`}); showToast('Сохранено'); }
+          else showToast('Нет данных');
+        }
+        updateMainButtonVisibility();
+      });
+      updateMainButtonText();
+      updateMainButtonVisibility();
+    } catch(e){ mainButtonAvailable = false; }
+  }
+
+  function updateMainButtonText(){
+    if(!mainButtonAvailable) return;
+    const active = document.querySelector('.tab.active')?.dataset.tab || 'dca';
+    const btnText = active === 'dca' ? 'Сохранить DCA' : (active === 'rr' ? 'Сохранить R/R' : (active === 'cap' ? 'Сохранить CAP' : 'Действие'));
+    try { tg.MainButton.setText(btnText); } catch(e){}
+  }
+
+  function updateMainButtonVisibility(){
+    if(!mainButtonAvailable) return;
+    const active = document.querySelector('.tab.active')?.dataset.tab || 'dca';
+    let shouldShow = false;
+    if(active === 'dca'){ const st = calcDCA(); shouldShow = st && st.totalVol > 0; }
+    else if(active === 'rr'){ const st = calcRR(); shouldShow = st && st.gross; }
+    else if(active === 'cap'){ const st = calcCap(); shouldShow = st && st.pos; }
+    try { if(shouldShow) tg.MainButton.show(); else tg.MainButton.hide(); } catch(e){}
+  }
+
+  // If Telegram supports MainButton, initialize
+  try { initMainButton(); } catch(e){ /* silent */ }
+
+  function updateMainButtonText(){ try{ if(tg && tg.MainButton){ const active = document.querySelector('.tab.active')?.dataset.tab || 'dca'; const btnText = active === 'dca' ? 'Сохранить DCA' : (active === 'rr' ? 'Сохранить R/R' : (active === 'cap' ? 'Сохранить CAP' : 'Действие')); tg.MainButton.setText(btnText); } }catch(e){} }
+  function updateMainButtonVisibility(){ try{ if(tg && tg.MainButton){ const active = document.querySelector('.tab.active')?.dataset.tab || 'dca'; let shouldShow=false; if(active==='dca'){ const st = calcDCA(); shouldShow = st && st.totalVol > 0; } else if(active==='rr'){ const st = calcRR(); shouldShow = st && st.gross; } else if(active==='cap'){ const st = calcCap(); shouldShow = st && st.pos; } if(shouldShow) tg.MainButton.show(); else tg.MainButton.hide(); } }catch(e){} }
+
+  /* ---------------------------- Share button ------------------------------ */
+  document.getElementById('btn_share').addEventListener('click', async ()=>{
+    const active = document.querySelector('.tab.active')?.dataset.tab || 'dca';
+    let text = 'Trader Calculator\n';
+    if(active === 'dca'){
+      text += `AVG: ${dcaAvgEl.textContent}\nVOL: ${dcaTotalVolEl.textContent}\nCOST: ${dcaTotalCostEl.textContent}`;
+    } else if(active === 'rr'){
+      text += `Gross: ${rrGross.textContent}\nNet: ${rrNet.textContent}`;
+    } else if(active === 'cap'){
+      text += `POS: ${capPos.textContent}\nRisk$: ${capRiskUsd.textContent}\nMargin$: ${capMargin.textContent}`;
+    }
+    try {
+      if(navigator.share){
+        await navigator.share({ text });
+        showToast('Поделились');
+      } else {
+        await tryCopy(text);
+      }
+    } catch(e){ await tryCopy(text); }
+  });
+
+  /* ---------------------------- Start / load ------------------------------ */
+  loadDcaState();
+  loadRRState();
+  loadCapState();
+  renderHistory();
+  // make sure main button state matches initial content
+  setTimeout(()=>{ updateMainButtonText(); updateMainButtonVisibility(); }, 200);
+
+  // small handlers
+  document.getElementById('onn_close')?.addEventListener('click', ()=>{ document.getElementById('onboarding').style.display='none'; localStorage.setItem('tc_onboard_seen','1'); });
+  window.addEventListener('beforeunload', ()=>{ saveDcaState(); saveRRState(); saveCapState(); });
+
+  // Accessibility: focus first input
+  setTimeout(()=>{ const first = document.querySelector('input'); if(first) first.focus(); }, 300);
+
 })();
 </script>
 </body>
