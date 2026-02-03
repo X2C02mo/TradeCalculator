@@ -7,23 +7,30 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
   
+  <!-- Telegram Analytics SDK -->
+  <script async src="https://telegram.org/js/telegram-web-app.js"></script>
   <script type="module">
-    import telegramAnalytics from 'https://esm.sh/@telegram-apps/analytics';
+    // Правильная инициализация Telegram Analytics SDK
+    import { init, trackEvent } from 'https://esm.sh/@telegram-apps/analytics@0.1.4';
     
     const TG_ANALYTICS_TOKEN = "eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=";
-    const TG_ANALYTICS_APP_NAME = "trader_calculator";
     
     try {
-      telegramAnalytics.init({
+      init({
         token: TG_ANALYTICS_TOKEN,
-        appName: TG_ANALYTICS_APP_NAME
+        appName: "trader_calculator"
       });
       console.log('Telegram Analytics SDK initialized successfully');
+      
+      // Отправляем событие открытия приложения
+      setTimeout(() => {
+        try {
+          trackEvent('app_open', { timestamp: Date.now() });
+        } catch(e) {}
+      }, 1000);
     } catch (error) {
       console.error('Failed to initialize Telegram Analytics:', error);
     }
-    
-    window.telegramAnalytics = telegramAnalytics;
   </script>
 
 <style>
@@ -1375,6 +1382,9 @@
   const ACCENT_COLOR_KEY='tc_accent_color_v1';
   const SCENARIOS_KEY='tc_scenarios_v1';
   const FGSETTINGS_KEY='tc_fg_settings_v1';
+  const DCA_STATE_KEY='tc_dca_state_v2';
+  const RR_STATE_KEY='tc_rr_state_v2';
+  const CAP_STATE_KEY='tc_cap_state_v2';
 
   function getInitialTheme(){
     const saved=localStorage.getItem(THEME_KEY);
@@ -1536,8 +1546,8 @@
     else { btnEn.classList.add('active'); btnRu.classList.remove('active'); }
   }
   syncLangButtons();
-  btnRu?.addEventListener('click', ()=>{ lang='ru'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); updateWalletUI(); loadScenarios(); });
-  btnEn?.addEventListener('click', ()=>{ lang='en'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); updateWalletUI(); loadScenarios(); });
+  btnRu?.addEventListener('click', ()=>{ lang='ru'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); updateWalletUI(); loadScenarios(); loadDcaState(); loadRRState(); loadCapState(); });
+  btnEn?.addEventListener('click', ()=>{ lang='en'; syncLangButtons(); translateAll(); renderHistory(); refreshAll(); updateWalletUI(); loadScenarios(); loadDcaState(); loadRRState(); loadCapState(); });
 
   document.querySelectorAll('.subtab').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -1587,6 +1597,7 @@
     inputs.forEach(inp=>{
       inp.addEventListener('input', ()=>{
         calcDCA();
+        saveDcaState();
         pushHistoryIfReady();
         if(parseFloat(inp.value) < 0){
           inp.classList.add('error');
@@ -1606,6 +1617,7 @@
       setTimeout(()=>{
         wrap.remove();
         calcDCA();
+        saveDcaState();
         pushHistoryIfReady();
       }, 300);
     });
@@ -1623,6 +1635,35 @@
     calcDCA();
   }
 
+  function saveDcaState(){
+    try {
+      const state = dcaRows.map(r => ({
+        p: r.pEl.value,
+        v: r.vEl.value
+      }));
+      localStorage.setItem(DCA_STATE_KEY, JSON.stringify(state));
+    } catch(e) {}
+  }
+
+  function loadDcaState(){
+    try {
+      const saved = localStorage.getItem(DCA_STATE_KEY);
+      if (saved) {
+        const state = JSON.parse(saved);
+        dcaRows = [];
+        dcaRowsEl.innerHTML = '';
+        state.forEach(row => {
+          addDcaRow(parseFloat(row.p) || 0, parseFloat(row.v) || 0);
+        });
+        if (dcaRows.length === 0) {
+          addDcaRow();
+          addDcaRow();
+        }
+        calcDCA();
+      }
+    } catch(e) {}
+  }
+
   function clearDCA(){
     dcaRows.forEach(r=>{
       r.el.style.opacity='0';
@@ -1637,6 +1678,7 @@
       dcaGoal.value='';
       dcaNext.value='';
       calcDCA();
+      saveDcaState();
       showHint('dca', lang==='ru' ? 'Все поля очищены' : 'All fields cleared');
     }, 300);
   }
@@ -1708,6 +1750,7 @@
   document.getElementById('dca_add')?.addEventListener('click', ()=>{
     addDcaRow();
     haptic('impact', 'light');
+    saveDcaState();
   });
   document.getElementById('dca_clear')?.addEventListener('click', ()=>{
     clearDCA();
@@ -1715,10 +1758,12 @@
   });
   dcaGoal?.addEventListener('input', ()=>{
     calcDCA();
+    saveDcaState();
     pushHistoryIfReady();
   });
   dcaNext?.addEventListener('input', ()=>{
     calcDCA();
+    saveDcaState();
     pushHistoryIfReady();
   });
 
@@ -1768,6 +1813,32 @@
   const rrGross=document.getElementById('rr_gross');
   const rrNet=document.getElementById('rr_net');
   const rrHint=document.getElementById('rr_hint');
+
+  function saveRRState(){
+    try {
+      const state = {
+        entry: rrEntry.value,
+        sl: rrSl.value,
+        tp: rrTp.value,
+        fee: rrFee.value
+      };
+      localStorage.setItem(RR_STATE_KEY, JSON.stringify(state));
+    } catch(e) {}
+  }
+
+  function loadRRState(){
+    try {
+      const saved = localStorage.getItem(RR_STATE_KEY);
+      if (saved) {
+        const state = JSON.parse(saved);
+        rrEntry.value = state.entry || '';
+        rrSl.value = state.sl || '';
+        rrTp.value = state.tp || '';
+        rrFee.value = state.fee || '0.2';
+        calcRR();
+      }
+    } catch(e) {}
+  }
 
   function calcRR(){
     const e=safeNum(rrEntry.value), sl=safeNum(rrSl.value), tp=safeNum(rrTp.value);
@@ -1824,6 +1895,7 @@
   [rrEntry,rrSl,rrTp,rrFee].forEach(x=>{
     x?.addEventListener('input', ()=>{ 
       calcRR(); 
+      saveRRState();
       pushHistoryIfReady();
       if(x === rrFee && parseFloat(x.value) > 5){
         showHint('rr_hint', lang==='ru' ? 'Высокая комиссия' : 'High fee percentage', true);
@@ -1844,6 +1916,41 @@
   const capRiskUsd=document.getElementById('cap_risk_usd');
   const capMargin=document.getElementById('cap_margin');
   const capHint=document.getElementById('cap_hint');
+
+  function saveCapState(){
+    try {
+      const state = {
+        dep: capDep.value,
+        risk: capRisk.value,
+        lev: capLev.value,
+        entry: capEntry.value,
+        sl: capSl.value,
+        fee: capFee.value
+      };
+      localStorage.setItem(CAP_STATE_KEY, JSON.stringify(state));
+    } catch(e) {}
+  }
+
+  function loadCapState(){
+    try {
+      const saved = localStorage.getItem(CAP_STATE_KEY);
+      if (saved) {
+        const state = JSON.parse(saved);
+        capDep.value = state.dep || '';
+        capRisk.value = state.risk || '1';
+        capLev.value = state.lev || '1';
+        capEntry.value = state.entry || '';
+        capSl.value = state.sl || '';
+        capFee.value = state.fee || '0.2';
+        
+        document.querySelectorAll('.chip[data-risk]').forEach(ch => {
+          ch.classList.toggle('active', ch.dataset.risk === capRisk.value);
+        });
+        
+        calcCap();
+      }
+    } catch(e) {}
+  }
 
   function loadScenarios(){
     try{
@@ -1904,7 +2011,12 @@
       capSl.value = scenario.sl;
       capFee.value = scenario.fee;
       
+      document.querySelectorAll('.chip[data-risk]').forEach(ch => {
+        ch.classList.toggle('active', ch.dataset.risk === capRisk.value);
+      });
+      
       calcCap();
+      saveCapState();
       pushHistoryIfReady();
       showToast(lang==='ru' ? 'Сценарий загружен' : 'Scenario loaded');
     }catch(e){
@@ -1941,6 +2053,7 @@
       ch.classList.add('active');
       capRisk.value=ch.dataset.risk;
       calcCap();
+      saveCapState();
       pushHistoryIfReady();
       haptic('impact', 'light');
     });
@@ -2007,6 +2120,7 @@
   [capDep,capRisk,capLev,capEntry,capSl,capFee].forEach(x=>{
     x?.addEventListener('input', ()=>{ 
       calcCap(); 
+      saveCapState();
       pushHistoryIfReady();
       if(x === capRisk && parseFloat(x.value) > 10){
         showHint('cap_hint', lang==='ru' ? 'Очень высокий риск' : 'Very high risk', true);
@@ -2751,7 +2865,9 @@
   }
 
   translateAll();
-  clearDCA();
+  loadDcaState();
+  loadRRState();
+  loadCapState();
   calcRR(); calcCap();
   renderHistory();
   loadScenarios();
