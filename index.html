@@ -4,27 +4,32 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Trader Calculator</title>
-
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
-  
   <script type="module">
-    import { init, trackEvent } from 'https://esm.sh/@telegram-apps/analytics';
-    
+    import { init, trackEvent, trackView } from 'https://esm.sh/@telegram-apps/analytics';
     const TG_ANALYTICS_TOKEN = "eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=";
     const TG_ANALYTICS_APP_NAME = "trader_calculator";
-    
-    try {
-      init({
-        token: TG_ANALYTICS_TOKEN,
-        appName: TG_ANALYTICS_APP_NAME
-      });
-      trackEvent('app_launch');
-    } catch (error) {
-      console.error('Telegram Analytics SDK error:', error);
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        init({
+          token: TG_ANALYTICS_TOKEN,
+          appName: TG_ANALYTICS_APP_NAME,
+          autotrack: true,
+          debug: false
+        });
+        trackEvent('app_launch', {
+          platform: navigator.platform,
+          userAgent: navigator.userAgent.substring(0, 100)
+        });
+        trackView('main_screen');
+        console.log('Telegram Analytics SDK initialized');
+      } catch (error) {
+        console.error('Telegram Analytics SDK error:', error);
+      }
+    });
+    window.TelegramAnalytics = { init, trackEvent, trackView };
   </script>
-
   <style>
     :root {
       --bg: #0a0a0a;
@@ -42,7 +47,6 @@
       --result-bg: #0f0f0f;
       --pulse-color: var(--accent);
     }
-
     html[data-theme="light"] {
       --bg: #f5f7fa;
       --panel: #ffffff;
@@ -57,26 +61,22 @@
       --input-bg: #fafbfc;
       --result-bg: #f8f9fa;
     }
-
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
-
     html, body {
       height: 100%;
       background: var(--bg);
       color: var(--text);
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }
-
     #app {
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
-
     header {
       position: sticky;
       top: 0;
@@ -89,19 +89,16 @@
       background: var(--panel);
       animation: slideDown 0.3s ease;
     }
-
     @keyframes slideDown {
       from { transform: translateY(-10px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
-
     .leftbar {
       display: flex;
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
     }
-
     .lang {
       display: flex;
       gap: 4px;
@@ -111,12 +108,10 @@
       border: 1px solid var(--border);
       animation: fadeIn 0.5s ease;
     }
-
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
     }
-
     .lang button {
       background: transparent;
       border: none;
@@ -128,14 +123,12 @@
       font-weight: 600;
       transition: all 0.2s ease;
     }
-
     .lang button.active {
       background: var(--accent);
       color: #000;
       transform: scale(1.05);
       box-shadow: 0 2px 8px rgba(124, 252, 0, 0.3);
     }
-
     .iconbtn {
       border: 1px solid var(--border);
       background: var(--chip);
@@ -150,13 +143,11 @@
       gap: 6px;
       transition: all 0.3s ease;
     }
-
     .iconbtn:hover {
       border-color: var(--accent);
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
-
     main {
       flex: 1;
       padding: 16px;
@@ -168,23 +159,19 @@
       margin: 0 auto;
       width: 100%;
     }
-
     .main-screen {
       display: none;
       animation: fadeIn 0.4s ease;
     }
-
     .main-screen.active {
       display: block;
     }
-
     .subtabs {
       display: flex;
       gap: 8px;
       margin-bottom: 20px;
       flex-wrap: wrap;
     }
-
     .subtab {
       background: var(--chip);
       border: 1px solid var(--border);
@@ -196,12 +183,10 @@
       font-weight: 600;
       transition: all 0.3s ease;
     }
-
     .subtab:hover {
       border-color: var(--accent);
       transform: translateY(-2px);
     }
-
     .subtab.active {
       background: var(--accent);
       color: #000;
@@ -209,28 +194,23 @@
       transform: scale(1.05);
       box-shadow: 0 4px 12px rgba(124, 252, 0, 0.3);
     }
-
     .panels {
       display: flex;
       gap: 20px;
       flex-wrap: wrap;
     }
-
     .screen {
       display: none;
       width: 100%;
       animation: slideUp 0.4s ease;
     }
-
     @keyframes slideUp {
       from { transform: translateY(10px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
-
     .screen.active {
       display: block;
     }
-
     .card {
       background: var(--panel);
       border: 1px solid var(--border);
@@ -241,17 +221,14 @@
       transition: all 0.3s ease;
       animation: cardAppear 0.5s ease;
     }
-
     @keyframes cardAppear {
       0% { transform: scale(0.95); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
     }
-
     .card:hover {
       transform: translateY(-4px);
       box-shadow: 0 12px 32px rgba(0,0,0,0.3);
     }
-
     .card h3 {
       margin: 0 0 16px 0;
       font-size: 18px;
@@ -260,7 +237,6 @@
       position: relative;
       padding-left: 12px;
     }
-
     .card h3::before {
       content: '';
       position: absolute;
@@ -271,12 +247,10 @@
       background: var(--accent);
       border-radius: 2px;
     }
-
     .field {
       margin-bottom: 12px;
       animation: fadeIn 0.5s ease;
     }
-
     label {
       display: block;
       font-size: 12px;
@@ -284,7 +258,6 @@
       margin-bottom: 6px;
       font-weight: 600;
     }
-
     input, select {
       width: 100%;
       padding: 10px 12px;
@@ -296,23 +269,19 @@
       outline: none;
       transition: all 0.2s ease;
     }
-
     input:focus, select:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(124, 252, 0, 0.1);
     }
-
     .row {
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
     }
-
     .row > * {
       flex: 1;
       min-width: 150px;
     }
-
     .result {
       margin-top: 8px;
       padding: 12px;
@@ -326,32 +295,27 @@
       transition: all 0.3s ease;
       animation: pulse 2s infinite;
     }
-
     @keyframes pulse {
       0% { box-shadow: 0 0 0 0 rgba(124, 252, 0, 0.2); }
       70% { box-shadow: 0 0 0 6px rgba(124, 252, 0, 0); }
       100% { box-shadow: 0 0 0 0 rgba(124, 252, 0, 0); }
     }
-
     .result .v {
       color: var(--accent);
       font-weight: 700;
       font-size: 16px;
     }
-
     .small {
       font-size: 11px;
       color: var(--muted);
       font-weight: 500;
     }
-
     .controls {
       display: flex;
       gap: 8px;
       margin-top: 16px;
       flex-wrap: wrap;
     }
-
     .btn {
       background: var(--accent);
       color: #000;
@@ -365,7 +329,6 @@
       position: relative;
       overflow: hidden;
     }
-
     .btn::after {
       content: '';
       position: absolute;
@@ -379,11 +342,9 @@
       transform: scale(1, 1) translate(-50%);
       transform-origin: 50% 50%;
     }
-
     .btn:focus:not(:active)::after {
       animation: ripple 1s ease-out;
     }
-
     @keyframes ripple {
       0% {
         transform: scale(0, 0);
@@ -394,32 +355,27 @@
         opacity: 0;
       }
     }
-
     .btn:hover {
       opacity: 0.9;
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
-
     .btn.ghost {
       background: transparent;
       color: var(--muted);
       border: 1px solid var(--border);
     }
-
     .btn.ghost:hover {
       border-color: var(--accent);
       color: var(--accent);
       transform: translateY(-2px);
     }
-
     .chips {
       display: flex;
       gap: 8px;
       margin-top: 12px;
       flex-wrap: wrap;
     }
-
     .chip {
       border: 1px solid var(--border);
       background: var(--chip);
@@ -431,12 +387,10 @@
       font-weight: 600;
       transition: all 0.3s ease;
     }
-
     .chip:hover {
       border-color: var(--accent);
       transform: translateY(-2px);
     }
-
     .chip.active {
       background: var(--accent);
       color: #000;
@@ -444,7 +398,6 @@
       transform: scale(1.1);
       box-shadow: 0 2px 8px rgba(124, 252, 0, 0.3);
     }
-
     .history {
       background: var(--panel);
       border: 1px solid var(--border);
@@ -454,19 +407,16 @@
       box-shadow: var(--shadow);
       transition: all 0.3s ease;
     }
-
     .history:hover {
       transform: translateY(-2px);
       box-shadow: 0 12px 32px rgba(0,0,0,0.3);
     }
-
     .history h4 {
       margin: 0 0 12px 0;
       font-size: 16px;
       font-weight: 700;
       color: var(--accent);
     }
-
     .history-list {
       display: flex;
       flex-direction: column;
@@ -474,7 +424,6 @@
       max-height: 300px;
       overflow: auto;
     }
-
     .hist-item {
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -486,23 +435,19 @@
       background: var(--chip);
       transition: all 0.3s ease;
     }
-
     .hist-item:hover {
       border-color: var(--accent);
       transform: translateX(4px);
     }
-
     .hist-item b {
       display: block;
       font-size: 13px;
       margin-bottom: 4px;
     }
-
     .hist-actions {
       display: flex;
       gap: 6px;
     }
-
     .mini {
       border: 1px solid var(--border);
       background: transparent;
@@ -514,13 +459,11 @@
       font-weight: 600;
       transition: all 0.2s ease;
     }
-
     .mini:hover {
       border-color: var(--accent);
       color: var(--accent);
       transform: scale(1.05);
     }
-
     .support-wrap {
       display: flex;
       flex-direction: column;
@@ -528,13 +471,11 @@
       align-items: center;
       padding: 20px;
     }
-
     .support-links {
       display: flex;
       gap: 20px;
       margin-top: 16px;
     }
-
     .support-links a {
       color: var(--accent);
       text-decoration: none;
@@ -546,7 +487,6 @@
       border-radius: 8px;
       background: var(--chip);
     }
-
     .support-links a:hover {
       text-decoration: none;
       transform: translateY(-2px);
@@ -554,7 +494,6 @@
       background: var(--accent);
       color: #000;
     }
-
     .bottomnav {
       position: fixed;
       left: 0;
@@ -568,13 +507,11 @@
       justify-content: center;
       animation: slideUp 0.4s ease;
     }
-
     .bottomnav .bar {
       width: min(400px, 100%);
       display: flex;
       gap: 12px;
     }
-
     .main-tab {
       flex: 1;
       border: 1px solid var(--border);
@@ -591,12 +528,10 @@
       gap: 8px;
       transition: all 0.3s ease;
     }
-
     .main-tab:hover {
       border-color: var(--accent);
       transform: translateY(-2px);
     }
-
     .main-tab.active {
       background: var(--accent);
       color: #000;
@@ -604,7 +539,6 @@
       transform: scale(1.05);
       box-shadow: 0 4px 12px rgba(124, 252, 0, 0.3);
     }
-
     #toast {
       position: fixed;
       left: 50%;
@@ -623,12 +557,10 @@
       box-shadow: var(--shadow);
       transition: all 0.3s ease;
     }
-
     #toast.show {
       opacity: 1;
       transform: translateX(-50%) translateY(-10px);
     }
-
     #modal_backdrop {
       position: fixed;
       inset: 0;
@@ -640,7 +572,6 @@
       padding: 16px;
       animation: fadeIn 0.3s ease;
     }
-
     #modal {
       width: min(600px, 100%);
       border-radius: 12px;
@@ -650,25 +581,21 @@
       box-shadow: var(--shadow);
       animation: scaleIn 0.3s ease;
     }
-
     @keyframes scaleIn {
       from { transform: scale(0.9); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
     }
-
     #modal_header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 16px;
     }
-
     #modal_header b {
       font-size: 16px;
       font-weight: 700;
       color: var(--accent);
     }
-
     #modal_close {
       border: 1px solid var(--border);
       background: transparent;
@@ -679,19 +606,16 @@
       font-size: 16px;
       transition: all 0.2s ease;
     }
-
     #modal_close:hover {
       border-color: var(--accent);
       color: var(--accent);
       transform: rotate(90deg);
     }
-
     #modal_body {
       display: flex;
       gap: 16px;
       flex-wrap: wrap;
     }
-
     #modal_canvas_wrap {
       flex: 1;
       min-width: 200px;
@@ -701,43 +625,36 @@
       background: var(--result-bg);
       transition: all 0.3s ease;
     }
-
     #modal_canvas_wrap:hover {
       border-color: var(--accent);
       transform: translateY(-2px);
     }
-
     #card_canvas {
       display: block;
       width: 100%;
       height: 200px;
     }
-
     #modal_right {
       width: 200px;
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
-
     #modal_right .btn {
       width: 100%;
     }
-
     #modal_help {
       font-size: 11px;
       color: var(--muted);
       font-weight: 500;
       text-align: center;
     }
-
     .vizgrid {
       display: grid;
       grid-template-columns: 1fr;
       gap: 16px;
       margin-top: 20px;
     }
-
     .viz {
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -745,33 +662,29 @@
       background: var(--chip);
       transition: all 0.3s ease;
     }
-
     .viz:hover {
       border-color: var(--accent);
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(0,0,0,0.2);
     }
-
     .viz h5 {
       margin: 0 0 12px 0;
       font-size: 13px;
       color: var(--muted);
       font-weight: 600;
     }
-
     .viz canvas {
       width: 100%;
       height: 120px;
       display: block;
     }
-
     .color-picker {
       display: flex;
       gap: 8px;
-      margin-top: 16px;
+      margin: 20px 0;
       flex-wrap: wrap;
+      justify-content: center;
     }
-
     .color-option {
       width: 32px;
       height: 32px;
@@ -780,17 +693,14 @@
       border: 2px solid transparent;
       transition: all 0.3s ease;
     }
-
     .color-option:hover {
       transform: scale(1.1);
     }
-
     .color-option.active {
       border-color: var(--text);
       transform: scale(1.2);
       box-shadow: 0 0 0 2px var(--accent);
     }
-
     .color-option.green { background: #7CFC00; }
     .color-option.blue { background: #2d8cff; }
     .color-option.purple { background: #9b59b6; }
@@ -799,64 +709,51 @@
     .color-option.teal { background: #2dd4bf; }
     .color-option.yellow { background: #fbbf24; }
     .color-option.red { background: #ef4444; }
-
     .floating {
       animation: float 3s ease-in-out infinite;
     }
-
     @keyframes float {
       0% { transform: translateY(0px); }
       50% { transform: translateY(-10px); }
       100% { transform: translateY(0px); }
     }
-
     .glow {
       animation: glow 2s ease-in-out infinite alternate;
     }
-
     @keyframes glow {
       from { box-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent); }
       to { box-shadow: 0 0 15px var(--accent), 0 0 30px var(--accent); }
     }
-
     @media (max-width: 768px) {
       .panels {
         flex-direction: column;
       }
-      
       .history {
         max-width: 100%;
       }
-      
       .row > * {
         min-width: 100%;
       }
-      
       #modal_body {
         flex-direction: column;
       }
-      
       #modal_right {
         width: 100%;
       }
     }
-
     @media (max-width: 480px) {
       .subtabs {
         justify-content: center;
       }
-      
       .main-tab span {
         display: none;
       }
-      
       .main-tab {
         padding: 10px;
       }
     }
   </style>
 </head>
-
 <body>
 <div id="app">
   <header>
@@ -865,29 +762,20 @@
         <button id="btn_ru">RU</button>
         <button id="btn_en" class="active">EN</button>
       </div>
-
       <button class="iconbtn" id="theme_toggle">
         <span id="theme_icon">🌙</span>
         <span id="theme_text">Dark</span>
       </button>
-
-      <button class="iconbtn" id="color_picker_btn">
-        <span>🎨</span>
-        <span>Color</span>
-      </button>
-
       <button class="iconbtn" id="share_btn">
         <span>📤</span>
         <span>Share</span>
       </button>
-
       <button class="iconbtn" id="card_btn">
         <span>🃏</span>
         <span>Card</span>
       </button>
     </div>
   </header>
-
   <main>
     <section id="main_calc" class="main-screen active">
       <div class="subtabs">
@@ -896,18 +784,6 @@
         <button class="subtab" data-tab="cap">💰 Capital</button>
         <button class="subtab" data-tab="ind">📈 Indicators</button>
       </div>
-
-      <div class="color-picker" id="color_picker_container">
-        <div class="color-option green active" data-color="#7CFC00"></div>
-        <div class="color-option blue" data-color="#2d8cff"></div>
-        <div class="color-option purple" data-color="#9b59b6"></div>
-        <div class="color-option orange" data-color="#ffa500"></div>
-        <div class="color-option pink" data-color="#ff6b9d"></div>
-        <div class="color-option teal" data-color="#2dd4bf"></div>
-        <div class="color-option yellow" data-color="#fbbf24"></div>
-        <div class="color-option red" data-color="#ef4444"></div>
-      </div>
-
       <div class="panels">
         <section id="dca" class="screen active">
           <div class="card floating">
@@ -915,14 +791,11 @@
             <div class="small" style="margin-bottom:12px">
               Add multiple entries to calculate average price, total volume and cost.
             </div>
-
             <div id="dca_rows"></div>
-
             <div class="controls">
               <button class="btn" id="dca_add">Add entry</button>
               <button class="btn ghost" id="dca_clear">Clear</button>
             </div>
-
             <div class="result">
               <div>
                 <div class="small">Average price</div>
@@ -930,7 +803,6 @@
               </div>
               <button class="btn ghost" id="dca_copy">Copy</button>
             </div>
-
             <div class="row">
               <div class="result">
                 <div>
@@ -945,13 +817,11 @@
                 </div>
               </div>
             </div>
-
             <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
                 <b style="color:var(--accent);font-weight:700">DCA Goal</b>
                 <span class="small">optional</span>
               </div>
-
               <div class="row">
                 <div class="field">
                   <label>Target avg price</label>
@@ -962,7 +832,6 @@
                   <input id="dca_next_price" type="number" step="any" />
                 </div>
               </div>
-
               <div class="result">
                 <div>
                   <div class="small">Needed volume at next price</div>
@@ -973,7 +842,6 @@
             </div>
           </div>
         </section>
-
         <section id="rr" class="screen">
           <div class="card">
             <h3>Risk/Reward</h3>
@@ -991,12 +859,10 @@
                 <input id="rr_tp" type="number" step="any" />
               </div>
             </div>
-
             <div class="field">
               <label>Fee % (entry+exit)</label>
               <input id="rr_fee" type="number" step="any" value="0.2" />
             </div>
-
             <div class="result">
               <div>
                 <div class="small">Gross R/R</div>
@@ -1004,7 +870,6 @@
               </div>
               <button class="btn ghost" id="rr_copy_gross">Copy</button>
             </div>
-
             <div class="result">
               <div>
                 <div class="small">Net R/R (with fees)</div>
@@ -1014,7 +879,6 @@
             </div>
           </div>
         </section>
-
         <section id="cap" class="screen">
           <div class="card">
             <h3>Capital Management</h3>
@@ -1032,14 +896,12 @@
                 <input id="cap_lev" type="number" step="any" value="1" />
               </div>
             </div>
-
             <div class="chips">
               <button class="chip" data-risk="0.5">0.5%</button>
               <button class="chip active" data-risk="1">1%</button>
               <button class="chip" data-risk="2">2%</button>
               <button class="chip" data-risk="3">3%</button>
             </div>
-
             <div class="row">
               <div class="field">
                 <label>Entry</label>
@@ -1054,7 +916,6 @@
                 <input id="cap_fee" type="number" step="any" value="0.2" />
               </div>
             </div>
-
             <div class="result">
               <div>
                 <div class="small">Position size</div>
@@ -1062,7 +923,6 @@
               </div>
               <button class="btn ghost" id="cap_copy_pos">Copy</button>
             </div>
-
             <div class="row">
               <div class="result">
                 <div>
@@ -1079,11 +939,9 @@
             </div>
           </div>
         </section>
-
         <section id="ind" class="screen">
           <div class="card">
             <h3>Market Indicators</h3>
-
             <div class="row">
               <div class="field">
                 <label>Fear & Greed Index</label>
@@ -1098,7 +956,6 @@
                 </div>
               </div>
             </div>
-
             <div class="row">
               <div class="field">
                 <label>Total Market Cap</label>
@@ -1109,12 +966,10 @@
                 <div class="result"><span class="v" id="alt_text">—</span></div>
               </div>
             </div>
-
             <div class="controls">
               <button class="btn" id="refresh_ind">Refresh Data</button>
               <span class="small" id="ind_note"></span>
             </div>
-
             <div class="vizgrid">
               <div class="viz">
                 <h5>Fear & Greed Gauge</h5>
@@ -1131,7 +986,6 @@
             </div>
           </div>
         </section>
-
         <div class="history">
           <h4>📜 History</h4>
           <div class="history-list" id="history_list"></div>
@@ -1142,27 +996,33 @@
         </div>
       </div>
     </section>
-
     <section id="main_support" class="main-screen">
       <div class="support-wrap">
         <div class="card" style="max-width:600px">
           <h3>💬 Support</h3>
+          <div class="color-picker">
+            <div class="color-option green active" data-color="#7CFC00"></div>
+            <div class="color-option blue" data-color="#2d8cff"></div>
+            <div class="color-option purple" data-color="#9b59b6"></div>
+            <div class="color-option orange" data-color="#ffa500"></div>
+            <div class="color-option pink" data-color="#ff6b9d"></div>
+            <div class="color-option teal" data-color="#2dd4bf"></div>
+            <div class="color-option yellow" data-color="#fbbf24"></div>
+            <div class="color-option red" data-color="#ef4444"></div>
+          </div>
           <div class="small" style="margin-bottom:16px">
             Connect your wallet for tips and donations. Contact us through the links below.
           </div>
-
           <div class="controls">
             <button class="btn" id="wallet_btn">Connect Wallet</button>
             <button class="btn" id="tip_btn">Tip 0.05 TON</button>
           </div>
-
           <div class="controls" style="margin-top:20px">
             <button class="btn ghost" id="open_terms">Terms</button>
             <button class="btn ghost" id="open_privacy">Privacy</button>
             <button class="btn ghost" id="open_support">Contact</button>
           </div>
         </div>
-
         <div style="text-align:center">
           <div style="color:var(--accent);font-weight:700;margin-bottom:12px">AIRDROP • NEWS • TRADING</div>
           <div class="support-links">
@@ -1173,7 +1033,6 @@
       </div>
     </section>
   </main>
-
   <nav class="bottomnav">
     <div class="bar">
       <button id="main_tab_calc" class="main-tab active">🧮 Calculator</button>
@@ -1181,9 +1040,7 @@
     </div>
   </nav>
 </div>
-
 <div id="toast">—</div>
-
 <div id="modal_backdrop">
   <div id="modal">
     <div id="modal_header">
@@ -1202,32 +1059,29 @@
     </div>
   </div>
 </div>
-
 <script>
 (function(){
   'use strict';
-
   const tg = window.Telegram?.WebApp || null;
   if (tg) {
     tg.expand();
     tg.ready();
   }
-
   const mainCalc = document.getElementById('main_calc');
   const mainSupport = document.getElementById('main_support');
   const mainBtnCalc = document.getElementById('main_tab_calc');
   const mainBtnSupport = document.getElementById('main_tab_support');
-
   function setMainTab(which){
     mainCalc.classList.toggle('active', which === 'calc');
     mainSupport.classList.toggle('active', which === 'support');
     mainBtnCalc.classList.toggle('active', which === 'calc');
     mainBtnSupport.classList.toggle('active', which === 'support');
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('screen_view', { screen: which });
+    }
   }
-  
   mainBtnCalc.addEventListener('click', () => setMainTab('calc'));
   mainBtnSupport.addEventListener('click', () => setMainTab('support'));
-
   const locales = {
     ru: {
       "Calculator": "Калькулятор",
@@ -1344,18 +1198,15 @@
       "Indicators": "Indicators"
     }
   };
-
   let lang = 'en';
   try {
     const tgl = tg?.initDataUnsafe?.user?.language_code;
     if (tgl && tgl.startsWith('ru')) lang = 'ru';
   } catch(e) {}
-
   function t(key) {
     const locale = locales[lang] || locales.en;
     return locale[key] || key;
   }
-
   function translateAll() {
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
@@ -1366,26 +1217,21 @@
         el.textContent = translation;
       }
     });
-    
     const elements = document.querySelectorAll('button, label, div, span, h3, h4, h5');
     elements.forEach(el => {
       if (el.textContent in locales.en) {
         el.textContent = t(el.textContent);
       }
     });
-    
     document.getElementById('share_btn').querySelector('span:last-child').textContent = t('Share');
     document.getElementById('card_btn').querySelector('span:last-child').textContent = t('Card');
-    document.getElementById('color_picker_btn').querySelector('span:last-child').textContent = t('Color');
     document.getElementById('theme_text').textContent = document.documentElement.getAttribute('data-theme') === 'light' ? t('Light') : t('Dark');
-    
     const emojiTexts = {
       'dca': '📊',
       'rr': '⚖️',
       'cap': '💰',
       'ind': '📈'
     };
-    
     document.querySelectorAll('.subtab').forEach(tab => {
       const tabId = tab.dataset.tab;
       if (emojiTexts[tabId]) {
@@ -1393,14 +1239,11 @@
         tab.textContent = `${emojiTexts[tabId]} ${t(text)}`;
       }
     });
-    
     document.getElementById('main_tab_calc').textContent = `🧮 ${t('Calculator')}`;
     document.getElementById('main_tab_support').textContent = `💬 ${t('Support')}`;
-    
     document.querySelector('.history h4').textContent = `📜 ${t('History')}`;
     document.querySelector('.card h3').textContent = `💬 ${t('Support')}`;
   }
-
   let toastTimer = null;
   function showToast(msg) {
     const el = document.getElementById('toast');
@@ -1408,8 +1251,10 @@
     el.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('toast_shown', { message: msg.substring(0, 50) });
+    }
   }
-
   const THEME_KEY = 'tc_theme';
   function getInitialTheme() {
     const saved = localStorage.getItem(THEME_KEY);
@@ -1417,31 +1262,28 @@
     const tgScheme = (tg?.colorScheme || '').toLowerCase();
     return tgScheme === 'light' ? 'light' : 'dark';
   }
-
   function setTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem(THEME_KEY, theme);
     document.getElementById('theme_icon').textContent = theme === 'light' ? '☀️' : '🌙';
     document.getElementById('theme_text').textContent = t(theme === 'light' ? 'Light' : 'Dark');
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('theme_changed', { theme: theme });
+    }
   }
-
   setTheme(getInitialTheme());
   document.getElementById('theme_toggle').addEventListener('click', () => {
     const current = document.documentElement.getAttribute('data-theme');
     setTheme(current === 'dark' ? 'light' : 'dark');
   });
-
   const COLOR_KEY = 'tc_accent_color';
   const colorOptions = document.querySelectorAll('.color-option');
-  
   function setAccentColor(color) {
     document.documentElement.style.setProperty('--accent', color);
     localStorage.setItem(COLOR_KEY, color);
-    
     colorOptions.forEach(option => {
       option.classList.toggle('active', option.dataset.color === color);
     });
-    
     const pulseColor = color === '#7CFC00' ? '#7CFC00' : 
                       color === '#2d8cff' ? '#2d8cff' :
                       color === '#9b59b6' ? '#9b59b6' :
@@ -1451,22 +1293,21 @@
                       color === '#fbbf24' ? '#fbbf24' :
                       '#ef4444';
     document.documentElement.style.setProperty('--pulse-color', pulseColor);
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('color_changed', { color: color });
+    }
   }
-
   const savedColor = localStorage.getItem(COLOR_KEY) || '#7CFC00';
   setAccentColor(savedColor);
-
   colorOptions.forEach(option => {
     option.addEventListener('click', () => {
       setAccentColor(option.dataset.color);
     });
   });
-
   function safeNum(v) {
     const x = parseFloat(v);
     return isFinite(x) ? x : 0;
   }
-
   function fmt(v, digits = 8) {
     if (v === null || v === undefined || !isFinite(v)) return '—';
     const n = Number(v);
@@ -1474,31 +1315,31 @@
     const d = abs >= 1000 ? 2 : (abs >= 1 ? 6 : digits);
     return n.toLocaleString(undefined, {maximumFractionDigits: d});
   }
-
   const btnRu = document.getElementById('btn_ru');
   const btnEn = document.getElementById('btn_en');
-  
   function syncLangButtons() {
     btnRu.classList.toggle('active', lang === 'ru');
     btnEn.classList.toggle('active', lang === 'en');
   }
-  
   syncLangButtons();
-  
   btnRu.addEventListener('click', () => {
     lang = 'ru';
     syncLangButtons();
     translateAll();
     renderHistory();
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('language_changed', { language: 'ru' });
+    }
   });
-  
   btnEn.addEventListener('click', () => {
     lang = 'en';
     syncLangButtons();
     translateAll();
     renderHistory();
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('language_changed', { language: 'en' });
+    }
   });
-
   document.querySelectorAll('.subtab').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.subtab').forEach(t => t.classList.remove('active'));
@@ -1507,14 +1348,15 @@
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(target).classList.add('active');
       if (target === 'ind' && !lastIndicators) fetchIndicators();
+      if (window.TelegramAnalytics) {
+        window.TelegramAnalytics.trackEvent('tab_switched', { tab: target });
+      }
     });
   });
-
   function activeTab() {
     const act = document.querySelector('.subtab.active');
     return act?.dataset?.tab || 'dca';
   }
-
   const dcaRowsEl = document.getElementById('dca_rows');
   const dcaAvgEl = document.getElementById('dca_avg');
   const dcaTotalVolEl = document.getElementById('dca_total_vol');
@@ -1522,9 +1364,7 @@
   const dcaGoal = document.getElementById('dca_goal');
   const dcaNext = document.getElementById('dca_next_price');
   const dcaNeedVol = document.getElementById('dca_need_vol');
-
   let dcaRows = [];
-  
   function addDcaRow(p = 0, v = 0) {
     const rowId = Date.now() + Math.random();
     const wrap = document.createElement('div');
@@ -1541,26 +1381,21 @@
         <button class="btn ghost" type="button" style="width:100%">×</button>
       </div>
     `;
-    
     const inputs = wrap.querySelectorAll('input');
     const btnRemove = wrap.querySelector('button');
     const item = { id: rowId, el: wrap, pEl: inputs[0], vEl: inputs[1] };
-    
     inputs.forEach(inp => inp.addEventListener('input', () => {
       calcDCA();
     }));
-    
     btnRemove.addEventListener('click', () => {
       dcaRows = dcaRows.filter(r => r.id !== rowId);
       wrap.remove();
       calcDCA();
     });
-    
     dcaRows.push(item);
     dcaRowsEl.appendChild(wrap);
     calcDCA();
   }
-
   function clearDCA() {
     dcaRows = [];
     dcaRowsEl.innerHTML = '';
@@ -1569,12 +1404,13 @@
     dcaGoal.value = '';
     dcaNext.value = '';
     calcDCA();
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('dca_cleared');
+    }
   }
-
   function calcDCA() {
     let totalVol = 0;
     let totalCost = 0;
-    
     dcaRows.forEach(r => {
       const p = safeNum(r.pEl.value);
       const v = safeNum(r.vEl.value);
@@ -1583,7 +1419,6 @@
         totalCost += p * v;
       }
     });
-
     if (totalVol <= 0) {
       dcaAvgEl.textContent = '—';
       dcaTotalVolEl.textContent = '—';
@@ -1591,30 +1426,30 @@
       dcaNeedVol.textContent = '—';
       return { avg: null, totalVol: 0, totalCost: 0 };
     }
-
     const avg = totalCost / totalVol;
     dcaAvgEl.textContent = fmt(avg, 10);
     dcaTotalVolEl.textContent = fmt(totalVol, 8);
     dcaTotalCostEl.textContent = fmt(totalCost, 2);
-
     const target = safeNum(dcaGoal.value);
     const nextP = safeNum(dcaNext.value);
-    
     if (target > 0 && nextP > 0 && nextP !== target) {
       const x = (target * totalVol - totalCost) / (nextP - target);
       dcaNeedVol.textContent = (isFinite(x) && x > 0) ? fmt(x, 8) : '—';
     } else {
       dcaNeedVol.textContent = '—';
     }
-
+    if (window.TelegramAnalytics && totalVol > 0) {
+      window.TelegramAnalytics.trackEvent('dca_calculated', {
+        entries: dcaRows.length,
+        totalVol: totalVol
+      });
+    }
     return { avg, totalVol, totalCost };
   }
-
   document.getElementById('dca_add').addEventListener('click', () => addDcaRow());
   document.getElementById('dca_clear').addEventListener('click', clearDCA);
   dcaGoal.addEventListener('input', calcDCA);
   dcaNext.addEventListener('input', calcDCA);
-
   async function copyText(text) {
     if (!text || text === '—') return false;
     try {
@@ -1624,62 +1459,63 @@
       return false;
     }
   }
-
   function bindCopy(btn, getVal) {
     btn.addEventListener('click', async () => {
       const val = getVal();
       const ok = await copyText(val);
-      if (ok) showToast(t('Copied!'));
+      if (ok) {
+        showToast(t('Copied!'));
+        if (window.TelegramAnalytics) {
+          window.TelegramAnalytics.trackEvent('value_copied', {
+            value: val.substring(0, 30)
+          });
+        }
+      }
     });
   }
-
   bindCopy(document.getElementById('dca_copy'), () => dcaAvgEl.textContent);
   bindCopy(document.getElementById('dca_need_copy'), () => dcaNeedVol.textContent);
-
   const rrEntry = document.getElementById('rr_entry');
   const rrSl = document.getElementById('rr_sl');
   const rrTp = document.getElementById('rr_tp');
   const rrFee = document.getElementById('rr_fee');
   const rrGross = document.getElementById('rr_gross');
   const rrNet = document.getElementById('rr_net');
-
   function calcRR() {
     const e = safeNum(rrEntry.value);
     const sl = safeNum(rrSl.value);
     const tp = safeNum(rrTp.value);
     const fee = safeNum(rrFee.value) / 100;
-    
     if (!e || !sl || !tp || e === sl) {
       rrGross.textContent = '—';
       rrNet.textContent = '—';
       return { gross: null, net: null };
     }
-    
     const risk = Math.abs(e - sl);
     const reward = Math.abs(tp - e);
-    
     if (!risk || !reward) {
       rrGross.textContent = '—';
       rrNet.textContent = '—';
       return { gross: null, net: null };
     }
-    
     const gross = (reward / risk);
     rrGross.textContent = '1:' + gross.toFixed(2);
-
     const feeEntry = e * fee;
     const feeExit = tp * fee;
     const netReward = Math.max(0, reward - (feeEntry + feeExit));
     const net = (netReward / (risk + feeEntry));
     rrNet.textContent = '1:' + net.toFixed(2);
-    
+    if (window.TelegramAnalytics && e > 0) {
+      window.TelegramAnalytics.trackEvent('rr_calculated', {
+        gross: gross,
+        net: net
+      });
+    }
     return { gross, net };
   }
-
   [rrEntry, rrSl, rrTp, rrFee].forEach(x => x.addEventListener('input', calcRR));
   bindCopy(document.getElementById('rr_copy_gross'), () => rrGross.textContent);
   bindCopy(document.getElementById('rr_copy_net'), () => rrNet.textContent);
-
   const capDep = document.getElementById('cap_dep');
   const capRisk = document.getElementById('cap_risk');
   const capLev = document.getElementById('cap_lev');
@@ -1689,7 +1525,6 @@
   const capPos = document.getElementById('cap_pos');
   const capRiskUsd = document.getElementById('cap_risk_usd');
   const capMargin = document.getElementById('cap_margin');
-
   document.querySelectorAll('.chip[data-risk]').forEach(ch => {
     ch.addEventListener('click', () => {
       document.querySelectorAll('.chip[data-risk]').forEach(x => x.classList.remove('active'));
@@ -1698,7 +1533,6 @@
       calcCap();
     });
   });
-
   function calcCap() {
     const dep = safeNum(capDep.value);
     const rp = safeNum(capRisk.value) / 100;
@@ -1706,45 +1540,41 @@
     const e = safeNum(capEntry.value);
     const sl = safeNum(capSl.value);
     const fee = safeNum(capFee.value) / 100;
-    
     if (dep <= 0 || rp <= 0 || e <= 0 || sl <= 0 || e === sl) {
       capPos.textContent = '—';
       capRiskUsd.textContent = '—';
       capMargin.textContent = '—';
       return { pos: null };
     }
-
     const riskUsd = dep * rp;
     const move = Math.abs(e - sl) + (e * fee);
     const pos = riskUsd / move;
-
     capPos.textContent = fmt(pos, 8);
     capRiskUsd.textContent = fmt(riskUsd, 2);
-
     const notional = pos * e;
     capMargin.textContent = fmt(notional / lev, 2);
-    
+    if (window.TelegramAnalytics && dep > 0) {
+      window.TelegramAnalytics.trackEvent('cap_calculated', {
+        positionSize: pos,
+        riskUsd: riskUsd
+      });
+    }
     return { pos };
   }
-
   [capDep, capRisk, capLev, capEntry, capSl, capFee].forEach(x => x.addEventListener('input', calcCap));
   bindCopy(document.getElementById('cap_copy_pos'), () => capPos.textContent);
-
   const fgText = document.getElementById('fg_text');
   const tcapText = document.getElementById('tcap_text');
   const altText = document.getElementById('alt_text');
   const moodEl = document.getElementById('mood');
   const indNote = document.getElementById('ind_note');
-
   let lastIndicators = null;
   const IND_CACHE_KEY = 'tc_ind_cache';
-  
   function saveIndicatorsCache(data) {
     try {
       localStorage.setItem(IND_CACHE_KEY, JSON.stringify({ t: Date.now(), data }));
     } catch(e) {}
   }
-  
   function loadIndicatorsCache() {
     try {
       const raw = localStorage.getItem(IND_CACHE_KEY);
@@ -1755,19 +1585,15 @@
       return null;
     }
   }
-
   function computeMood(fgValue) {
     if (!isFinite(fgValue)) return '—';
     if (fgValue >= 70) return lang === 'ru' ? 'Жадность' : 'Greed';
     if (fgValue <= 30) return lang === 'ru' ? 'Страх' : 'Fear';
     return lang === 'ru' ? 'Нейтрально' : 'Neutral';
   }
-
   async function fetchIndicators() {
     indNote.textContent = lang === 'ru' ? 'Загрузка...' : 'Loading...';
-    
     let fgVal = null, fgClass = '—', totalMc = null, btcDom = null;
-
     try {
       const res = await fetch('https://api.alternative.me/fng/?limit=1&format=json');
       if (res.ok) {
@@ -1777,7 +1603,6 @@
         fgClass = d?.value_classification || '—';
       }
     } catch(e) {}
-
     try {
       const res2 = await fetch('https://api.coingecko.com/api/v3/global');
       if (res2.ok) {
@@ -1786,10 +1611,8 @@
         btcDom = j2?.data?.market_cap_percentage?.btc ?? null;
       }
     } catch(e) {}
-
     fgText.textContent = isFinite(fgVal) ? `${fgVal} · ${fgClass}` : '—';
     tcapText.textContent = isFinite(totalMc) ? '$' + Number(totalMc).toLocaleString() : '—';
-
     let altDom = null;
     if (typeof btcDom === 'number' && isFinite(btcDom)) {
       altDom = 100 - btcDom;
@@ -1797,57 +1620,48 @@
     } else {
       altText.textContent = '—';
     }
-
     moodEl.textContent = computeMood(fgVal);
-
     lastIndicators = { fgVal, fgClass, totalMc, btcDom, altDom };
     saveIndicatorsCache(lastIndicators);
     drawAllIndicatorVisuals(lastIndicators);
-
     indNote.textContent = '';
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('indicators_fetched', {
+        fgIndex: fgVal
+      });
+    }
   }
-
   function drawGauge(canvas, value) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0, 0, w, h);
-
     const cx = w / 2, cy = h * 0.7;
     const r = Math.min(w * 0.4, h * 0.6);
     const start = Math.PI, end = 0;
-
     ctx.lineWidth = 12;
     ctx.lineCap = 'round';
-
     ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#252525';
     ctx.beginPath();
     ctx.arc(cx, cy, r, start, end, false);
     ctx.stroke();
-
     if (!isFinite(value)) return;
-
     const clamped = Math.max(0, Math.min(100, value));
     const angle = start + (end - start) * (clamped / 100);
-
     ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7CFC00';
     ctx.beginPath();
     ctx.arc(cx, cy, r, start, angle, false);
     ctx.stroke();
   }
-
   function drawDonutSplit(canvas, btcDom) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0, 0, w, h);
-
     const cx = w / 2, cy = h / 2, r = Math.min(w, h) * 0.3;
     const inner = r * 0.6;
-
     const border = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#252525';
     const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7CFC00';
-
     ctx.fillStyle = border;
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -1856,13 +1670,10 @@
     ctx.beginPath();
     ctx.arc(cx, cy, inner, 0, Math.PI * 2);
     ctx.fill();
-
     if (!isFinite(btcDom)) return;
-
     const btc = Math.max(0, Math.min(100, btcDom));
     const a0 = -Math.PI / 2;
     const aB = a0 + (Math.PI * 2) * (btc / 100);
-
     ctx.fillStyle = accent;
     ctx.beginPath();
     ctx.moveTo(cx, cy);
@@ -1870,16 +1681,13 @@
     ctx.closePath();
     ctx.fill();
   }
-
   function drawAllIndicatorVisuals(data) {
     drawGauge(document.getElementById('fg_canvas'), data?.fgVal);
     drawDonutSplit(document.getElementById('dom_canvas'), data?.btcDom);
-
     const fgBig = document.getElementById('fg_big');
     const fgSub = document.getElementById('fg_sub');
     const domBig = document.getElementById('dom_big');
     const domSub = document.getElementById('dom_sub');
-
     if (isFinite(data?.fgVal)) {
       fgBig.textContent = String(Math.round(data.fgVal));
       fgSub.textContent = data.fgClass || '—';
@@ -1887,7 +1695,6 @@
       fgBig.textContent = '—';
       fgSub.textContent = '—';
     }
-
     if (typeof data?.btcDom === 'number' && isFinite(data.btcDom)) {
       domBig.textContent = `BTC ${data.btcDom.toFixed(1)}%`;
       domSub.textContent = `ALTS ${(100 - data.btcDom).toFixed(1)}%`;
@@ -1896,7 +1703,6 @@
       domSub.textContent = '—';
     }
   }
-
   const cached = loadIndicatorsCache();
   if (cached?.data) {
     lastIndicators = cached.data;
@@ -1907,11 +1713,8 @@
     indNote.textContent = lang === 'ru' ? 'Кэшированные данные' : 'Cached data';
     drawAllIndicatorVisuals(lastIndicators);
   }
-
   document.getElementById('refresh_ind').addEventListener('click', fetchIndicators);
-
   const HISTORY_KEY = 'tc_history';
-  
   function loadHistory() {
     try {
       return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
@@ -1919,23 +1722,19 @@
       return [];
     }
   }
-  
   function saveHistory(arr) {
     try {
       localStorage.setItem(HISTORY_KEY, JSON.stringify(arr));
     } catch(e) {}
   }
-  
   function renderHistory() {
     const list = document.getElementById('history_list');
     list.innerHTML = '';
     const arr = loadHistory();
-    
     if (!arr.length) {
       list.innerHTML = '<div class="small">' + t('Saved locally in your browser') + '</div>';
       return;
     }
-    
     arr.forEach((it, idx) => {
       if (idx >= 20) return;
       const node = document.createElement('div');
@@ -1945,7 +1744,6 @@
       left.innerHTML = `<b>${it.type}</b><div class="small">${dt}</div><div class="small">${it.summary}</div>`;
       const right = document.createElement('div');
       right.className = 'hist-actions';
-
       const btnCopy = document.createElement('button');
       btnCopy.className = 'mini';
       btnCopy.textContent = t('Copy');
@@ -1953,86 +1751,71 @@
         const ok = await copyText(it.summary);
         if (ok) showToast(t('Copied!'));
       });
-
       right.appendChild(btnCopy);
       node.appendChild(left);
       node.appendChild(right);
       list.appendChild(node);
     });
   }
-  
   document.getElementById('clear_history').addEventListener('click', () => {
     localStorage.removeItem(HISTORY_KEY);
     renderHistory();
     showToast(lang === 'ru' ? 'История очищена' : 'History cleared');
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('history_cleared');
+    }
   });
-
   document.getElementById('open_terms').addEventListener('click', () => {
     window.open('/terms.html', '_blank');
   });
-  
   document.getElementById('open_privacy').addEventListener('click', () => {
     window.open('/privacy.html', '_blank');
   });
-  
   document.getElementById('open_support').addEventListener('click', () => {
     window.open('https://t.me/Trader_TradeSupportBot', '_blank');
   });
-
   document.getElementById('link_telegram').addEventListener('click', (e) => {
     e.preventDefault();
     window.open('https://t.me/ChalovCrypto', '_blank');
   });
-  
   document.getElementById('link_youtube').addEventListener('click', (e) => {
     e.preventDefault();
     window.open('https://www.youtube.com/@ChalovCrypto', '_blank');
   });
-
   const modalBackdrop = document.getElementById('modal_backdrop');
   const modalClose = document.getElementById('modal_close');
   const cardCanvas = document.getElementById('card_canvas');
   const btnDownload = document.getElementById('card_download');
   const btnCopyImg = document.getElementById('card_copy');
-
   function openModal() {
     modalBackdrop.style.display = 'flex';
   }
-  
   function closeModal() {
     modalBackdrop.style.display = 'none';
   }
-  
   modalClose.addEventListener('click', closeModal);
   modalBackdrop.addEventListener('click', (e) => {
     if (e.target === modalBackdrop) closeModal();
   });
-
   function drawCard() {
     const ctx = cardCanvas.getContext('2d');
     const w = cardCanvas.width, h = cardCanvas.height;
     ctx.clearRect(0, 0, w, h);
-
     const theme = document.documentElement.getAttribute('data-theme');
     const bg = theme === 'light' ? '#f5f7fa' : '#0a0a0a';
     const panel = theme === 'light' ? '#ffffff' : '#111111';
     const text = theme === 'light' ? '#1a1a1a' : '#ffffff';
     const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, w, h);
-
     ctx.fillStyle = panel;
     ctx.fillRect(20, 20, w - 40, h - 40);
-
     ctx.fillStyle = text;
     ctx.font = 'bold 24px Inter';
     ctx.fillText('Trader Calculator', 40, 60);
-
     const tab = activeTab();
     let title = 'Trade Card';
     let data = [];
-
     if (tab === 'dca') {
       title = 'DCA Calculation';
       data = [
@@ -2054,32 +1837,26 @@
         `Margin: $${capMargin.textContent}`
       ];
     }
-
     ctx.fillStyle = accent;
     ctx.font = 'bold 20px Inter';
     ctx.fillText(title, 40, 100);
-
     ctx.fillStyle = text;
     ctx.font = '16px Inter';
     data.forEach((line, i) => {
       ctx.fillText(line, 40, 140 + i * 30);
     });
-
     ctx.fillStyle = accent;
     ctx.beginPath();
     ctx.moveTo(40, 180);
     ctx.lineTo(w - 40, 180);
     ctx.stroke();
-
     ctx.fillStyle = '#666';
     ctx.font = '12px Inter';
     ctx.fillText(new Date().toLocaleDateString(), 40, h - 30);
   }
-
   async function canvasToBlob() {
     return new Promise(resolve => cardCanvas.toBlob(resolve, 'image/png'));
   }
-
   async function downloadPng() {
     const blob = await canvasToBlob();
     const url = URL.createObjectURL(blob);
@@ -2091,59 +1868,54 @@
     a.remove();
     URL.revokeObjectURL(url);
     showToast('Downloaded');
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('card_downloaded');
+    }
   }
-
   btnDownload.addEventListener('click', downloadPng);
-  
   btnCopyImg.addEventListener('click', async () => {
     const blob = await canvasToBlob();
     try {
       await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
       showToast(t('Copied!'));
+      if (window.TelegramAnalytics) {
+        window.TelegramAnalytics.trackEvent('card_copied');
+      }
     } catch (e) {
       downloadPng();
     }
   });
-
   document.getElementById('card_btn').addEventListener('click', () => {
     drawCard();
     openModal();
   });
-
   const TONCONNECT_MANIFEST_URL = 'https://trade-calculator-five.vercel.app/tonconnect-manifest.json';
   const TIP_ADDRESS = 'UQD04FKshVmZaQjZq9y2AtBXWklkzQfK4sEJWrsYfqbNHGGz';
   let tonConnectUI = null;
-
   function initTonConnect() {
     try {
       if (!window.TON_CONNECT_UI?.TonConnectUI) return;
       tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
         manifestUrl: TONCONNECT_MANIFEST_URL
       });
-
       tonConnectUI.onStatusChange(() => {
         updateWalletUI();
       });
-
       updateWalletUI();
     } catch(e) {
       console.error('TON Connect init error:', e);
     }
   }
-
   function updateWalletUI() {
     const wBtn = document.getElementById('wallet_btn');
     const tipBtn = document.getElementById('tip_btn');
-    
     if (!tonConnectUI) {
       wBtn.disabled = true;
       tipBtn.disabled = true;
       return;
     }
-    
     wBtn.disabled = false;
     tipBtn.disabled = !tonConnectUI.connected;
-    
     if (tonConnectUI.connected) {
       const addr = tonConnectUI.account?.address || '';
       wBtn.textContent = addr.slice(0, 6) + '...' + addr.slice(-4);
@@ -2151,10 +1923,8 @@
       wBtn.textContent = t('Connect Wallet');
     }
   }
-
   document.getElementById('wallet_btn').addEventListener('click', async () => {
     if (!tonConnectUI) return;
-    
     if (tonConnectUI.connected) {
       const confirm = window.confirm(t('Disconnect wallet?'));
       if (confirm) {
@@ -2164,14 +1934,17 @@
     } else {
       await tonConnectUI.openModal();
     }
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('wallet_action', {
+        action: tonConnectUI.connected ? 'disconnect' : 'connect_attempt'
+      });
+    }
   });
-
   document.getElementById('tip_btn').addEventListener('click', async () => {
     if (!tonConnectUI?.connected) {
       showToast(t('Connect wallet first'));
       return;
     }
-    
     try {
       const tx = {
         validUntil: Math.floor(Date.now() / 1000) + 600,
@@ -2182,17 +1955,17 @@
       };
       await tonConnectUI.sendTransaction(tx);
       showToast(t('Transaction sent'));
+      if (window.TelegramAnalytics) {
+        window.TelegramAnalytics.trackEvent('tip_sent');
+      }
     } catch(e) {
       showToast(t('Error'));
     }
   });
-
   initTonConnect();
-
   document.getElementById('share_btn').addEventListener('click', async () => {
     const tab = activeTab();
     let text = 'Trader Calculator\n\n';
-    
     if (tab === 'dca') {
       text += `DCA Calculation:\n`;
       text += `Average: ${dcaAvgEl.textContent}\n`;
@@ -2208,25 +1981,24 @@
       text += `Risk: $${capRiskUsd.textContent}\n`;
       text += `Margin: $${capMargin.textContent}\n`;
     }
-    
     text += `\nTry it: https://t.me/ChalovCrypto`;
-
     try {
       await navigator.clipboard.writeText(text);
       showToast(t('Copied!'));
+      if (window.TelegramAnalytics) {
+        window.TelegramAnalytics.trackEvent('app_shared', { tab: tab });
+      }
     } catch(e) {
       showToast('Copy failed');
     }
   });
-
   translateAll();
   clearDCA();
   calcRR();
   calcCap();
   renderHistory();
-
-  if (window.trackEvent) {
-    window.trackEvent('app_loaded');
+  if (window.TelegramAnalytics) {
+    window.TelegramAnalytics.trackEvent('app_loaded');
   }
 })();
 </script>
