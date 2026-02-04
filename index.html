@@ -40,6 +40,7 @@
       --shadow: 0 8px 24px rgba(0,0,0,0.4);
       --input-bg: #0d0d0d;
       --result-bg: #0f0f0f;
+      --pulse-color: var(--accent);
     }
 
     html[data-theme="light"] {
@@ -86,6 +87,12 @@
       padding: 12px 16px;
       border-bottom: 1px solid var(--border);
       background: var(--panel);
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
 
     .leftbar {
@@ -102,6 +109,12 @@
       padding: 4px;
       border-radius: 8px;
       border: 1px solid var(--border);
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .lang button {
@@ -113,11 +126,14 @@
       border-radius: 6px;
       font-size: 13px;
       font-weight: 600;
+      transition: all 0.2s ease;
     }
 
     .lang button.active {
       background: var(--accent);
       color: #000;
+      transform: scale(1.05);
+      box-shadow: 0 2px 8px rgba(124, 252, 0, 0.3);
     }
 
     .iconbtn {
@@ -132,10 +148,13 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      transition: all 0.3s ease;
     }
 
     .iconbtn:hover {
       border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
     main {
@@ -152,6 +171,7 @@
 
     .main-screen {
       display: none;
+      animation: fadeIn 0.4s ease;
     }
 
     .main-screen.active {
@@ -174,16 +194,20 @@
       cursor: pointer;
       border-radius: 8px;
       font-weight: 600;
+      transition: all 0.3s ease;
     }
 
     .subtab:hover {
       border-color: var(--accent);
+      transform: translateY(-2px);
     }
 
     .subtab.active {
       background: var(--accent);
       color: #000;
       border-color: var(--accent);
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(124, 252, 0, 0.3);
     }
 
     .panels {
@@ -195,6 +219,12 @@
     .screen {
       display: none;
       width: 100%;
+      animation: slideUp 0.4s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
 
     .screen.active {
@@ -208,6 +238,18 @@
       padding: 20px;
       box-shadow: var(--shadow);
       margin-bottom: 20px;
+      transition: all 0.3s ease;
+      animation: cardAppear 0.5s ease;
+    }
+
+    @keyframes cardAppear {
+      0% { transform: scale(0.95); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.3);
     }
 
     .card h3 {
@@ -215,10 +257,24 @@
       font-size: 18px;
       font-weight: 700;
       color: var(--accent);
+      position: relative;
+      padding-left: 12px;
+    }
+
+    .card h3::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--accent);
+      border-radius: 2px;
     }
 
     .field {
       margin-bottom: 12px;
+      animation: fadeIn 0.5s ease;
     }
 
     label {
@@ -238,10 +294,12 @@
       border-radius: 8px;
       font-size: 14px;
       outline: none;
+      transition: all 0.2s ease;
     }
 
     input:focus, select:focus {
       border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124, 252, 0, 0.1);
     }
 
     .row {
@@ -265,6 +323,14 @@
       gap: 12px;
       align-items: center;
       justify-content: space-between;
+      transition: all 0.3s ease;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(124, 252, 0, 0.2); }
+      70% { box-shadow: 0 0 0 6px rgba(124, 252, 0, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(124, 252, 0, 0); }
     }
 
     .result .v {
@@ -295,10 +361,44 @@
       cursor: pointer;
       font-weight: 600;
       font-size: 13px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.5);
+      opacity: 0;
+      border-radius: 100%;
+      transform: scale(1, 1) translate(-50%);
+      transform-origin: 50% 50%;
+    }
+
+    .btn:focus:not(:active)::after {
+      animation: ripple 1s ease-out;
+    }
+
+    @keyframes ripple {
+      0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+      }
+      100% {
+        transform: scale(20, 20);
+        opacity: 0;
+      }
     }
 
     .btn:hover {
       opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
     .btn.ghost {
@@ -310,6 +410,7 @@
     .btn.ghost:hover {
       border-color: var(--accent);
       color: var(--accent);
+      transform: translateY(-2px);
     }
 
     .chips {
@@ -328,16 +429,20 @@
       color: var(--muted);
       font-size: 12px;
       font-weight: 600;
+      transition: all 0.3s ease;
     }
 
     .chip:hover {
       border-color: var(--accent);
+      transform: translateY(-2px);
     }
 
     .chip.active {
       background: var(--accent);
       color: #000;
       border-color: var(--accent);
+      transform: scale(1.1);
+      box-shadow: 0 2px 8px rgba(124, 252, 0, 0.3);
     }
 
     .history {
@@ -347,12 +452,19 @@
       padding: 16px;
       width: 100%;
       box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+    }
+
+    .history:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.3);
     }
 
     .history h4 {
       margin: 0 0 12px 0;
       font-size: 16px;
       font-weight: 700;
+      color: var(--accent);
     }
 
     .history-list {
@@ -372,6 +484,12 @@
       justify-content: space-between;
       gap: 12px;
       background: var(--chip);
+      transition: all 0.3s ease;
+    }
+
+    .hist-item:hover {
+      border-color: var(--accent);
+      transform: translateX(4px);
     }
 
     .hist-item b {
@@ -394,11 +512,13 @@
       cursor: pointer;
       font-size: 11px;
       font-weight: 600;
+      transition: all 0.2s ease;
     }
 
     .mini:hover {
       border-color: var(--accent);
       color: var(--accent);
+      transform: scale(1.05);
     }
 
     .support-wrap {
@@ -420,10 +540,19 @@
       text-decoration: none;
       font-weight: 700;
       font-size: 14px;
+      transition: all 0.3s ease;
+      position: relative;
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: var(--chip);
     }
 
     .support-links a:hover {
-      text-decoration: underline;
+      text-decoration: none;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      background: var(--accent);
+      color: #000;
     }
 
     .bottomnav {
@@ -437,6 +566,7 @@
       background: var(--panel);
       display: flex;
       justify-content: center;
+      animation: slideUp 0.4s ease;
     }
 
     .bottomnav .bar {
@@ -459,16 +589,20 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
+      transition: all 0.3s ease;
     }
 
     .main-tab:hover {
       border-color: var(--accent);
+      transform: translateY(-2px);
     }
 
     .main-tab.active {
       background: var(--accent);
       color: #000;
       border-color: var(--accent);
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(124, 252, 0, 0.3);
     }
 
     #toast {
@@ -487,10 +621,12 @@
       z-index: 1000;
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
+      transition: all 0.3s ease;
     }
 
     #toast.show {
       opacity: 1;
+      transform: translateX(-50%) translateY(-10px);
     }
 
     #modal_backdrop {
@@ -502,6 +638,7 @@
       justify-content: center;
       z-index: 999;
       padding: 16px;
+      animation: fadeIn 0.3s ease;
     }
 
     #modal {
@@ -511,6 +648,12 @@
       border: 1px solid var(--border);
       padding: 20px;
       box-shadow: var(--shadow);
+      animation: scaleIn 0.3s ease;
+    }
+
+    @keyframes scaleIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
     }
 
     #modal_header {
@@ -534,11 +677,13 @@
       padding: 6px 10px;
       cursor: pointer;
       font-size: 16px;
+      transition: all 0.2s ease;
     }
 
     #modal_close:hover {
       border-color: var(--accent);
       color: var(--accent);
+      transform: rotate(90deg);
     }
 
     #modal_body {
@@ -554,6 +699,12 @@
       border-radius: 8px;
       overflow: hidden;
       background: var(--result-bg);
+      transition: all 0.3s ease;
+    }
+
+    #modal_canvas_wrap:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
     }
 
     #card_canvas {
@@ -592,6 +743,13 @@
       border-radius: 8px;
       padding: 16px;
       background: var(--chip);
+      transition: all 0.3s ease;
+    }
+
+    .viz:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
     }
 
     .viz h5 {
@@ -605,6 +763,60 @@
       width: 100%;
       height: 120px;
       display: block;
+    }
+
+    .color-picker {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .color-option {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .color-option:hover {
+      transform: scale(1.1);
+    }
+
+    .color-option.active {
+      border-color: var(--text);
+      transform: scale(1.2);
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+
+    .color-option.green { background: #7CFC00; }
+    .color-option.blue { background: #2d8cff; }
+    .color-option.purple { background: #9b59b6; }
+    .color-option.orange { background: #ffa500; }
+    .color-option.pink { background: #ff6b9d; }
+    .color-option.teal { background: #2dd4bf; }
+    .color-option.yellow { background: #fbbf24; }
+    .color-option.red { background: #ef4444; }
+
+    .floating {
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+
+    .glow {
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from { box-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent); }
+      to { box-shadow: 0 0 15px var(--accent), 0 0 30px var(--accent); }
     }
 
     @media (max-width: 768px) {
@@ -655,15 +867,22 @@
       </div>
 
       <button class="iconbtn" id="theme_toggle">
-        <span id="theme_icon"></span>
-        <span id="theme_text"></span>
+        <span id="theme_icon">🌙</span>
+        <span id="theme_text">Dark</span>
+      </button>
+
+      <button class="iconbtn" id="color_picker_btn">
+        <span>🎨</span>
+        <span>Color</span>
       </button>
 
       <button class="iconbtn" id="share_btn">
+        <span>📤</span>
         <span>Share</span>
       </button>
 
       <button class="iconbtn" id="card_btn">
+        <span>🃏</span>
         <span>Card</span>
       </button>
     </div>
@@ -672,15 +891,26 @@
   <main>
     <section id="main_calc" class="main-screen active">
       <div class="subtabs">
-        <button class="subtab active" data-tab="dca">DCA</button>
-        <button class="subtab" data-tab="rr">R/R</button>
-        <button class="subtab" data-tab="cap">Capital</button>
-        <button class="subtab" data-tab="ind">Indicators</button>
+        <button class="subtab active" data-tab="dca">📊 DCA</button>
+        <button class="subtab" data-tab="rr">⚖️ R/R</button>
+        <button class="subtab" data-tab="cap">💰 Capital</button>
+        <button class="subtab" data-tab="ind">📈 Indicators</button>
+      </div>
+
+      <div class="color-picker" id="color_picker_container">
+        <div class="color-option green active" data-color="#7CFC00"></div>
+        <div class="color-option blue" data-color="#2d8cff"></div>
+        <div class="color-option purple" data-color="#9b59b6"></div>
+        <div class="color-option orange" data-color="#ffa500"></div>
+        <div class="color-option pink" data-color="#ff6b9d"></div>
+        <div class="color-option teal" data-color="#2dd4bf"></div>
+        <div class="color-option yellow" data-color="#fbbf24"></div>
+        <div class="color-option red" data-color="#ef4444"></div>
       </div>
 
       <div class="panels">
         <section id="dca" class="screen active">
-          <div class="card">
+          <div class="card floating">
             <h3>DCA Calculator</h3>
             <div class="small" style="margin-bottom:12px">
               Add multiple entries to calculate average price, total volume and cost.
@@ -903,7 +1133,7 @@
         </section>
 
         <div class="history">
-          <h4>History</h4>
+          <h4>📜 History</h4>
           <div class="history-list" id="history_list"></div>
           <div class="controls">
             <button class="btn ghost" id="clear_history">Clear History</button>
@@ -916,7 +1146,7 @@
     <section id="main_support" class="main-screen">
       <div class="support-wrap">
         <div class="card" style="max-width:600px">
-          <h3>Support</h3>
+          <h3>💬 Support</h3>
           <div class="small" style="margin-bottom:16px">
             Connect your wallet for tips and donations. Contact us through the links below.
           </div>
@@ -934,7 +1164,7 @@
         </div>
 
         <div style="text-align:center">
-          <div style="color:var(--accent);font-weight:700;margin-bottom:12px">AIRDROP • NEWS • TRADING SIGNALS</div>
+          <div style="color:var(--accent);font-weight:700;margin-bottom:12px">AIRDROP • NEWS • TRADING</div>
           <div class="support-links">
             <a id="link_telegram" href="https://t.me/ChalovCrypto" target="_blank">TELEGRAM</a>
             <a id="link_youtube" href="https://www.youtube.com/@ChalovCrypto" target="_blank">YOUTUBE</a>
@@ -946,8 +1176,8 @@
 
   <nav class="bottomnav">
     <div class="bar">
-      <button id="main_tab_calc" class="main-tab active">Calculator</button>
-      <button id="main_tab_support" class="main-tab">Support</button>
+      <button id="main_tab_calc" class="main-tab active">🧮 Calculator</button>
+      <button id="main_tab_support" class="main-tab">💬 Support</button>
     </div>
   </nav>
 </div>
@@ -1049,7 +1279,12 @@
       "Card": "Карточка",
       "Copied!": "Скопировано!",
       "Dark": "Тёмная",
-      "Light": "Светлая"
+      "Light": "Светлая",
+      "Color": "Цвет",
+      "DCA": "DCA",
+      "R/R": "R/R",
+      "Capital": "Капитал",
+      "Indicators": "Индикаторы"
     },
     en: {
       "Calculator": "Calculator",
@@ -1101,7 +1336,12 @@
       "Card": "Card",
       "Copied!": "Copied!",
       "Dark": "Dark",
-      "Light": "Light"
+      "Light": "Light",
+      "Color": "Color",
+      "DCA": "DCA",
+      "R/R": "R/R",
+      "Capital": "Capital",
+      "Indicators": "Indicators"
     }
   };
 
@@ -1134,9 +1374,31 @@
       }
     });
     
-    document.getElementById('share_btn').textContent = t('Share');
-    document.getElementById('card_btn').textContent = t('Card');
+    document.getElementById('share_btn').querySelector('span:last-child').textContent = t('Share');
+    document.getElementById('card_btn').querySelector('span:last-child').textContent = t('Card');
+    document.getElementById('color_picker_btn').querySelector('span:last-child').textContent = t('Color');
     document.getElementById('theme_text').textContent = document.documentElement.getAttribute('data-theme') === 'light' ? t('Light') : t('Dark');
+    
+    const emojiTexts = {
+      'dca': '📊',
+      'rr': '⚖️',
+      'cap': '💰',
+      'ind': '📈'
+    };
+    
+    document.querySelectorAll('.subtab').forEach(tab => {
+      const tabId = tab.dataset.tab;
+      if (emojiTexts[tabId]) {
+        const text = tab.textContent.replace(/^[^\w]+\s*/, '');
+        tab.textContent = `${emojiTexts[tabId]} ${t(text)}`;
+      }
+    });
+    
+    document.getElementById('main_tab_calc').textContent = `🧮 ${t('Calculator')}`;
+    document.getElementById('main_tab_support').textContent = `💬 ${t('Support')}`;
+    
+    document.querySelector('.history h4').textContent = `📜 ${t('History')}`;
+    document.querySelector('.card h3').textContent = `💬 ${t('Support')}`;
   }
 
   let toastTimer = null;
@@ -1167,6 +1429,37 @@
   document.getElementById('theme_toggle').addEventListener('click', () => {
     const current = document.documentElement.getAttribute('data-theme');
     setTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  const COLOR_KEY = 'tc_accent_color';
+  const colorOptions = document.querySelectorAll('.color-option');
+  
+  function setAccentColor(color) {
+    document.documentElement.style.setProperty('--accent', color);
+    localStorage.setItem(COLOR_KEY, color);
+    
+    colorOptions.forEach(option => {
+      option.classList.toggle('active', option.dataset.color === color);
+    });
+    
+    const pulseColor = color === '#7CFC00' ? '#7CFC00' : 
+                      color === '#2d8cff' ? '#2d8cff' :
+                      color === '#9b59b6' ? '#9b59b6' :
+                      color === '#ffa500' ? '#ffa500' :
+                      color === '#ff6b9d' ? '#ff6b9d' :
+                      color === '#2dd4bf' ? '#2dd4bf' :
+                      color === '#fbbf24' ? '#fbbf24' :
+                      '#ef4444';
+    document.documentElement.style.setProperty('--pulse-color', pulseColor);
+  }
+
+  const savedColor = localStorage.getItem(COLOR_KEY) || '#7CFC00';
+  setAccentColor(savedColor);
+
+  colorOptions.forEach(option => {
+    option.addEventListener('click', () => {
+      setAccentColor(option.dataset.color);
+    });
   });
 
   function safeNum(v) {
@@ -1724,7 +2017,7 @@
     const bg = theme === 'light' ? '#f5f7fa' : '#0a0a0a';
     const panel = theme === 'light' ? '#ffffff' : '#111111';
     const text = theme === 'light' ? '#1a1a1a' : '#ffffff';
-    const accent = theme === 'light' ? '#2d8cff' : '#7CFC00';
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
 
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, w, h);
@@ -1771,6 +2064,12 @@
     data.forEach((line, i) => {
       ctx.fillText(line, 40, 140 + i * 30);
     });
+
+    ctx.fillStyle = accent;
+    ctx.beginPath();
+    ctx.moveTo(40, 180);
+    ctx.lineTo(w - 40, 180);
+    ctx.stroke();
 
     ctx.fillStyle = '#666';
     ctx.font = '12px Inter';
@@ -1932,5 +2231,4 @@
 })();
 </script>
 </body>
-</html
->
+</html>
