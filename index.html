@@ -1274,10 +1274,9 @@
         textSpan.textContent = t(key);
       }
     });
-    document.getElementById('main_tab_calc').textContent = `🧮 ${t('Calculator')}`;
-    document.getElementById('main_tab_support').textContent = `💬 ${t('Support')}`;
-    document.querySelector('.history h4').textContent = `📜 ${t('History')}`;
-    document.querySelector('.card h3').textContent = `💬 ${t('Support')}`;
+    document.getElementById('main_tab_calc').querySelector('span:last-child').textContent = t('Calculator');
+    document.getElementById('main_tab_support').querySelector('span:last-child').textContent = t('Support');
+    document.querySelector('.history h4').querySelector('span').textContent = t('History');
   }
   let toastTimer = null;
   function showToast(msg) {
