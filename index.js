@@ -7,7 +7,8 @@ if (!TOKEN) {
   process.exit(1);
 }
 
-const bot = new TelegramBot(TOKEN, { polling: true });
+// КРИТИЧНО: Убрана опция { polling: true }
+const bot = new TelegramBot(TOKEN);
 
 const MINI_APP_URL = (process.env.MINI_APP_URL || 'https://trade-calculator-five.vercel.app/').replace(/\/?$/, '/');
 const CHANNEL_URL = process.env.CHANNEL_URL || 'https://t.me/ChalovCrypto';
@@ -93,7 +94,7 @@ bot.onText(/^\/start(?:\s+.*)?$/i, async (msg) => {
     });
   } catch (e) {
     console.error('sendPhoto failed:', e?.message || e);
-    // fallback: без фото, чтобы точно ответил
+   
     try {
       await bot.sendMessage(chatId, caption, {
         parse_mode: 'HTML',
@@ -106,17 +107,19 @@ bot.onText(/^\/start(?:\s+.*)?$/i, async (msg) => {
   }
 });
 
-console.log('Bot is running...');
+
+const PORT = process.env.PORT || 3000;
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('ok');
+}).listen(PORT, () => console.log('Health server listening on port', PORT));
+
 
 bot.on('polling_error', (err) => console.error('Polling error:', err?.message || err));
 bot.on('webhook_error', (err) => console.error('Webhook error:', err?.message || err));
-
 process.on('unhandledRejection', (err) => console.error('UnhandledRejection:', err));
 process.on('uncaughtException', (err) => console.error('UncaughtException:', err));
 
-// Railway health endpoint
-const PORT = process.env.PORT || 3000;
-http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('ok');
-}).listen(PORT, () => console.log('Health server on', PORT));
+
+console.log('Bot is starting polling...');
+bot.startPolling();
