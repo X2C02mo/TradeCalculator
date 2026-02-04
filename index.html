@@ -746,13 +746,29 @@
         justify-content: center;
       }
       .main-tab span {
-        display: none;
+        display: inline-flex !important;
+        align-items: center;
       }
       .main-tab {
-        padding: 10px;
+        padding: 8px 10px;
+        font-size: 12px;
+        gap: 6px;
       }
       .subtab span {
         display: inline !important;
+      }
+    }
+    @media (max-width: 320px) {
+      .main-tab {
+        font-size: 11px;
+        gap: 4px;
+        padding: 6px 8px;
+      }
+      .main-tab span:last-child {
+        max-width: 60px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     }
   </style>
