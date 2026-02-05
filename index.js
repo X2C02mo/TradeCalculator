@@ -12,7 +12,7 @@ const bot = new TelegramBot(TOKEN);
 const MINI_APP_URL = (process.env.MINI_APP_URL || 'https://trade-calculator-five.vercel.app/').replace(/\/?$/, '/');
 const CHANNEL_URL = process.env.CHANNEL_URL || 'https://t.me/ChalovCrypto';
 const SUPPORT = process.env.SUPPORT || '@Trader_TradeSupportBot';
-const START_IMAGE = process.env.START_IMAGE_FILE_ID || 'AgACAgIAAxkBAAMaaVaWeFmSspKIZuXdEQdNMFFv-gQAAhcTaxt-6rFKr0HOjIiv95gBAAMCAAN5AAM4BA';
+const START_IMAGE = process.env.START_IMAGE_FILE_ID || 'AgACAgIAAxkBAAIBCWmEhlm0kBA2PssPUsX1nvxTLAUHAALyD2sbMughSATWthLdQcWEAQADAgADeQADOAQ';
 
 function escapeHtml(s = '') {
   return String(s)
@@ -103,21 +103,6 @@ bot.onText(/^\/start(?:\s+.*)?$/i, async (msg) => {
     } catch (e2) {
       console.error('sendMessage failed:', e2?.message || e2);
     }
-  }
-});
-
-bot.on('photo', (msg) => {
-  const chatId = msg.chat.id;
-  const photoFileId = msg.photo[msg.photo.length - 1].file_id;
-  console.log('Получен file_id фотографии:', photoFileId);
-  bot.sendMessage(chatId, `File_id фотографии: ${photoFileId}`);
-});
-
-bot.on('document', (msg) => {
-  if (msg.document.mime_type && msg.document.mime_type.startsWith('image/')) {
-    const documentFileId = msg.document.file_id;
-    console.log('Получен file_id изображения-документа:', documentFileId);
-    bot.sendMessage(msg.chat.id, `File_id изображения-документа: ${documentFileId}`);
   }
 });
 
