@@ -7,7 +7,6 @@ if (!TOKEN) {
   process.exit(1);
 }
 
-// КРИТИЧНО: Убрана опция { polling: true }
 const bot = new TelegramBot(TOKEN);
 
 const MINI_APP_URL = (process.env.MINI_APP_URL || 'https://trade-calculator-five.vercel.app/').replace(/\/?$/, '/');
@@ -107,6 +106,20 @@ bot.onText(/^\/start(?:\s+.*)?$/i, async (msg) => {
   }
 });
 
+bot.on('photo', (msg) => {
+  const chatId = msg.chat.id;
+  const photoFileId = msg.photo[msg.photo.length - 1].file_id;
+  console.log('Получен file_id фотографии:', photoFileId);
+  bot.sendMessage(chatId, `File_id фотографии: ${photoFileId}`);
+});
+
+bot.on('document', (msg) => {
+  if (msg.document.mime_type && msg.document.mime_type.startsWith('image/')) {
+    const documentFileId = msg.document.file_id;
+    console.log('Получен file_id изображения-документа:', documentFileId);
+    bot.sendMessage(msg.chat.id, `File_id изображения-документа: ${documentFileId}`);
+  }
+});
 
 const PORT = process.env.PORT || 3000;
 const server = http.createServer((req, res) => {
@@ -114,12 +127,10 @@ const server = http.createServer((req, res) => {
   res.end('ok');
 }).listen(PORT, () => console.log('Health server listening on port', PORT));
 
-
 bot.on('polling_error', (err) => console.error('Polling error:', err?.message || err));
 bot.on('webhook_error', (err) => console.error('Webhook error:', err?.message || err));
 process.on('unhandledRejection', (err) => console.error('UnhandledRejection:', err));
 process.on('uncaughtException', (err) => console.error('UncaughtException:', err));
-
 
 console.log('Bot is starting polling...');
 bot.startPolling();
