@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -1217,7 +1218,9 @@
       "Loading...": "Загрузка...",
       "History cleared": "История очищена",
       "TELEGRAM": "ТЕЛЕГРАМ",
-      "YOUTUBE": "ЮТУБ"
+      "YOUTUBE": "ЮТУБ",
+      "Price": "Цена",
+      "Volume": "Объём"
     },
     en: {
       "Calculator": "Calculator",
@@ -1284,7 +1287,9 @@
       "Loading...": "Loading...",
       "History cleared": "History cleared",
       "TELEGRAM": "TELEGRAM",
-      "YOUTUBE": "YOUTUBE"
+      "YOUTUBE": "YOUTUBE",
+      "Price": "Price",
+      "Volume": "Volume"
     }
   };
   let lang = 'en';
@@ -1319,6 +1324,10 @@
     document.getElementById('main_tab_calc').querySelector('span:last-child').textContent = t('Calculator');
     document.getElementById('main_tab_support').querySelector('span:last-child').textContent = t('Support');
     document.querySelector('.history h4').querySelector('span').textContent = t('History');
+    dcaRows.forEach(row => {
+      row.pEl.placeholder = t('Price');
+      row.vEl.placeholder = t('Volume');
+    });
   }
   let toastTimer = null;
   function showToast(msg) {
@@ -1448,10 +1457,10 @@
     wrap.style.marginBottom = '8px';
     wrap.innerHTML = `
       <div class="field" style="flex:2">
-        <input type="number" step="any" placeholder="${lang === 'ru' ? 'Цена' : 'Price'}" value="${p || ''}">
+        <input type="number" step="any" placeholder="${t('Price')}" value="${p || ''}">
       </div>
       <div class="field" style="flex:2">
-        <input type="number" step="any" placeholder="${lang === 'ru' ? 'Объём' : 'Volume'}" value="${v || ''}">
+        <input type="number" step="any" placeholder="${t('Volume')}" value="${v || ''}">
       </div>
       <div class="field" style="flex:1">
         <button class="btn ghost" type="button" style="width:100%">×</button>
@@ -2139,3 +2148,4 @@
 </script>
 </body>
 </html>
+```
