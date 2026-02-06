@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -7,28 +8,60 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
   <script type="module">
-    import { init, trackEvent, trackView } from 'https://esm.sh/@telegram-apps/analytics';
     const TG_ANALYTICS_TOKEN = "eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=";
     const TG_ANALYTICS_APP_NAME = "trader_calculator";
+
+    function validateAnalyticsConfig() {
+      return TG_ANALYTICS_TOKEN && TG_ANALYTICS_TOKEN.length > 10;
+    }
+
+    window.TelegramAnalytics = {
+      init: () => {},
+      trackEvent: () => {},
+      trackView: () => {}
+    };
+
     document.addEventListener('DOMContentLoaded', () => {
-      try {
-        init({
-          token: TG_ANALYTICS_TOKEN,
-          appName: TG_ANALYTICS_APP_NAME,
-          autotrack: true,
-          debug: false
-        });
-        trackEvent('app_launch', {
-          platform: navigator.platform,
-          userAgent: navigator.userAgent.substring(0, 100)
-        });
-        trackView('main_screen');
-        console.log('Telegram Analytics SDK initialized');
-      } catch (error) {
-        console.error('Telegram Analytics SDK error:', error);
+      if (!validateAnalyticsConfig()) {
+        console.error('Invalid analytics token');
+        return;
       }
+
+      if (!window.Telegram?.WebApp) {
+        console.log('Not in Telegram environment');
+        return;
+      }
+
+      setTimeout(() => {
+        import('https://esm.sh/@telegram-apps/analytics').then(({ init, trackEvent, trackView }) => {
+          try {
+            const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+            const userId = user?.id?.toString();
+
+            init({
+              token: TG_ANALYTICS_TOKEN,
+              appName: TG_ANALYTICS_APP_NAME,
+              autotrack: true,
+              debug: false
+            });
+
+            trackEvent('app_launch', {
+              platform: navigator.platform,
+              user_id: userId,
+              theme: window.Telegram?.WebApp?.colorScheme,
+              user_agent: navigator.userAgent.substring(0, 100)
+            });
+
+            trackView('main_screen');
+            console.log('Telegram Analytics SDK initialized');
+
+            window.TelegramAnalytics = { init, trackEvent, trackView };
+          } catch (error) {
+            console.error('Telegram Analytics SDK error:', error);
+          }
+        });
+      }, 1000);
     });
-    window.TelegramAnalytics = { init, trackEvent, trackView };
   </script>
   <style>
     :root {
@@ -1489,7 +1522,8 @@
       dcaNeedVol.textContent = '—';
     }
     if (window.TelegramAnalytics && totalVol > 0) {
-      window.TelegramAnalytics.trackEvent('dca_calculated', {
+      window.TelegramAnalytics.trackEvent('calculator_used', {
+        type: 'DCA',
         entries: dcaRows.length,
         totalVol: totalVol
       });
@@ -1581,7 +1615,8 @@
     const net = (netReward / (risk + feeEntry));
     rrNet.textContent = '1:' + net.toFixed(2);
     if (window.TelegramAnalytics && e > 0) {
-      window.TelegramAnalytics.trackEvent('rr_calculated', {
+      window.TelegramAnalytics.trackEvent('calculator_used', {
+        type: 'R/R',
         gross: gross,
         net: net
       });
@@ -1633,7 +1668,8 @@
     const notional = pos * e;
     capMargin.textContent = fmt(notional / lev, 2);
     if (window.TelegramAnalytics && dep > 0) {
-      window.TelegramAnalytics.trackEvent('cap_calculated', {
+      window.TelegramAnalytics.trackEvent('calculator_used', {
+        type: 'Capital',
         positionSize: pos,
         riskUsd: riskUsd
       });
@@ -2085,3 +2121,4 @@
 </script>
 </body>
 </html>
+```
