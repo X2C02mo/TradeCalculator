@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -1122,9 +1121,9 @@
         <canvas id="card_canvas" width="600" height="200"></canvas>
       </div>
       <div id="modal_right">
-        <button class="btn" id="card_download" data-i18n="Download PNG">Download PNG</button>
+        <button class="btn" id="card_save" data-i18n="Save PNG">Save PNG</button>
         <button class="btn ghost" id="card_copy" data-i18n="Copy">Copy</button>
-        <div id="modal_help" data-i18n="If copy doesn't work, use Download PNG">If copy doesn't work, use Download PNG</div>
+        <div id="modal_help" data-i18n="Use Save PNG for smartphones, Copy for computers">Use Save PNG for smartphones, Copy for computers</div>
       </div>
     </div>
   </div>
@@ -1202,6 +1201,7 @@
       "Share": "Поделиться",
       "Card": "Карточка",
       "Copied!": "Скопировано!",
+      "Save PNG": "Сохранить PNG",
       "Dark": "Тёмная",
       "Light": "Светлая",
       "Color": "Цвет",
@@ -1211,7 +1211,7 @@
       "Indicators": "Индикаторы",
       "Trade Card": "Торговая Карточка",
       "Download PNG": "Скачать PNG",
-      "If copy doesn't work, use Download PNG": "Если копирование не работает, используйте Скачать PNG",
+      "Use Save PNG for smartphones, Copy for computers": "Используйте Сохранить PNG для смартфонов, Копировать для компьютеров",
       "Clear History": "Очистить историю",
       "Cached data": "Кэшированные данные",
       "Loading...": "Загрузка...",
@@ -1268,6 +1268,7 @@
       "Share": "Share",
       "Card": "Card",
       "Copied!": "Copied!",
+      "Save PNG": "Save PNG",
       "Dark": "Dark",
       "Light": "Light",
       "Color": "Color",
@@ -1277,7 +1278,7 @@
       "Indicators": "Indicators",
       "Trade Card": "Trade Card",
       "Download PNG": "Download PNG",
-      "If copy doesn't work, use Download PNG": "If copy doesn't work, use Download PNG",
+      "Use Save PNG for smartphones, Copy for computers": "Use Save PNG for smartphones, Copy for computers",
       "Clear History": "Clear History",
       "Cached data": "Cached data",
       "Loading...": "Loading...",
@@ -1305,18 +1306,10 @@
         el.textContent = translation;
       }
     });
-    const elements = document.querySelectorAll('button, label, div, span, h3, h4, h5');
-    elements.forEach(el => {
-      if (el.textContent in locales.en) {
-        el.textContent = t(el.textContent);
-      }
-    });
     document.getElementById('share_btn').querySelector('span:last-child').textContent = t('Share');
     document.getElementById('card_btn').querySelector('span:last-child').textContent = t('Card');
     document.getElementById('theme_text').textContent = document.documentElement.getAttribute('data-theme') === 'light' ? t('Light') : t('Dark');
     document.querySelectorAll('.subtab').forEach(tab => {
-      const tabId = tab.dataset.tab;
-      const emoji = tab.querySelector('span:first-child').textContent;
       const textSpan = tab.querySelector('span:last-child');
       if (textSpan) {
         const key = textSpan.getAttribute('data-i18n') || textSpan.textContent;
@@ -1902,7 +1895,7 @@
   const modalBackdrop = document.getElementById('modal_backdrop');
   const modalClose = document.getElementById('modal_close');
   const cardCanvas = document.getElementById('card_canvas');
-  const btnDownload = document.getElementById('card_download');
+  const btnSave = document.getElementById('card_save');
   const btnCopyImg = document.getElementById('card_copy');
   function openModal() {
     modalBackdrop.style.display = 'flex';
@@ -1971,36 +1964,61 @@
     ctx.font = '12px Inter';
     ctx.fillText(new Date().toLocaleDateString(), 40, h - 30);
   }
-  async function canvasToBlob() {
-    return new Promise(resolve => cardCanvas.toBlob(resolve, 'image/png'));
-  }
-  async function downloadPng() {
-    const blob = await canvasToBlob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'trade-card.png';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    showToast('Downloaded');
-    if (window.TelegramAnalytics) {
-      window.TelegramAnalytics.trackEvent('card_downloaded');
-    }
-  }
-  btnDownload.addEventListener('click', downloadPng);
-  btnCopyImg.addEventListener('click', async () => {
-    const blob = await canvasToBlob();
-    try {
-      await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
-      showToast(t('Copied!'));
-      if (window.TelegramAnalytics) {
-        window.TelegramAnalytics.trackEvent('card_copied');
+  function saveCardUniversal() {
+    cardCanvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'trade-card.png';
+        
+        document.body.appendChild(link);
+        
+        try {
+          link.click();
+        } catch (e) {
+          const newWindow = window.open(url, '_blank');
+          if (!newWindow) {
+            showToast('Please allow popups to save image');
+          }
+        }
+        
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }, 100);
+      } else {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'trade-card.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
       }
-    } catch (e) {
-      downloadPng();
-    }
+      
+      showToast('Image saved');
+      if (window.TelegramAnalytics) {
+        window.TelegramAnalytics.trackEvent('card_saved', { method: isMobile ? 'mobile' : 'desktop' });
+      }
+    }, 'image/png');
+  }
+  btnSave.addEventListener('click', saveCardUniversal);
+  btnCopyImg.addEventListener('click', async () => {
+    cardCanvas.toBlob(async (blob) => {
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+        showToast(t('Copied!'));
+        if (window.TelegramAnalytics) {
+          window.TelegramAnalytics.trackEvent('card_copied');
+        }
+      } catch (e) {
+        saveCardUniversal();
+      }
+    }, 'image/png');
   });
   document.getElementById('card_btn').addEventListener('click', () => {
     drawCard();
