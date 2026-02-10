@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -71,14 +72,19 @@
       --text: #ffffff;
       --muted: #a0a0a0;
       --accent: #7CFC00;
+      --accent-rgb: 124, 252, 0;
       --chip: #1a1a1a;
       --danger: #ff4d4d;
       --success: #22c55e;
-      --radius: 12px;
-      --shadow: 0 8px 24px rgba(0,0,0,0.4);
+      --radius: 14px;
+      --shadow: 0 10px 28px rgba(0,0,0,0.45);
+      --shadow-soft: 0 6px 18px rgba(0,0,0,0.25);
       --input-bg: #0d0d0d;
       --result-bg: #0f0f0f;
       --pulse-color: var(--accent);
+      --glass: rgba(255,255,255,0.03);
+      --glass-strong: rgba(255,255,255,0.06);
+      --blur: 10px;
     }
     html[data-theme="light"] {
       --bg: #f5f7fa;
@@ -87,6 +93,7 @@
       --text: #1a1a1a;
       --muted: #666666;
       --accent: #2d8cff;
+      --accent-rgb: 45, 140, 255;
       --chip: #f0f2f5;
       --danger: #ef4444;
       --success: #10b981;
@@ -104,6 +111,18 @@
       background: var(--bg);
       color: var(--text);
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      overflow-x: hidden;
+    }
+    body::before{
+      content:'';
+      position: fixed;
+      inset: -20%;
+      pointer-events: none;
+      z-index: -1;
+      background:
+        radial-gradient(900px 450px at 15% 15%, rgba(var(--accent-rgb),0.18), transparent 55%),
+        radial-gradient(900px 450px at 85% 25%, rgba(var(--accent-rgb),0.10), transparent 55%),
+        radial-gradient(900px 520px at 50% 90%, rgba(var(--accent-rgb),0.08), transparent 55%);
     }
     #app {
       min-height: 100vh;
@@ -245,7 +264,8 @@
       display: block;
     }
     .card {
-      background: var(--panel);
+      background: linear-gradient(180deg, var(--glass-strong), rgba(255,255,255,0.00) 45%), var(--panel);
+      backdrop-filter: blur(var(--blur));
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
@@ -326,12 +346,12 @@
       align-items: center;
       justify-content: space-between;
       transition: all 0.3s ease;
-      animation: pulse 2s infinite;
+      animation: pulse 3.2s infinite;
     }
     @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(124, 252, 0, 0.2); }
-      70% { box-shadow: 0 0 0 6px rgba(124, 252, 0, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(124, 252, 0, 0); }
+      0% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.22); }
+      70% { box-shadow: 0 0 0 7px rgba(var(--accent-rgb), 0); }
+      100% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0); }
     }
     .result .v {
       color: var(--accent);
@@ -527,6 +547,68 @@
       background: var(--accent);
       color: #000;
     }
+    /* Achievements */
+    .ach-card .ach-summary{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      margin: 12px 0 8px;
+    }
+    .ach-progress{ flex: 1; min-width: 220px; }
+    .ach-bar{
+      margin-top:8px;
+      height:10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: var(--result-bg);
+      overflow:hidden;
+    }
+    #ach_bar_fill{
+      height:100%;
+      width:0%;
+      background: var(--accent);
+      transition: width .35s ease;
+    }
+    .ach-list{ display:flex; flex-direction:column; gap:10px; margin-top: 12px; }
+    .ach-item{
+      border:1px solid var(--border);
+      background: linear-gradient(180deg, var(--glass), transparent 55%), var(--chip);
+      border-radius: 12px;
+      padding: 12px;
+      display:flex;
+      align-items:flex-start;
+      gap: 12px;
+      transition: all .25s ease;
+    }
+    .ach-item:hover{ border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-soft); }
+    .ach-ico{
+      width: 38px; height: 38px; border-radius: 12px;
+      display:flex; align-items:center; justify-content:center;
+      font-size: 18px;
+      background: rgba(var(--accent-rgb),0.12);
+      border: 1px solid rgba(var(--accent-rgb),0.25);
+      flex: 0 0 auto;
+    }
+    .ach-main{ flex:1; min-width: 160px; }
+    .ach-title{ font-weight: 800; font-size: 13px; line-height: 1.2; }
+    .ach-desc{ margin-top: 4px; font-size: 12px; color: var(--muted); font-weight: 550; line-height: 1.35; }
+    .ach-pill{
+      flex: 0 0 auto;
+      font-size: 11px; font-weight: 800;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--result-bg);
+      color: var(--muted);
+    }
+    .ach-pill.unlocked{
+      border-color: rgba(var(--accent-rgb),0.35);
+      color: #000;
+      background: var(--accent);
+    }
+
     .bottomnav {
       position: fixed;
       left: 0;
@@ -1087,6 +1169,18 @@
             <button class="btn ghost" id="open_support" data-i18n="Contact">Contact</button>
           </div>
         </div>
+        <div class="card ach-card" style="max-width:600px">
+          <h3>🏆 <span data-i18n="Achievements">Achievements</span></h3>
+          <div class="ach-summary">
+            <div class="ach-progress">
+              <div class="small"><span data-i18n="Progress">Progress</span>: <b id="ach_progress_text">—</b></div>
+              <div class="ach-bar"><div id="ach_bar_fill"></div></div>
+            </div>
+            <button class="btn ghost" id="ach_reset" data-i18n="Reset Achievements">Reset Achievements</button>
+          </div>
+          <div class="ach-list" id="ach_list"></div>
+          <div class="small" data-i18n="Achievements saved locally">Achievements saved locally</div>
+        </div>
         <div style="text-align:center">
           <div style="color:var(--accent);font-weight:700;margin-bottom:12px">AIRDROP • NEWS • TRADING</div>
           <div class="support-links">
@@ -1220,7 +1314,42 @@
       "TELEGRAM": "ТЕЛЕГРАМ",
       "YOUTUBE": "ЮТУБ",
       "Price": "Цена",
-      "Volume": "Объём"
+      "Volume": "Объём",
+      "Achievements": "Достижения",
+      "Progress": "Прогресс",
+      "Reset Achievements": "Сбросить достижения",
+      "Achievements saved locally": "Сохранено локально в браузере",
+      "Locked": "Закрыто",
+      "Unlocked": "Открыто",
+      "Disconnect wallet?": "Отключить кошелёк?",
+      "Connect wallet first": "Сначала подключите кошелёк",
+      "Transaction sent": "Транзакция отправлена",
+      "Error": "Ошибка",
+      "Image saved": "Изображение сохранено",
+      "Please allow popups to save image": "Разрешите всплывающие окна для сохранения",
+      "Achievement unlocked": "Достижение получено",
+      "ACH_WELCOME_TITLE": "Добро пожаловать",
+      "ACH_WELCOME_DESC": "Откройте приложение впервые.",
+      "ACH_STYLE_TITLE": "Смена настроения",
+      "ACH_STYLE_DESC": "Переключите тему (тёмная/светлая).",
+      "ACH_COLOR_TITLE": "Персонализация",
+      "ACH_COLOR_DESC": "Смените акцентный цвет 3 раза.",
+      "ACH_BILINGUAL_TITLE": "Билингв",
+      "ACH_BILINGUAL_DESC": "Переключите язык интерфейса.",
+      "ACH_DCA_TITLE": "DCA-строитель",
+      "ACH_DCA_DESC": "Добавьте 5 строк в DCA.",
+      "ACH_COPY_TITLE": "Копипастер",
+      "ACH_COPY_DESC": "Скопируйте значения 5 раз.",
+      "ACH_DATA_TITLE": "Свежие данные",
+      "ACH_DATA_DESC": "Обновите индикаторы рынка.",
+      "ACH_CARD_TITLE": "Карточка трейдера",
+      "ACH_CARD_DESC": "Откройте Trade Card.",
+      "ACH_SHARE_TITLE": "Поделиться",
+      "ACH_SHARE_DESC": "Нажмите «Поделиться».",
+      "ACH_TIP_TITLE": "Поддержка проекта",
+      "ACH_TIP_DESC": "Отправьте донат 0.05 TON.",
+      "ACH_HISTORY_TITLE": "Летописец",
+      "ACH_HISTORY_DESC": "Сохраните 10 действий в истории."
     },
     en: {
       "Calculator": "Calculator",
@@ -1289,7 +1418,42 @@
       "TELEGRAM": "TELEGRAM",
       "YOUTUBE": "YOUTUBE",
       "Price": "Price",
-      "Volume": "Volume"
+      "Volume": "Volume",
+      "Achievements": "Achievements",
+      "Progress": "Progress",
+      "Reset Achievements": "Reset achievements",
+      "Achievements saved locally": "Saved locally in your browser",
+      "Locked": "Locked",
+      "Unlocked": "Unlocked",
+      "Disconnect wallet?": "Disconnect wallet?",
+      "Connect wallet first": "Connect wallet first",
+      "Transaction sent": "Transaction sent",
+      "Error": "Error",
+      "Image saved": "Image saved",
+      "Please allow popups to save image": "Please allow popups to save image",
+      "Achievement unlocked": "Achievement unlocked",
+      "ACH_WELCOME_TITLE": "Welcome",
+      "ACH_WELCOME_DESC": "Open the app for the first time.",
+      "ACH_STYLE_TITLE": "Style switcher",
+      "ACH_STYLE_DESC": "Toggle the theme (dark/light).",
+      "ACH_COLOR_TITLE": "Customization",
+      "ACH_COLOR_DESC": "Change the accent color 3 times.",
+      "ACH_BILINGUAL_TITLE": "Bilingual",
+      "ACH_BILINGUAL_DESC": "Switch the app language.",
+      "ACH_DCA_TITLE": "DCA builder",
+      "ACH_DCA_DESC": "Add 5 rows in DCA.",
+      "ACH_COPY_TITLE": "Copy machine",
+      "ACH_COPY_DESC": "Copy values 5 times.",
+      "ACH_DATA_TITLE": "Fresh data",
+      "ACH_DATA_DESC": "Refresh market indicators.",
+      "ACH_CARD_TITLE": "Trader card",
+      "ACH_CARD_DESC": "Open the Trade Card.",
+      "ACH_SHARE_TITLE": "Share it",
+      "ACH_SHARE_DESC": "Tap the Share button.",
+      "ACH_TIP_TITLE": "Supporter",
+      "ACH_TIP_DESC": "Send a 0.05 TON tip.",
+      "ACH_HISTORY_TITLE": "Historian",
+      "ACH_HISTORY_DESC": "Save 10 actions to history."
     }
   };
   let lang = 'en';
@@ -1339,7 +1503,122 @@
     if (window.TelegramAnalytics) {
       window.TelegramAnalytics.trackEvent('toast_shown', { message: msg.substring(0, 50) });
     }
+  // ===== Achievements =====
+  const ACH_KEY = 'tc_achievements_v1';
+  function loadAchState() {
+    try {
+      const raw = localStorage.getItem(ACH_KEY);
+      if (!raw) return { unlocked: {}, counters: {} };
+      const j = JSON.parse(raw);
+      return { unlocked: j?.unlocked || {}, counters: j?.counters || {} };
+    } catch(e) {
+      return { unlocked: {}, counters: {} };
+    }
   }
+  function saveAchState(state) {
+    try { localStorage.setItem(ACH_KEY, JSON.stringify(state)); } catch(e) {}
+  }
+  const achievements = [
+    { id: 'first_launch', icon: '✨', titleKey: 'ACH_WELCOME_TITLE', descKey: 'ACH_WELCOME_DESC', type: 'one' },
+    { id: 'theme_switch', icon: '🌓', titleKey: 'ACH_STYLE_TITLE', descKey: 'ACH_STYLE_DESC', type: 'one' },
+    { id: 'color_3', icon: '🎨', titleKey: 'ACH_COLOR_TITLE', descKey: 'ACH_COLOR_DESC', type: 'count', counter: 'color_changes', need: 3 },
+    { id: 'lang_switch', icon: '🌍', titleKey: 'ACH_BILINGUAL_TITLE', descKey: 'ACH_BILINGUAL_DESC', type: 'one' },
+    { id: 'dca_5', icon: '🧱', titleKey: 'ACH_DCA_TITLE', descKey: 'ACH_DCA_DESC', type: 'count', counter: 'dca_adds', need: 5 },
+    { id: 'copy_5', icon: '📋', titleKey: 'ACH_COPY_TITLE', descKey: 'ACH_COPY_DESC', type: 'count', counter: 'copies', need: 5 },
+    { id: 'ind_refresh', icon: '🛰️', titleKey: 'ACH_DATA_TITLE', descKey: 'ACH_DATA_DESC', type: 'one' },
+    { id: 'card_open', icon: '🃏', titleKey: 'ACH_CARD_TITLE', descKey: 'ACH_CARD_DESC', type: 'one' },
+    { id: 'share', icon: '📤', titleKey: 'ACH_SHARE_TITLE', descKey: 'ACH_SHARE_DESC', type: 'one' },
+    { id: 'tip', icon: '💎', titleKey: 'ACH_TIP_TITLE', descKey: 'ACH_TIP_DESC', type: 'one' },
+    { id: 'history_10', icon: '📜', titleKey: 'ACH_HISTORY_TITLE', descKey: 'ACH_HISTORY_DESC', type: 'count', counter: 'history_saved', need: 10 }
+  ];
+  let achState = loadAchState();
+
+  function isUnlocked(id) { return !!achState.unlocked[id]; }
+
+  function unlockAchievement(id) {
+    if (isUnlocked(id)) return false;
+    achState.unlocked[id] = Date.now();
+    saveAchState(achState);
+    renderAchievements();
+    const a = achievements.find(x => x.id === id);
+    showToast(`${t('Achievement unlocked')}: ${t(a?.titleKey || id)}`);
+    if (window.TelegramAnalytics) window.TelegramAnalytics.trackEvent('achievement_unlocked', { id });
+    return true;
+  }
+
+  function incCounter(name, by = 1) {
+    achState.counters[name] = (Number(achState.counters[name]) || 0) + by;
+    saveAchState(achState);
+  }
+
+  function checkCounters() {
+    achievements.forEach(a => {
+      if (a.type !== 'count') return;
+      const v = Number(achState.counters[a.counter]) || 0;
+      if (v >= a.need) unlockAchievement(a.id);
+    });
+  }
+
+  function onAchievementEvent(evt) {
+    if (evt === 'color_changed') incCounter('color_changes', 1);
+    if (evt === 'dca_add') incCounter('dca_adds', 1);
+    if (evt === 'value_copied') incCounter('copies', 1);
+    if (evt === 'history_saved') incCounter('history_saved', 1);
+
+    if (evt === 'theme_changed') unlockAchievement('theme_switch');
+    if (evt === 'language_changed') unlockAchievement('lang_switch');
+    if (evt === 'indicators_fetched') unlockAchievement('ind_refresh');
+    if (evt === 'card_opened') unlockAchievement('card_open');
+    if (evt === 'shared') unlockAchievement('share');
+    if (evt === 'tip_sent') unlockAchievement('tip');
+
+    checkCounters();
+  }
+
+  function renderAchievements() {
+    const list = document.getElementById('ach_list');
+    const progressText = document.getElementById('ach_progress_text');
+    const barFill = document.getElementById('ach_bar_fill');
+    if (!list || !progressText || !barFill) return;
+
+    const total = achievements.length;
+    const unlocked = achievements.filter(a => isUnlocked(a.id)).length;
+
+    progressText.textContent = `${unlocked}/${total}`;
+    barFill.style.width = total ? `${Math.round((unlocked / total) * 100)}%` : '0%';
+
+    list.innerHTML = '';
+    achievements.forEach(a => {
+      const unlockedAt = achState.unlocked[a.id] || null;
+      const node = document.createElement('div');
+      node.className = 'ach-item';
+      const pillClass = unlockedAt ? 'ach-pill unlocked' : 'ach-pill';
+      const pillText = unlockedAt ? t('Unlocked') : t('Locked');
+
+      let extra = '';
+      if (a.type === 'count') {
+        const v = Number(achState.counters[a.counter]) || 0;
+        extra = ` • ${Math.min(v, a.need)}/${a.need}`;
+      }
+
+      node.innerHTML = `
+        <div class="ach-ico">${a.icon}</div>
+        <div class="ach-main">
+          <div class="ach-title">${t(a.titleKey)}${a.type === 'count' ? `<span class="small">${extra}</span>` : ''}</div>
+          <div class="ach-desc">${t(a.descKey)}</div>
+        </div>
+        <div class="${pillClass}">${pillText}</div>
+      `;
+      list.appendChild(node);
+    });
+  }
+
+  function resetAchievements() {
+    achState = { unlocked: {}, counters: {} };
+    saveAchState(achState);
+    renderAchievements();
+  }
+
   const THEME_KEY = 'tc_theme';
   function getInitialTheme() {
     const saved = localStorage.getItem(THEME_KEY);
@@ -1355,6 +1634,7 @@
     if (window.TelegramAnalytics) {
       window.TelegramAnalytics.trackEvent('theme_changed', { theme: theme });
     }
+    onAchievementEvent('theme_changed');
   }
   setTheme(getInitialTheme());
   document.getElementById('theme_toggle').addEventListener('click', () => {
@@ -1378,6 +1658,16 @@
                       color === '#fbbf24' ? '#fbbf24' :
                       '#ef4444';
     document.documentElement.style.setProperty('--pulse-color', pulseColor);
+    try {
+      const c = pulseColor.replace('#','');
+      const r = parseInt(c.substring(0,2),16);
+      const g = parseInt(c.substring(2,4),16);
+      const b = parseInt(c.substring(4,6),16);
+      if (isFinite(r) && isFinite(g) && isFinite(b)) {
+        document.documentElement.style.setProperty('--accent-rgb', `${r}, ${g}, ${b}`);
+      }
+    } catch(e) {}
+    onAchievementEvent('color_changed');
     if (window.TelegramAnalytics) {
       window.TelegramAnalytics.trackEvent('color_changed', { color: color });
     }
@@ -1411,19 +1701,23 @@
     lang = 'ru';
     syncLangButtons();
     translateAll();
+    renderAchievements();
     renderHistory();
     if (window.TelegramAnalytics) {
       window.TelegramAnalytics.trackEvent('language_changed', { language: 'ru' });
     }
+    onAchievementEvent('language_changed');
   });
   btnEn.addEventListener('click', () => {
     lang = 'en';
     syncLangButtons();
     translateAll();
+    renderAchievements();
     renderHistory();
     if (window.TelegramAnalytics) {
       window.TelegramAnalytics.trackEvent('language_changed', { language: 'en' });
     }
+    onAchievementEvent('language_changed');
   });
   document.querySelectorAll('.subtab').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1532,7 +1826,10 @@
     }
     return { avg, totalVol, totalCost };
   }
-  document.getElementById('dca_add').addEventListener('click', () => addDcaRow());
+  document.getElementById('dca_add').addEventListener('click', () => {
+    addDcaRow();
+    onAchievementEvent('dca_add');
+  });
   document.getElementById('dca_clear').addEventListener('click', clearDCA);
   dcaGoal.addEventListener('input', calcDCA);
   dcaNext.addEventListener('input', calcDCA);
@@ -1560,6 +1857,7 @@
       const ok = await copyText(val);
       if (ok) {
         showToast(t('Copied!'));
+        onAchievementEvent('value_copied');
         if (getSummary) {
           const summary = getSummary();
           const arr = loadHistory();
@@ -1571,6 +1869,7 @@
           if (arr.length > 50) arr.length = 50;
           saveHistory(arr);
           renderHistory();
+          onAchievementEvent('history_saved');
         }
         if (window.TelegramAnalytics) {
           window.TelegramAnalytics.trackEvent('value_copied', {
@@ -1749,6 +2048,7 @@
         fgIndex: fgVal
       });
     }
+    onAchievementEvent('indicators_fetched');
   }
   function drawGauge(canvas, value) {
     if (!canvas) return;
@@ -1893,6 +2193,13 @@
   document.getElementById('open_support').addEventListener('click', () => {
     window.open('https://t.me/ChalovSupportBot', '_blank');
   });
+  const achResetBtn = document.getElementById('ach_reset');
+  if (achResetBtn) {
+    achResetBtn.addEventListener('click', () => {
+      const ok = window.confirm(lang === 'ru' ? 'Сбросить достижения?' : 'Reset achievements?');
+      if (ok) resetAchievements();
+    });
+  }
   document.getElementById('link_telegram').addEventListener('click', (e) => {
     e.preventDefault();
     window.open('https://t.me/ChalovCrypto', '_blank');
@@ -2009,7 +2316,7 @@
         URL.revokeObjectURL(url);
       }
       
-      showToast('Image saved');
+      showToast(t('Image saved'));
       if (window.TelegramAnalytics) {
         window.TelegramAnalytics.trackEvent('card_saved', { method: isMobile ? 'mobile' : 'desktop' });
       }
@@ -2032,6 +2339,7 @@
   document.getElementById('card_btn').addEventListener('click', () => {
     drawCard();
     openModal();
+    onAchievementEvent('card_opened');
   });
   const TONCONNECT_MANIFEST_URL = 'https://trade-calculator-five.vercel.app/tonconnect-manifest.json';
   const TIP_ADDRESS = 'UQD04FKshVmZaQjZq9y2AtBXWklkzQfK4sEJWrsYfqbNHGGz';
@@ -2099,6 +2407,7 @@
       };
       await tonConnectUI.sendTransaction(tx);
       showToast(t('Transaction sent'));
+      onAchievementEvent('tip_sent');
       if (window.TelegramAnalytics) {
         window.TelegramAnalytics.trackEvent('tip_sent');
       }
@@ -2132,11 +2441,15 @@
       if (window.TelegramAnalytics) {
         window.TelegramAnalytics.trackEvent('app_shared', { tab: tab });
       }
+      onAchievementEvent('shared');
     } catch(e) {
-      showToast('Copy failed');
+      showToast(t('Error'));
     }
   });
   translateAll();
+  // achievements init
+  if (!isUnlocked('first_launch')) unlockAchievement('first_launch');
+  renderAchievements();
   clearDCA();
   calcRR();
   calcCap();
@@ -2148,4 +2461,3 @@
 </script>
 </body>
 </html>
-```
