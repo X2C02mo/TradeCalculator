@@ -885,7 +885,39 @@
         white-space: nowrap;
       }
     }
-  </style>
+  
+/* Premium */
+.premium-head{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.premium-title h2{margin:8px 0 4px 0}
+.premium-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.premium-badge{display:inline-flex;gap:6px;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width: 760px){.grid2{grid-template-columns:1.2fr 1fr}}
+.plan{display:flex;flex-direction:column;gap:8px}
+.plan-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{padding:4px 10px;border-radius:999px;background:rgba(var(--accent-rgb),.14);border:1px solid rgba(var(--accent-rgb),.22);font-weight:700}
+.checklist{margin:0;padding-left:18px}
+.checklist li{margin:6px 0}
+.chip{border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.08);padding:8px 10px;border-radius:999px;cursor:pointer}
+.chip:active{transform:translateY(1px)}
+.note{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(0,0,0,.12);border:1px dashed rgba(255,255,255,.18)}
+.glass{backdrop-filter: blur(10px);-webkit-backdrop-filter: blur(10px)}
+
+
+/* Premium theme variants */
+:root[data-premium-theme="neon"]{
+  --accent:#00ffd1;
+}
+:root[data-premium-theme="gold"]{
+  --accent:#ffd166;
+}
+:root[data-premium-theme="midnight"]{
+  --accent:#7c4dff;
+}
+
+.ach-item.locked{opacity:.55;filter:saturate(.6)}
+.iconbtn.active{box-shadow:0 0 0 2px rgba(var(--accent-rgb),.35) inset}
+</style>
 </head>
 <body>
 <div id="app">
@@ -906,6 +938,10 @@
       <button class="iconbtn" id="card_btn">
         <span>🃏</span>
         <span data-i18n="Card">Card</span>
+      </button>
+      <button class="iconbtn" id="premium_btn">
+        <span>💎</span>
+        <span data-i18n="Premium">Premium</span>
       </button>
     </div>
   </header>
@@ -1141,7 +1177,86 @@
         </div>
       </div>
     </section>
-    <section id="main_support" class="main-screen">
+    
+    <section id="main_premium" class="main-screen">
+      <div class="premium-head">
+        <div class="premium-title">
+          <div class="badge premium-badge">💎 <span data-i18n="Premium">Premium</span></div>
+          <h2 data-i18n="Premium Features">Premium Features</h2>
+          <div class="muted" id="premium_status_text">—</div>
+        </div>
+        <div class="premium-actions">
+          <button class="btn ghost" id="premium_back_btn">← <span data-i18n="Back to Calculator">Back to Calculator</span></button>
+          <button class="btn danger ghost" id="premium_reset_btn" title="Reset premium (debug)">Reset</button>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card glass">
+          <h3 data-i18n="Plans">Plans</h3>
+          <div class="plan">
+            <div class="plan-row">
+              <b data-i18n="30 days access">Premium-status for 30 days</b>
+              <span class="pill">1 TON</span>
+              <span class="pill">89 Stars</span>
+            </div>
+            <div class="muted" data-i18n="30d note">Unlock all premium features for 30 days.</div>
+            <div class="row">
+              <button class="btn" id="pay_ton_30">Pay 1 TON</button>
+              <button class="btn" id="pay_stars_30">Pay 89 Stars</button>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="plan">
+            <div class="plan-row">
+              <b data-i18n="Lifetime">Lifetime</b>
+              <span class="pill">4 TON</span>
+              <span class="pill">389 Stars</span>
+            </div>
+            <div class="muted" data-i18n="Lifetime note">One-time purchase, no expiration.</div>
+            <div class="row">
+              <button class="btn" id="pay_ton_life">Pay 4 TON</button>
+              <button class="btn" id="pay_stars_life">Pay 389 Stars</button>
+            </div>
+          </div>
+
+          <div class="note" data-i18n="Payment note">
+            Payments are processed inside Telegram. After successful payment, Premium will be activated on this device.
+          </div>
+        </div>
+
+        <div class="card glass">
+          <h3 data-i18n="What you get">What you get</h3>
+          <ul class="checklist">
+            <li>✅ <span data-i18n="Advanced Analytics">Advanced Analytics (strongest)</span></li>
+            <li>✅ <span data-i18n="AI Tips">AI tips for trades</span></li>
+            <li>✅ <span data-i18n="Secret Achievements">Secret achievements + ranks</span></li>
+            <li>✅ <span data-i18n="PDF Report">PDF report</span></li>
+            <li>✅ <span data-i18n="Personalization">Interface personalization</span></li>
+            <li>✅ <span data-i18n="Premium Themes">Premium themes</span></li>
+          </ul>
+          <div class="divider"></div>
+          <h4 data-i18n="Premium Themes">Premium themes</h4>
+          <div class="row wrap">
+            <button class="chip" data-premium-theme="neon">Neon</button>
+            <button class="chip" data-premium-theme="gold">Gold</button>
+            <button class="chip" data-premium-theme="midnight">Midnight Pro</button>
+          </div>
+          <div class="muted" data-i18n="Themes note">Themes apply instantly (premium required).</div>
+        </div>
+      </div>
+
+      <div class="card glass">
+        <h3 data-i18n="Premium roadmap">Premium roadmap</h3>
+        <div class="muted" data-i18n="Roadmap text">
+          Premium features are designed to be useful, not decorative. Analytics, reports and pro tools will appear here as they launch.
+        </div>
+      </div>
+    </section>
+
+<section id="main_support" class="main-screen">
       <div class="support-wrap">
         <div class="card" style="max-width:600px">
           <h3>💬 <span data-i18n="Support">Support</span></h3>
@@ -1232,24 +1347,56 @@
     tg.ready();
   }
   const mainCalc = document.getElementById('main_calc');
+  const mainPremium = document.getElementById('main_premium');
   const mainSupport = document.getElementById('main_support');
   const mainBtnCalc = document.getElementById('main_tab_calc');
   const mainBtnSupport = document.getElementById('main_tab_support');
+  const premiumBtn = document.getElementById('premium_btn');
+
   function setMainTab(which){
     mainCalc.classList.toggle('active', which === 'calc');
+    mainPremium.classList.toggle('active', which === 'premium');
     mainSupport.classList.toggle('active', which === 'support');
     mainBtnCalc.classList.toggle('active', which === 'calc');
     mainBtnSupport.classList.toggle('active', which === 'support');
+    premiumBtn.classList.toggle('active', which === 'premium');
     if (window.TelegramAnalytics) {
       window.TelegramAnalytics.trackEvent('screen_view', { screen: which });
     }
   }
+
   mainBtnCalc.addEventListener('click', () => setMainTab('calc'));
   mainBtnSupport.addEventListener('click', () => setMainTab('support'));
-  const locales = {
+  premiumBtn.addEventListener('click', () => setMainTab('premium'));
+const locales = {
     ru: {
       "Calculator": "Калькулятор",
       "Support": "Поддержка",
+      "Premium": "Премиум",
+      "Premium Features": "Премиум-функции",
+      "Back to Calculator": "Назад к калькулятору",
+      "Plans": "Тарифы",
+      "30 days access": "Премиум-статус на 30 дней",
+      "30d note": "Открывает все премиум-функции на 30 дней.",
+      "Lifetime": "Навсегда",
+      "Lifetime note": "Разовая покупка, без срока действия.",
+      "Payment note": "Оплата проходит внутри Telegram. После успешной оплаты премиум активируется на этом устройстве.",
+      "What you get": "Что вы получаете",
+      "Advanced Analytics": "Advanced Analytics (самое сильное)",
+      "AI Tips": "AI-подсказки по сделкам",
+      "Secret Achievements": "Секретные достижения + ранги",
+      "PDF Report": "PDF отчёт",
+      "Personalization": "Персонализация интерфейса",
+      "Premium Themes": "Премиум темы",
+      "Themes note": "Темы применяются сразу (нужен Premium).",
+      "Premium roadmap": "План развития Premium",
+      "Roadmap text": "Премиум делается полезным, а не декоративным: аналитика, отчёты и pro-инструменты будут появляться здесь по мере релизов.",
+      "Premium active until": "Premium активен до",
+      "Premium lifetime": "Premium навсегда",
+      "Premium inactive": "Premium не активен",
+      "Premium activated": "Premium активирован",
+      "Premium required": "Нужен Premium",
+      "Open Premium": "Открыть Premium",
       "DCA Calculator": "DCA Калькулятор",
       "Add multiple entries to calculate average price, total volume and cost.": "Добавьте несколько входов для расчёта средней цены, общего объёма и стоимости.",
       "Add entry": "Добавить вход",
@@ -1349,11 +1496,40 @@
       "ACH_TIP_TITLE": "Поддержка проекта",
       "ACH_TIP_DESC": "Отправьте донат 0.05 TON.",
       "ACH_HISTORY_TITLE": "Летописец",
-      "ACH_HISTORY_DESC": "Сохраните 10 действий в истории."
+      "ACH_HISTORY_DESC": "Сохраните 10 действий в истории.",
+      "ACH_PREMIUM_TITLE": "Алмазный статус",
+      "ACH_PREMIUM_DESC": "Активировать Premium.",
+      "ACH_THEME_TITLE": "Повелитель тем",
+      "ACH_THEME_DESC": "Применить 3 премиум темы.",
     },
     en: {
       "Calculator": "Calculator",
       "Support": "Support",
+      "Premium": "Premium",
+      "Premium Features": "Premium Features",
+      "Back to Calculator": "Back to Calculator",
+      "Plans": "Plans",
+      "30 days access": "Premium status for 30 days",
+      "30d note": "Unlock all premium features for 30 days.",
+      "Lifetime": "Lifetime",
+      "Lifetime note": "One-time purchase, no expiration.",
+      "Payment note": "Payments are processed inside Telegram. After successful payment, Premium will be activated on this device.",
+      "What you get": "What you get",
+      "Advanced Analytics": "Advanced Analytics (strongest)",
+      "AI Tips": "AI tips for trades",
+      "Secret Achievements": "Secret achievements + ranks",
+      "PDF Report": "PDF report",
+      "Personalization": "Interface personalization",
+      "Premium Themes": "Premium themes",
+      "Themes note": "Themes apply instantly (premium required).",
+      "Premium roadmap": "Premium roadmap",
+      "Roadmap text": "Premium is designed to be useful, not decorative. Analytics, reports and pro tools will appear here as they launch.",
+      "Premium active until": "Premium active until",
+      "Premium lifetime": "Premium lifetime",
+      "Premium inactive": "Premium inactive",
+      "Premium activated": "Premium activated",
+      "Premium required": "Premium required",
+      "Open Premium": "Open Premium",
       "DCA Calculator": "DCA Calculator",
       "Add multiple entries to calculate average price, total volume and cost.": "Add multiple entries to calculate average price, total volume and cost.",
       "Add entry": "Add entry",
@@ -1453,7 +1629,11 @@
       "ACH_TIP_TITLE": "Supporter",
       "ACH_TIP_DESC": "Send a 0.05 TON tip.",
       "ACH_HISTORY_TITLE": "Historian",
-      "ACH_HISTORY_DESC": "Save 10 actions to history."
+      "ACH_HISTORY_DESC": "Save 10 actions to history.",
+      "ACH_PREMIUM_TITLE": "Diamond status",
+      "ACH_PREMIUM_DESC": "Activate Premium.",
+      "ACH_THEME_TITLE": "Theme master",
+      "ACH_THEME_DESC": "Apply 3 premium themes.",
     }
   };
   let lang = 'en';
@@ -1505,6 +1685,73 @@
     }
   // ===== Achievements =====
   }
+
+
+  // ===== Premium =====
+  const PREMIUM_KEY = 'tc_premium_v1';
+  function loadPremium(){
+    try{
+      const raw = localStorage.getItem(PREMIUM_KEY);
+      if(!raw) return { lifetime:false, expiresAt:0, plan:'', tx:'' };
+      const obj = JSON.parse(raw);
+      return Object.assign({ lifetime:false, expiresAt:0, plan:'', tx:'' }, obj);
+    }catch(e){
+      return { lifetime:false, expiresAt:0, plan:'', tx:'' };
+    }
+  }
+  function savePremium(p){ localStorage.setItem(PREMIUM_KEY, JSON.stringify(p)); }
+  function isPremiumActive(p){
+    return !!p && (p.lifetime || (p.expiresAt && Date.now() < p.expiresAt));
+  }
+  function premiumStatusText(){
+    const p = loadPremium();
+    if (p.lifetime) return t('Premium lifetime');
+    if (p.expiresAt && Date.now() < p.expiresAt) {
+      const d = new Date(p.expiresAt);
+      return `${t('Premium active until')} ${d.toLocaleString()}`;
+    }
+    return t('Premium inactive');
+  }
+  function renderPremiumStatus(){
+    const el = document.getElementById('premium_status_text');
+    if (el) el.textContent = premiumStatusText();
+  }
+  function activatePremiumDays(days, plan, tx){
+    const p = loadPremium();
+    const now = Date.now();
+    p.lifetime = false;
+    p.expiresAt = now + days * 86400000;
+    p.plan = plan || `days_${days}`;
+    p.tx = tx || '';
+    savePremium(p);
+    renderPremiumStatus();
+    try{ onAchievementEvent('premium_user'); }catch(e){}
+    showToast(t('Premium activated'));
+  }
+  function activatePremiumLifetime(plan, tx){
+    const p = loadPremium();
+    p.lifetime = true;
+    p.expiresAt = 0;
+    p.plan = plan || 'lifetime';
+    p.tx = tx || '';
+    savePremium(p);
+    renderPremiumStatus();
+    try{ onAchievementEvent('premium_user'); }catch(e){}
+    showToast(t('Premium activated'));
+  }
+  function resetPremium(){
+    localStorage.removeItem(PREMIUM_KEY);
+    renderPremiumStatus();
+    showToast(t('Premium inactive'));
+  }
+  function requirePremium(reason){
+    const p = loadPremium();
+    if (isPremiumActive(p)) return true;
+    showToast(`${t('Premium required')} • ${reason || ''}`.trim());
+    setMainTab('premium');
+    return false;
+  }
+
   const ACH_KEY = 'tc_achievements_v1';
   function loadAchState() {
     try {
@@ -1531,7 +1778,10 @@
     { id: 'share', icon: '📤', titleKey: 'ACH_SHARE_TITLE', descKey: 'ACH_SHARE_DESC', type: 'one' },
     { id: 'tip', icon: '💎', titleKey: 'ACH_TIP_TITLE', descKey: 'ACH_TIP_DESC', type: 'one' },
     { id: 'history_10', icon: '📜', titleKey: 'ACH_HISTORY_TITLE', descKey: 'ACH_HISTORY_DESC', type: 'count', counter: 'history_saved', need: 10 }
-  ];
+      ,
+    { id: 'premium_user', icon: '💎', titleKey: 'ACH_PREMIUM_TITLE', descKey: 'ACH_PREMIUM_DESC', type: 'one', premium: true },
+    { id: 'theme_master', icon: '🌈', titleKey: 'ACH_THEME_TITLE', descKey: 'ACH_THEME_DESC', type: 'count', counter: 'premium_themes', need: 3, premium: true }
+];
   let achState = loadAchState();
 
   function isUnlocked(id) { return !!achState.unlocked[id]; }
@@ -1572,6 +1822,8 @@
     if (evt === 'card_opened') unlockAchievement('card_open');
     if (evt === 'shared') unlockAchievement('share');
     if (evt === 'tip_sent') unlockAchievement('tip');
+    if (evt === 'premium_user') unlockAchievement('premium_user');
+    if (evt === 'premium_theme_applied') incCounter('premium_themes', 1);
 
     checkCounters();
   }
@@ -1584,17 +1836,19 @@
 
     const total = achievements.length;
     const unlocked = achievements.filter(a => isUnlocked(a.id)).length;
+    const pActive = isPremiumActive(loadPremium());
 
     progressText.textContent = `${unlocked}/${total}`;
     barFill.style.width = total ? `${Math.round((unlocked / total) * 100)}%` : '0%';
 
     list.innerHTML = '';
     achievements.forEach(a => {
-      const unlockedAt = achState.unlocked[a.id] || null;
+      const premiumLocked = !!a.premium && !pActive;
+      const unlockedAt = premiumLocked ? null : (achState.unlocked[a.id] || null);
       const node = document.createElement('div');
-      node.className = 'ach-item';
+      node.className = premiumLocked ? 'ach-item locked' : 'ach-item';
       const pillClass = unlockedAt ? 'ach-pill unlocked' : 'ach-pill';
-      const pillText = unlockedAt ? t('Unlocked') : t('Locked');
+      const pillText = unlockedAt ? t('Unlocked') : (premiumLocked ? '🔒 Premium' : t('Locked'));
 
       let extra = '';
       if (a.type === 'count') {
@@ -2417,6 +2671,73 @@
     }
   });
   initTonConnect();
+  // Premium UI
+  document.getElementById('premium_back_btn').addEventListener('click', () => setMainTab('calc'));
+  document.getElementById('premium_reset_btn').addEventListener('click', resetPremium);
+
+  // Premium themes (premium-only)
+  document.querySelectorAll('[data-premium-theme]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const theme = btn.getAttribute('data-premium-theme');
+      if (!requirePremium(t('Premium Themes'))) return;
+      document.documentElement.setAttribute('data-premium-theme', theme);
+      localStorage.setItem('tc_premium_theme', theme);
+      try{ onAchievementEvent('premium_theme_applied'); }catch(e){}
+      showToast(`${t('Premium Themes')}: ${theme}`);
+    });
+  });
+
+  // Restore premium theme
+  try {
+    const savedTheme = localStorage.getItem('tc_premium_theme');
+    if (savedTheme) document.documentElement.setAttribute('data-premium-theme', savedTheme);
+  } catch(e){}
+
+  // TON payments for Premium (replace PREMIUM_ADDRESS with your wallet)
+  const PREMIUM_ADDRESS = TIP_ADDRESS;
+  async function payTon(amountTon, onOk){
+    if (!tonConnectUI) { showToast(t('Connect wallet')); return; }
+    try{
+      const nano = String(Math.round(amountTon * 1e9));
+      const tx = { validUntil: Math.floor(Date.now()/1000) + 600, messages: [{ address: PREMIUM_ADDRESS, amount: nano }] };
+      await tonConnectUI.sendTransaction(tx);
+      onOk && onOk('ton');
+    }catch(e){
+      showToast(t('Error'));
+    }
+  }
+  document.getElementById('pay_ton_30').addEventListener('click', () => payTon(1, () => activatePremiumDays(30, 'ton_30d')));
+  document.getElementById('pay_ton_life').addEventListener('click', () => payTon(4, () => activatePremiumLifetime('ton_lifetime')));
+
+  // Telegram Stars payments (needs backend that returns an invoice link)
+  async function openStarsInvoice(plan){
+    if (!tg || !tg.openInvoice) { showToast('openInvoice not available'); return; }
+    try{
+      // Your backend must create an invoice link with Bot API createInvoiceLink and return it.
+      // Replace URL below with your server endpoint.
+      const resp = await fetch(`/api/stars/invoice?plan=${encodeURIComponent(plan)}`, { method:'GET' });
+      const data = await resp.json();
+      if (!data || !data.url) { showToast(t('Error')); return; }
+      tg.openInvoice(data.url, (status) => {
+        if (status === 'paid') {
+          if (plan === 'stars_30d') activatePremiumDays(30, 'stars_30d', data.payload || '');
+          if (plan === 'stars_lifetime') activatePremiumLifetime('stars_lifetime', data.payload || '');
+        } else if (status === 'cancelled') {
+          showToast('Cancelled');
+        } else if (status === 'failed') {
+          showToast('Failed');
+        }
+      });
+    }catch(e){
+      showToast(t('Error'));
+    }
+  }
+  document.getElementById('pay_stars_30').addEventListener('click', () => openStarsInvoice('stars_30d'));
+  document.getElementById('pay_stars_life').addEventListener('click', () => openStarsInvoice('stars_lifetime'));
+
+  // Update premium status text when entering Premium
+  renderPremiumStatus();
+
   document.getElementById('share_btn').addEventListener('click', async () => {
     const tab = activeTab();
     let text = 'Trader Calculator\n\n';
