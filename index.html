@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Trader Calculator Pro</title>
+  <title>Trader Calculator</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
   <script type="module">
@@ -78,7 +79,6 @@
       --input-bg: #0d0d0d;
       --result-bg: #0f0f0f;
       --pulse-color: var(--accent);
-      --transition: cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     html[data-theme="light"] {
       --bg: #f5f7fa;
@@ -98,81 +98,18 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      -webkit-tap-highlight-color: transparent;
     }
     html, body {
       height: 100%;
       background: var(--bg);
       color: var(--text);
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      overflow-x: hidden;
     }
     #app {
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
-    
-    /* === MICRO-INTERACTIONS === */
-    @keyframes ripple {
-      0% {
-        transform: scale(0);
-        opacity: 1;
-      }
-      100% {
-        transform: scale(4);
-        opacity: 0;
-      }
-    }
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-3px); }
-    }
-    @keyframes shimmer {
-      0% { background-position: -200% center; }
-      100% { background-position: 200% center; }
-    }
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    @keyframes scaleIn {
-      from { transform: scale(0.95); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-    @keyframes pulse-glow {
-      0%, 100% { box-shadow: 0 0 5px var(--accent); }
-      50% { box-shadow: 0 0 15px var(--accent); }
-    }
-    
-    .ripple {
-      position: relative;
-      overflow: hidden;
-    }
-    .ripple::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 5px;
-      height: 5px;
-      background: rgba(255, 255, 255, 0.3);
-      opacity: 0;
-      border-radius: 100%;
-      transform: scale(1, 1) translate(-50%);
-      transform-origin: 50% 50%;
-    }
-    .ripple:focus:not(:active)::after {
-      animation: ripple 0.6s ease-out;
-    }
-    
-    /* === HEADER === */
     header {
       position: sticky;
       top: 0;
@@ -183,8 +120,11 @@
       padding: 12px 16px;
       border-bottom: 1px solid var(--border);
       background: var(--panel);
-      backdrop-filter: blur(10px);
-      animation: fadeInUp 0.4s var(--transition);
+      animation: slideDown 0.3s ease;
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
     .leftbar {
       display: flex;
@@ -199,7 +139,11 @@
       padding: 4px;
       border-radius: 8px;
       border: 1px solid var(--border);
-      animation: scaleIn 0.3s var(--transition);
+      animation: fadeIn 0.5s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     .lang button {
       background: transparent;
@@ -210,7 +154,7 @@
       border-radius: 6px;
       font-size: 13px;
       font-weight: 600;
-      transition: all 0.2s var(--transition);
+      transition: all 0.2s ease;
     }
     .lang button.active {
       background: var(--accent);
@@ -230,15 +174,13 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.3s var(--transition);
+      transition: all 0.3s ease;
     }
     .iconbtn:hover {
       border-color: var(--accent);
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
-    
-    /* === MAIN CONTENT === */
     main {
       flex: 1;
       padding: 16px;
@@ -252,7 +194,7 @@
     }
     .main-screen {
       display: none;
-      animation: fadeInUp 0.4s var(--transition);
+      animation: fadeIn 0.4s ease;
     }
     .main-screen.active {
       display: block;
@@ -272,21 +214,18 @@
       cursor: pointer;
       border-radius: 8px;
       font-weight: 600;
-      transition: all 0.3s var(--transition);
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      transition: all 0.3s ease;
     }
     .subtab:hover {
       border-color: var(--accent);
       transform: translateY(-2px);
-      animation: bounce 0.3s ease;
     }
     .subtab.active {
       background: var(--accent);
       color: #000;
       border-color: var(--accent);
-      animation: pulse-glow 2s infinite;
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(124, 252, 0, 0.3);
     }
     .panels {
       display: flex;
@@ -296,13 +235,15 @@
     .screen {
       display: none;
       width: 100%;
-      animation: scaleIn 0.4s var(--transition);
+      animation: slideUp 0.4s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
     .screen.active {
       display: block;
     }
-    
-    /* === CARDS === */
     .card {
       background: var(--panel);
       border: 1px solid var(--border);
@@ -310,27 +251,16 @@
       padding: 20px;
       box-shadow: var(--shadow);
       margin-bottom: 20px;
-      transition: all 0.3s var(--transition);
-      position: relative;
-      overflow: hidden;
+      transition: all 0.3s ease;
+      animation: cardAppear 0.5s ease;
+    }
+    @keyframes cardAppear {
+      0% { transform: scale(0.95); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
     }
     .card:hover {
-      transform: translateY(-2px);
+      transform: translateY(-4px);
       box-shadow: 0 12px 32px rgba(0,0,0,0.3);
-    }
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--accent), transparent);
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .card:hover::before {
-      opacity: 1;
     }
     .card h3 {
       margin: 0 0 16px 0;
@@ -350,11 +280,9 @@
       background: var(--accent);
       border-radius: 2px;
     }
-    
-    /* === FIELDS & INPUTS === */
     .field {
       margin-bottom: 12px;
-      animation: fadeInUp 0.5s var(--transition);
+      animation: fadeIn 0.5s ease;
     }
     label {
       display: block;
@@ -367,17 +295,16 @@
       width: 100%;
       padding: 10px 12px;
       background: var(--input-bg);
-      border: 2px solid var(--border);
+      border: 1px solid var(--border);
       color: var(--text);
       border-radius: 8px;
       font-size: 14px;
       outline: none;
-      transition: all 0.2s var(--transition);
+      transition: all 0.2s ease;
     }
     input:focus, select:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(124, 252, 0, 0.1);
-      transform: translateY(-1px);
     }
     .row {
       display: flex;
@@ -388,8 +315,6 @@
       flex: 1;
       min-width: 150px;
     }
-    
-    /* === RESULTS === */
     .result {
       margin-top: 8px;
       padding: 12px;
@@ -400,11 +325,13 @@
       gap: 12px;
       align-items: center;
       justify-content: space-between;
-      transition: all 0.3s var(--transition);
+      transition: all 0.3s ease;
+      animation: pulse 2s infinite;
     }
-    .result:hover {
-      border-color: var(--accent);
-      transform: translateX(4px);
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(124, 252, 0, 0.2); }
+      70% { box-shadow: 0 0 0 6px rgba(124, 252, 0, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(124, 252, 0, 0); }
     }
     .result .v {
       color: var(--accent);
@@ -416,8 +343,6 @@
       color: var(--muted);
       font-weight: 500;
     }
-    
-    /* === CONTROLS === */
     .controls {
       display: flex;
       gap: 8px;
@@ -433,9 +358,35 @@
       cursor: pointer;
       font-weight: 600;
       font-size: 13px;
-      transition: all 0.3s var(--transition);
+      transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
+    }
+    .btn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.5);
+      opacity: 0;
+      border-radius: 100%;
+      transform: scale(1, 1) translate(-50%);
+      transform-origin: 50% 50%;
+    }
+    .btn:focus:not(:active)::after {
+      animation: ripple 1s ease-out;
+    }
+    @keyframes ripple {
+      0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+      }
+      100% {
+        transform: scale(20, 20);
+        opacity: 0;
+      }
     }
     .btn:hover {
       opacity: 0.9;
@@ -467,7 +418,7 @@
       color: var(--muted);
       font-size: 12px;
       font-weight: 600;
-      transition: all 0.3s var(--transition);
+      transition: all 0.3s ease;
     }
     .chip:hover {
       border-color: var(--accent);
@@ -480,128 +431,72 @@
       transform: scale(1.1);
       box-shadow: 0 2px 8px rgba(124, 252, 0, 0.3);
     }
-    
-    /* === ACHIEVEMENTS SYSTEM === */
-    .achievements-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 12px;
-      margin-top: 16px;
-    }
-    .achievement-card {
-      background: var(--chip);
-      border: 2px solid var(--border);
-      border-radius: 12px;
+    .history {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
       padding: 16px;
-      text-align: center;
-      transition: all 0.3s var(--transition);
-      cursor: pointer;
-      opacity: 0.6;
-      animation: fadeInUp 0.5s var(--transition);
-    }
-    .achievement-card.unlocked {
-      opacity: 1;
-      border-color: var(--accent);
-      background: linear-gradient(135deg, var(--chip) 0%, rgba(124, 252, 0, 0.1) 100%);
-      animation: pulse-glow 2s infinite;
-    }
-    .achievement-card:hover {
-      transform: translateY(-4px) scale(1.02);
+      width: 100%;
       box-shadow: var(--shadow);
+      transition: all 0.3s ease;
     }
-    .achievement-icon {
-      font-size: 32px;
-      margin-bottom: 8px;
-      display: block;
-      animation: bounce 2s infinite;
+    .history:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.3);
     }
-    .achievement-title {
-      font-size: 12px;
+    .history h4 {
+      margin: 0 0 12px 0;
+      font-size: 16px;
       font-weight: 700;
-      color: var(--text);
+      color: var(--accent);
+    }
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 300px;
+      overflow: auto;
+    }
+    .hist-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--chip);
+      transition: all 0.3s ease;
+    }
+    .hist-item:hover {
+      border-color: var(--accent);
+      transform: translateX(4px);
+    }
+    .hist-item b {
+      display: block;
+      font-size: 13px;
       margin-bottom: 4px;
     }
-    .achievement-desc {
-      font-size: 10px;
+    .hist-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .mini {
+      border: 1px solid var(--border);
+      background: transparent;
       color: var(--muted);
-      line-height: 1.3;
-      margin-bottom: 8px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      transition: all 0.2s ease;
     }
-    .achievement-xp {
-      display: inline-block;
-      padding: 2px 8px;
-      background: var(--accent);
-      color: #000;
-      border-radius: 10px;
-      font-size: 9px;
-      font-weight: 800;
-    }
-    .achievement-progress {
-      width: 100%;
-      height: 4px;
-      background: var(--border);
-      border-radius: 2px;
-      margin-top: 8px;
-      overflow: hidden;
-    }
-    .achievement-progress-fill {
-      height: 100%;
-      background: var(--accent);
-      transition: width 0.6s var(--transition);
-    }
-    
-    /* === ACHIEVEMENT POPUP === */
-    #achievement_popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.9);
-      background: var(--panel);
-      border: 2px solid var(--accent);
-      border-radius: var(--radius);
-      padding: 24px;
-      z-index: 2000;
-      text-align: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: all 0.4s var(--transition);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      max-width: 300px;
-      width: 90%;
-    }
-    #achievement_popup.show {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-      pointer-events: all;
-      animation: pulse-glow 1s infinite;
-    }
-    #achievement_popup .icon {
-      font-size: 64px;
-      margin-bottom: 16px;
-      display: block;
-      animation: bounce 2s infinite;
-    }
-    #achievement_popup h4 {
+    .mini:hover {
+      border-color: var(--accent);
       color: var(--accent);
-      margin-bottom: 8px;
-      font-size: 20px;
-      font-weight: 800;
+      transform: scale(1.05);
     }
-    #achievement_popup .desc {
-      color: var(--muted);
-      margin-bottom: 16px;
-      font-size: 14px;
-    }
-    #achievement_popup .xp {
-      background: var(--accent);
-      color: #000;
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-weight: 800;
-      display: inline-block;
-    }
-    
-    /* === SUPPORT SECTION === */
     .support-wrap {
       display: flex;
       flex-direction: column;
@@ -619,7 +514,7 @@
       text-decoration: none;
       font-weight: 700;
       font-size: 14px;
-      transition: all 0.3s var(--transition);
+      transition: all 0.3s ease;
       position: relative;
       padding: 8px 16px;
       border-radius: 8px;
@@ -632,8 +527,6 @@
       background: var(--accent);
       color: #000;
     }
-    
-    /* === BOTTOM NAV === */
     .bottomnav {
       position: fixed;
       left: 0;
@@ -645,8 +538,7 @@
       background: var(--panel);
       display: flex;
       justify-content: center;
-      backdrop-filter: blur(10px);
-      animation: fadeInUp 0.4s var(--transition);
+      animation: slideUp 0.4s ease;
     }
     .bottomnav .bar {
       width: min(400px, 100%);
@@ -667,7 +559,7 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transition: all 0.3s var(--transition);
+      transition: all 0.3s ease;
     }
     .main-tab:hover {
       border-color: var(--accent);
@@ -680,8 +572,6 @@
       transform: scale(1.05);
       box-shadow: 0 4px 12px rgba(124, 252, 0, 0.3);
     }
-    
-    /* === TOAST === */
     #toast {
       position: fixed;
       left: 50%;
@@ -698,14 +588,12 @@
       z-index: 1000;
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
-      transition: all 0.3s var(--transition);
+      transition: all 0.3s ease;
     }
     #toast.show {
       opacity: 1;
       transform: translateX(-50%) translateY(-10px);
     }
-    
-    /* === MODAL === */
     #modal_backdrop {
       position: fixed;
       inset: 0;
@@ -715,7 +603,7 @@
       justify-content: center;
       z-index: 999;
       padding: 16px;
-      animation: fadeInUp 0.3s ease;
+      animation: fadeIn 0.3s ease;
     }
     #modal {
       width: min(600px, 100%);
@@ -724,7 +612,11 @@
       border: 1px solid var(--border);
       padding: 20px;
       box-shadow: var(--shadow);
-      animation: scaleIn 0.3s var(--transition);
+      animation: scaleIn 0.3s ease;
+    }
+    @keyframes scaleIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
     }
     #modal_header {
       display: flex;
@@ -745,58 +637,171 @@
       padding: 6px 10px;
       cursor: pointer;
       font-size: 16px;
-      transition: all 0.2s var(--transition);
+      transition: all 0.2s ease;
     }
     #modal_close:hover {
       border-color: var(--accent);
       color: var(--accent);
       transform: rotate(90deg);
     }
-    
-    /* === GRID TRADING SPECIFIC === */
-    .grid-visual {
-      height: 80px;
-      background: var(--chip);
-      border-radius: var(--radius);
-      margin: 16px 0;
-      position: relative;
+    #modal_body {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    #modal_canvas_wrap {
+      flex: 1;
+      min-width: 200px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
       overflow: hidden;
+      background: var(--result-bg);
+      transition: all 0.3s ease;
     }
-    .grid-line {
-      position: absolute;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: var(--accent);
-      opacity: 0.3;
+    #modal_canvas_wrap:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
     }
-    
-    /* === RESPONSIVE === */
+    #card_canvas {
+      display: block;
+      width: 100%;
+      height: 200px;
+    }
+    #modal_right {
+      width: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #modal_right .btn {
+      width: 100%;
+    }
+    #modal_help {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 500;
+      text-align: center;
+    }
+    .vizgrid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .viz {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      background: var(--chip);
+      transition: all 0.3s ease;
+    }
+    .viz:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+    .viz h5 {
+      margin: 0 0 12px 0;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .viz canvas {
+      width: 100%;
+      height: 120px;
+      display: block;
+    }
+    .color-picker {
+      display: flex;
+      gap: 8px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .color-option {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+    .color-option:hover {
+      transform: scale(1.1);
+    }
+    .color-option.active {
+      border-color: var(--text);
+      transform: scale(1.2);
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+    .color-option.green { background: #7CFC00; }
+    .color-option.blue { background: #2d8cff; }
+    .color-option.purple { background: #9b59b6; }
+    .color-option.orange { background: #ffa500; }
+    .color-option.pink { background: #ff6b9d; }
+    .color-option.teal { background: #2dd4bf; }
+    .color-option.yellow { background: #fbbf24; }
+    .color-option.red { background: #ef4444; }
+    .floating {
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    .glow {
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+    @keyframes glow {
+      from { box-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent); }
+      to { box-shadow: 0 0 15px var(--accent), 0 0 30px var(--accent); }
+    }
     @media (max-width: 768px) {
       .panels {
         flex-direction: column;
       }
+      .history {
+        max-width: 100%;
+      }
       .row > * {
         min-width: 100%;
       }
-      .achievements-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      #modal_body {
+        flex-direction: column;
       }
-      .subtab span:last-child {
-        display: none;
+      #modal_right {
+        width: 100%;
       }
     }
     @media (max-width: 480px) {
       .subtabs {
         justify-content: center;
       }
+      .main-tab span {
+        display: inline-flex !important;
+        align-items: center;
+      }
       .main-tab {
         padding: 8px 10px;
         font-size: 12px;
         gap: 6px;
       }
+      .subtab span {
+        display: inline !important;
+      }
+    }
+    @media (max-width: 320px) {
+      .main-tab {
+        font-size: 11px;
+        gap: 4px;
+        padding: 6px 8px;
+      }
       .main-tab span:last-child {
-        display: inline-flex !important;
+        max-width: 60px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     }
   </style>
@@ -823,18 +828,12 @@
       </button>
     </div>
   </header>
-  
   <main>
-    <!-- CALCULATOR SECTION -->
     <section id="main_calc" class="main-screen active">
       <div class="subtabs">
         <button class="subtab active" data-tab="dca">
           <span>📊</span>
           <span data-i18n="DCA">DCA</span>
-        </button>
-        <button class="subtab" data-tab="grid">
-          <span>🔢</span>
-          <span data-i18n="Grid Trading">Grid Trading</span>
         </button>
         <button class="subtab" data-tab="rr">
           <span>⚖️</span>
@@ -849,11 +848,9 @@
           <span data-i18n="Indicators">Indicators</span>
         </button>
       </div>
-      
       <div class="panels">
-        <!-- DCA CALCULATOR -->
         <section id="dca" class="screen active">
-          <div class="card">
+          <div class="card floating">
             <h3 data-i18n="DCA Calculator">DCA Calculator</h3>
             <div class="small" style="margin-bottom:12px" data-i18n="Add multiple entries to calculate average price, total volume and cost.">
               Add multiple entries to calculate average price, total volume and cost.
@@ -884,84 +881,51 @@
                 </div>
               </div>
             </div>
-          </div>
-        </section>
-        
-        <!-- GRID TRADING CALCULATOR -->
-        <section id="grid" class="screen">
-          <div class="card">
-            <h3 data-i18n="Grid Trading Calculator">Grid Trading Calculator</h3>
-            <div class="row">
-              <div class="field">
-                <label data-i18n="Investment Amount ($)">Investment Amount ($)</label>
-                <input id="grid_investment" type="number" step="any" value="1000">
+            <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                <b style="color:var(--accent);font-weight:700" data-i18n="DCA Goal">DCA Goal</b>
+                <span class="small" data-i18n="optional">optional</span>
               </div>
-              <div class="field">
-                <label data-i18n="Grid Type">Grid Type</label>
-                <select id="grid_type">
-                  <option value="arithmetic">Arithmetic (Linear)</option>
-                  <option value="geometric">Geometric (Exponential)</option>
-                </select>
+              <div class="row">
+                <div class="field">
+                  <label data-i18n="Target avg price">Target avg price</label>
+                  <input id="dca_goal" type="number" step="any" />
+                </div>
+                <div class="field">
+                  <label data-i18n="Next buy price">Next buy price</label>
+                  <input id="dca_next_price" type="number" step="any" />
+                </div>
               </div>
-            </div>
-            <div class="row">
-              <div class="field">
-                <label data-i18n="Lower Price ($)">Lower Price ($)</label>
-                <input id="grid_lower" type="number" step="any" value="100">
-              </div>
-              <div class="field">
-                <label data-i18n="Upper Price ($)">Upper Price ($)</label>
-                <input id="grid_upper" type="number" step="any" value="200">
-              </div>
-            </div>
-            <div class="row">
-              <div class="field">
-                <label data-i18n="Number of Grids">Number of Grids</label>
-                <input id="grid_count" type="number" min="2" max="100" value="10">
-              </div>
-              <div class="field">
-                <label data-i18n="Profit per Grid (%)">Profit per Grid (%)</label>
-                <input id="grid_profit_pct" type="number" step="any" value="1">
-              </div>
-            </div>
-            <div class="grid-visual" id="grid_visual"></div>
-            <div class="result">
-              <div>
-                <div class="small" data-i18n="Grid Profit per Trade">Grid Profit per Trade</div>
-                <div><span class="v" id="grid_profit">—</span></div>
-              </div>
-              <button class="btn ghost" id="grid_copy" data-i18n="Copy">Copy</button>
-            </div>
-            <div class="result">
-              <div>
-                <div class="small" data-i18n="Total Profit Potential">Total Profit Potential</div>
-                <div><span class="v" id="grid_total">—</span></div>
+              <div class="result">
+                <div>
+                  <div class="small" data-i18n="Needed volume at next price">Needed volume at next price</div>
+                  <div><span class="v" id="dca_need_vol">—</span></div>
+                </div>
+                <button class="btn ghost" id="dca_need_copy" data-i18n="Copy">Copy</button>
               </div>
             </div>
           </div>
         </section>
-        
-        <!-- RISK/REWARD CALCULATOR -->
         <section id="rr" class="screen">
           <div class="card">
             <h3 data-i18n="Risk/Reward">Risk/Reward</h3>
             <div class="row">
               <div class="field">
                 <label data-i18n="Entry">Entry</label>
-                <input id="rr_entry" type="number" step="any">
+                <input id="rr_entry" type="number" step="any" />
               </div>
               <div class="field">
                 <label data-i18n="Stop Loss">Stop Loss</label>
-                <input id="rr_sl" type="number" step="any">
+                <input id="rr_sl" type="number" step="any" />
               </div>
               <div class="field">
                 <label data-i18n="Take Profit">Take Profit</label>
-                <input id="rr_tp" type="number" step="any">
+                <input id="rr_tp" type="number" step="any" />
               </div>
             </div>
             <div class="field">
               <label data-i18n="Fee % (entry+exit)">Fee % (entry+exit)</label>
-              <input id="rr_fee" type="number" step="any" value="0.2">
+              <input id="rr_fee" type="number" step="any" value="0.2" />
             </div>
             <div class="result">
               <div>
@@ -979,23 +943,21 @@
             </div>
           </div>
         </section>
-        
-        <!-- CAPITAL MANAGEMENT CALCULATOR -->
         <section id="cap" class="screen">
           <div class="card">
             <h3 data-i18n="Capital Management">Capital Management</h3>
             <div class="row">
               <div class="field">
                 <label data-i18n="Deposit">Deposit</label>
-                <input id="cap_dep" type="number" step="any">
+                <input id="cap_dep" type="number" step="any" />
               </div>
               <div class="field">
                 <label data-i18n="Risk %">Risk %</label>
-                <input id="cap_risk" type="number" step="any" value="1">
+                <input id="cap_risk" type="number" step="any" value="1" />
               </div>
               <div class="field">
                 <label data-i18n="Leverage">Leverage</label>
-                <input id="cap_lev" type="number" step="any" value="1">
+                <input id="cap_lev" type="number" step="any" value="1" />
               </div>
             </div>
             <div class="chips">
@@ -1007,15 +969,15 @@
             <div class="row">
               <div class="field">
                 <label data-i18n="Entry">Entry</label>
-                <input id="cap_entry" type="number" step="any">
+                <input id="cap_entry" type="number" step="any" />
               </div>
               <div class="field">
                 <label data-i18n="Stop Loss">Stop Loss</label>
-                <input id="cap_sl" type="number" step="any">
+                <input id="cap_sl" type="number" step="any" />
               </div>
               <div class="field">
                 <label data-i18n="Fee % (entry+exit)">Fee % (entry+exit)</label>
-                <input id="cap_fee" type="number" step="any" value="0.2">
+                <input id="cap_fee" type="number" step="any" value="0.2" />
               </div>
             </div>
             <div class="result">
@@ -1041,8 +1003,6 @@
             </div>
           </div>
         </section>
-        
-        <!-- INDICATORS -->
         <section id="ind" class="screen">
           <div class="card">
             <h3 data-i18n="Market Indicators">Market Indicators</h3>
@@ -1074,10 +1034,22 @@
               <button class="btn" id="refresh_ind" data-i18n="Refresh Data">Refresh Data</button>
               <span class="small" id="ind_note"></span>
             </div>
+            <div class="vizgrid">
+              <div class="viz">
+                <h5 data-i18n="Fear & Greed Gauge">Fear & Greed Gauge</h5>
+                <canvas id="fg_canvas" width="600" height="120"></canvas>
+                <div style="margin-top:8px;font-weight:700;font-size:18px" id="fg_big">—</div>
+                <div class="small" id="fg_sub">—</div>
+              </div>
+              <div class="viz">
+                <h5 data-i18n="Dominance Split">Dominance Split</h5>
+                <canvas id="dom_canvas" width="600" height="120"></canvas>
+                <div style="margin-top:8px;font-weight:700;font-size:18px" id="dom_big">—</div>
+                <div class="small" id="dom_sub">—</div>
+              </div>
+            </div>
           </div>
         </section>
-        
-        <!-- HISTORY -->
         <div class="history">
           <h4>📜 <span data-i18n="History">History</span></h4>
           <div class="history-list" id="history_list"></div>
@@ -1088,36 +1060,10 @@
         </div>
       </div>
     </section>
-    
-    <!-- SUPPORT SECTION WITH ACHIEVEMENTS -->
     <section id="main_support" class="main-screen">
       <div class="support-wrap">
-        <div class="card" style="max-width:800px">
-          <h3>💬 <span data-i18n="Support & Achievements">Support & Achievements</span></h3>
-          
-          <!-- ACHIEVEMENTS SECTION -->
-          <div style="margin-bottom:24px">
-            <h4 style="color:var(--accent);margin-bottom:16px">🏆 <span data-i18n="Your Achievements">Your Achievements</span></h4>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-              <div>
-                <div style="font-size:11px;color:var(--muted)" data-i18n="Total XP">Total XP</div>
-                <div style="font-size:24px;font-weight:800;color:var(--accent)" id="total_xp">0</div>
-              </div>
-              <div>
-                <div style="font-size:11px;color:var(--muted)" data-i18n="Level">Level</div>
-                <div style="font-size:24px;font-weight:800;color:var(--accent)" id="user_level">1</div>
-              </div>
-              <div>
-                <div style="font-size:11px;color:var(--muted)" data-i18n="Unlocked">Unlocked</div>
-                <div style="font-size:24px;font-weight:800;color:var(--accent)" id="unlocked_count">0/15</div>
-              </div>
-            </div>
-            <div class="achievements-grid" id="achievements_grid">
-              <!-- Achievements will be loaded here -->
-            </div>
-          </div>
-          
-          <!-- COLOR PICKER -->
+        <div class="card" style="max-width:600px">
+          <h3>💬 <span data-i18n="Support">Support</span></h3>
           <div class="color-picker">
             <div class="color-option green active" data-color="#7CFC00"></div>
             <div class="color-option blue" data-color="#2d8cff"></div>
@@ -1128,27 +1074,19 @@
             <div class="color-option yellow" data-color="#fbbf24"></div>
             <div class="color-option red" data-color="#ef4444"></div>
           </div>
-          
-          <!-- SUPPORT TEXT -->
           <div class="small" style="margin-bottom:16px" data-i18n="Connect your wallet for tips and donations. Contact us through the links below.">
             Connect your wallet for tips and donations. Contact us through the links below.
           </div>
-          
-          <!-- WALLET & TIP BUTTONS -->
           <div class="controls">
             <button class="btn" id="wallet_btn" data-i18n="Connect Wallet">Connect Wallet</button>
             <button class="btn" id="tip_btn" data-i18n="Tip 0.05 TON">Tip 0.05 TON</button>
           </div>
-          
-          <!-- SUPPORT LINKS -->
           <div class="controls" style="margin-top:20px">
             <button class="btn ghost" id="open_terms" data-i18n="Terms">Terms</button>
             <button class="btn ghost" id="open_privacy" data-i18n="Privacy">Privacy</button>
             <button class="btn ghost" id="open_support" data-i18n="Contact">Contact</button>
           </div>
         </div>
-        
-        <!-- SOCIAL LINKS -->
         <div style="text-align:center">
           <div style="color:var(--accent);font-weight:700;margin-bottom:12px">AIRDROP • NEWS • TRADING</div>
           <div class="support-links">
@@ -1159,8 +1097,6 @@
       </div>
     </section>
   </main>
-  
-  <!-- BOTTOM NAVIGATION -->
   <nav class="bottomnav">
     <div class="bar">
       <button id="main_tab_calc" class="main-tab active">
@@ -1174,19 +1110,7 @@
     </div>
   </nav>
 </div>
-
-<!-- TOAST -->
 <div id="toast">—</div>
-
-<!-- ACHIEVEMENT POPUP -->
-<div id="achievement_popup">
-  <div class="icon" id="popup_icon">🏆</div>
-  <h4 id="popup_title">Achievement Unlocked!</h4>
-  <div class="desc" id="popup_desc">Description here</div>
-  <div class="xp" id="popup_xp">+50 XP</div>
-</div>
-
-<!-- MODAL -->
 <div id="modal_backdrop">
   <div id="modal">
     <div id="modal_header">
@@ -1205,482 +1129,270 @@
     </div>
   </div>
 </div>
-
 <script>
 (function(){
   'use strict';
-  
-  // ======================
-  // INITIALIZATION
-  // ======================
   const tg = window.Telegram?.WebApp || null;
   if (tg) {
     tg.expand();
     tg.ready();
   }
-  
-  // ======================
-  // ACHIEVEMENTS SYSTEM
-  // ======================
-  const ACHIEVEMENTS = {
-    first_calc: {
-      id: 'first_calc',
-      title: 'First Calculation',
-      desc: 'Perform your first trading calculation',
-      icon: '🎯',
-      xp: 50,
-      condition: (state) => state.calculations >= 1,
-      progress: (state) => Math.min(state.calculations, 1)
+  const mainCalc = document.getElementById('main_calc');
+  const mainSupport = document.getElementById('main_support');
+  const mainBtnCalc = document.getElementById('main_tab_calc');
+  const mainBtnSupport = document.getElementById('main_tab_support');
+  function setMainTab(which){
+    mainCalc.classList.toggle('active', which === 'calc');
+    mainSupport.classList.toggle('active', which === 'support');
+    mainBtnCalc.classList.toggle('active', which === 'calc');
+    mainBtnSupport.classList.toggle('active', which === 'support');
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('screen_view', { screen: which });
+    }
+  }
+  mainBtnCalc.addEventListener('click', () => setMainTab('calc'));
+  mainBtnSupport.addEventListener('click', () => setMainTab('support'));
+  const locales = {
+    ru: {
+      "Calculator": "Калькулятор",
+      "Support": "Поддержка",
+      "DCA Calculator": "DCA Калькулятор",
+      "Add multiple entries to calculate average price, total volume and cost.": "Добавьте несколько входов для расчёта средней цены, общего объёма и стоимости.",
+      "Add entry": "Добавить вход",
+      "Clear": "Очистить",
+      "Average price": "Средняя цена",
+      "Copy": "Копировать",
+      "Total volume": "Общий объём",
+      "Total cost": "Общая стоимость",
+      "DCA Goal": "Цель DCA",
+      "optional": "опционально",
+      "Target avg price": "Целевая цена",
+      "Next buy price": "Следующая цена покупки",
+      "Needed volume at next price": "Нужный объём по следующей цене",
+      "Risk/Reward": "Риск/Доход",
+      "Entry": "Вход",
+      "Stop Loss": "Стоп Лосс",
+      "Take Profit": "Тейк Профит",
+      "Fee % (entry+exit)": "Комиссия % (вход+выход)",
+      "Gross R/R": "Брутто R/R",
+      "Net R/R (with fees)": "Нетто R/R (с комиссиями)",
+      "Capital Management": "Управление Капиталом",
+      "Deposit": "Депозит",
+      "Risk %": "Риск %",
+      "Leverage": "Плечо",
+      "Position size": "Размер позиции",
+      "Risk $": "Риск $",
+      "Margin (with leverage)": "Маржа (с плечом)",
+      "Market Indicators": "Рыночные Индикаторы",
+      "Fear & Greed Index": "Индекс страха и жадности",
+      "Market Mood": "Настроение рынка",
+      "Total Market Cap": "Общая капитализация",
+      "Altcoin Dominance": "Доля альткоинов",
+      "Refresh Data": "Обновить данные",
+      "Fear & Greed Gauge": "Индикатор F&G",
+      "Dominance Split": "Распределение доли",
+      "History": "История",
+      "Saved locally in your browser": "Сохранено локально в браузере",
+      "Connect your wallet for tips and donations. Contact us through the links below.": "Подключите кошелёк для донатов. Контакты и ссылки ниже.",
+      "Connect Wallet": "Подключить кошелёк",
+      "Tip 0.05 TON": "Донат 0.05 TON",
+      "Terms": "Условия",
+      "Privacy": "Конфиденциальность",
+      "Contact": "Контакты",
+      "Share": "Поделиться",
+      "Card": "Карточка",
+      "Copied!": "Скопировано!",
+      "Save PNG": "Сохранить PNG",
+      "Dark": "Тёмная",
+      "Light": "Светлая",
+      "Color": "Цвет",
+      "DCA": "DCA",
+      "R/R": "R/R",
+      "Capital": "Капитал",
+      "Indicators": "Индикаторы",
+      "Trade Card": "Торговая Карточка",
+      "Download PNG": "Скачать PNG",
+      "Use Save PNG for smartphones, Copy for computers": "Используйте Сохранить PNG для смартфонов, Копировать для компьютеров",
+      "Clear History": "Очистить историю",
+      "Cached data": "Кэшированные данные",
+      "Loading...": "Загрузка...",
+      "History cleared": "История очищена",
+      "TELEGRAM": "ТЕЛЕГРАМ",
+      "YOUTUBE": "ЮТУБ",
+      "Price": "Цена",
+      "Volume": "Объём"
     },
-    dca_master: {
-      id: 'dca_master',
-      title: 'DCA Master',
-      desc: 'Calculate 10+ DCA strategies',
-      icon: '📊',
-      xp: 100,
-      condition: (state) => state.dca_calculations >= 10,
-      progress: (state) => Math.min(state.dca_calculations / 10, 1)
-    },
-    grid_trader: {
-      id: 'grid_trader',
-      title: 'Grid Trader',
-      desc: 'Create 5+ grid trading strategies',
-      icon: '🔢',
-      xp: 150,
-      condition: (state) => state.grid_calculations >= 5,
-      progress: (state) => Math.min(state.grid_calculations / 5, 1)
-    },
-    risk_manager: {
-      id: 'risk_manager',
-      title: 'Risk Manager',
-      desc: 'Calculate 20+ risk/reward ratios',
-      icon: '⚖️',
-      xp: 125,
-      condition: (state) => state.rr_calculations >= 20,
-      progress: (state) => Math.min(state.rr_calculations / 20, 1)
-    },
-    capital_expert: {
-      id: 'capital_expert',
-      title: 'Capital Expert',
-      desc: 'Manage 15+ capital positions',
-      icon: '💰',
-      xp: 125,
-      condition: (state) => state.cap_calculations >= 15,
-      progress: (state) => Math.min(state.cap_calculations / 15, 1)
-    },
-    daily_trader: {
-      id: 'daily_trader',
-      title: 'Daily Trader',
-      desc: 'Use app for 7 consecutive days',
-      icon: '📅',
-      xp: 200,
-      condition: (state) => state.consecutive_days >= 7,
-      progress: (state) => Math.min(state.consecutive_days / 7, 1)
-    },
-    precision_pro: {
-      id: 'precision_pro',
-      title: 'Precision Pro',
-      desc: 'Make 50 accurate calculations',
-      icon: '🎯',
-      xp: 250,
-      condition: (state) => state.accurate_calculations >= 50,
-      progress: (state) => Math.min(state.accurate_calculations / 50, 1)
-    },
-    sharing_is_caring: {
-      id: 'sharing_is_caring',
-      title: 'Sharing is Caring',
-      desc: 'Share results 5 times',
-      icon: '📤',
-      xp: 75,
-      condition: (state) => state.shares >= 5,
-      progress: (state) => Math.min(state.shares / 5, 1)
-    },
-    card_collector: {
-      id: 'card_collector',
-      title: 'Card Collector',
-      desc: 'Create 3+ trade cards',
-      icon: '🃏',
-      xp: 100,
-      condition: (state) => state.cards_created >= 3,
-      progress: (state) => Math.min(state.cards_created / 3, 1)
-    },
-    theme_explorer: {
-      id: 'theme_explorer',
-      title: 'Theme Explorer',
-      desc: 'Try all color themes',
-      icon: '🎨',
-      xp: 80,
-      condition: (state) => state.themes_tried >= 8,
-      progress: (state) => Math.min(state.themes_tried / 8, 1)
-    },
-    early_supporter: {
-      id: 'early_supporter',
-      title: 'Early Supporter',
-      desc: 'Connect wallet and tip once',
-      icon: '⭐',
-      xp: 300,
-      condition: (state) => state.wallet_connected && state.tips_sent >= 1,
-      progress: (state) => state.wallet_connected && state.tips_sent >= 1 ? 1 : 0
-    },
-    analyzer: {
-      id: 'analyzer',
-      title: 'Market Analyzer',
-      desc: 'Check indicators 10 times',
-      icon: '📈',
-      xp: 120,
-      condition: (state) => state.indicator_checks >= 10,
-      progress: (state) => Math.min(state.indicator_checks / 10, 1)
-    },
-    history_keeper: {
-      id: 'history_keeper',
-      title: 'History Keeper',
-      desc: 'Save 30+ calculations',
-      icon: '📜',
-      xp: 150,
-      condition: (state) => state.history_items >= 30,
-      progress: (state) => Math.min(state.history_items / 30, 1)
-    },
-    multitasker: {
-      id: 'multitasker',
-      title: 'Multitasker',
-      desc: 'Use all 5 calculator types',
-      icon: '🔄',
-      xp: 200,
-      condition: (state) => state.calculator_types_used >= 5,
-      progress: (state) => Math.min(state.calculator_types_used / 5, 1)
-    },
-    pro_trader: {
-      id: 'pro_trader',
-      title: 'Pro Trader',
-      desc: 'Reach 1000 total XP',
-      icon: '🚀',
-      xp: 500,
-      condition: (state) => state.xp >= 1000,
-      progress: (state) => Math.min(state.xp / 1000, 1)
+    en: {
+      "Calculator": "Calculator",
+      "Support": "Support",
+      "DCA Calculator": "DCA Calculator",
+      "Add multiple entries to calculate average price, total volume and cost.": "Add multiple entries to calculate average price, total volume and cost.",
+      "Add entry": "Add entry",
+      "Clear": "Clear",
+      "Average price": "Average price",
+      "Copy": "Copy",
+      "Total volume": "Total volume",
+      "Total cost": "Total cost",
+      "DCA Goal": "DCA Goal",
+      "optional": "optional",
+      "Target avg price": "Target avg price",
+      "Next buy price": "Next buy price",
+      "Needed volume at next price": "Needed volume at next price",
+      "Risk/Reward": "Risk/Reward",
+      "Entry": "Entry",
+      "Stop Loss": "Stop Loss",
+      "Take Profit": "Take Profit",
+      "Fee % (entry+exit)": "Fee % (entry+exit)",
+      "Gross R/R": "Gross R/R",
+      "Net R/R (with fees)": "Net R/R (with fees)",
+      "Capital Management": "Capital Management",
+      "Deposit": "Deposit",
+      "Risk %": "Risk %",
+      "Leverage": "Leverage",
+      "Position size": "Position size",
+      "Risk $": "Risk $",
+      "Margin (with leverage)": "Margin (with leverage)",
+      "Market Indicators": "Market Indicators",
+      "Fear & Greed Index": "Fear & Greed Index",
+      "Market Mood": "Market Mood",
+      "Total Market Cap": "Total Market Cap",
+      "Altcoin Dominance": "Altcoin Dominance",
+      "Refresh Data": "Refresh Data",
+      "Fear & Greed Gauge": "Fear & Greed Gauge",
+      "Dominance Split": "Dominance Split",
+      "History": "History",
+      "Saved locally in your browser": "Saved locally in your browser",
+      "Connect your wallet for tips and donations. Contact us through the links below.": "Connect your wallet for tips and donations. Contact us through the links below.",
+      "Connect Wallet": "Connect Wallet",
+      "Tip 0.05 TON": "Tip 0.05 TON",
+      "Terms": "Terms",
+      "Privacy": "Privacy",
+      "Contact": "Contact",
+      "Share": "Share",
+      "Card": "Card",
+      "Copied!": "Copied!",
+      "Save PNG": "Save PNG",
+      "Dark": "Dark",
+      "Light": "Light",
+      "Color": "Color",
+      "DCA": "DCA",
+      "R/R": "R/R",
+      "Capital": "Capital",
+      "Indicators": "Indicators",
+      "Trade Card": "Trade Card",
+      "Download PNG": "Download PNG",
+      "Use Save PNG for smartphones, Copy for computers": "Use Save PNG for smartphones, Copy for computers",
+      "Clear History": "Clear History",
+      "Cached data": "Cached data",
+      "Loading...": "Loading...",
+      "History cleared": "History cleared",
+      "TELEGRAM": "TELEGRAM",
+      "YOUTUBE": "YOUTUBE",
+      "Price": "Price",
+      "Volume": "Volume"
     }
   };
-  
-  // User state
-  let userState = {
-    xp: 0,
-    calculations: 0,
-    dca_calculations: 0,
-    grid_calculations: 0,
-    rr_calculations: 0,
-    cap_calculations: 0,
-    consecutive_days: 1,
-    accurate_calculations: 0,
-    shares: 0,
-    cards_created: 0,
-    themes_tried: 1,
-    wallet_connected: false,
-    tips_sent: 0,
-    indicator_checks: 0,
-    history_items: 0,
-    calculator_types_used: 0,
-    unlocked: [],
-    last_login: new Date().toDateString(),
-    used_calculators: new Set()
-  };
-  
-  // Load state
-  function loadState() {
-    try {
-      const saved = localStorage.getItem('trader_achievements');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        
-        // Merge with current state
-        userState = { ...userState, ...parsed };
-        
-        // Convert used_calculators back to Set
-        if (parsed.used_calculators && Array.isArray(parsed.used_calculators)) {
-          userState.used_calculators = new Set(parsed.used_calculators);
-          userState.calculator_types_used = userState.used_calculators.size;
-        }
-        
-        // Check consecutive days
-        const today = new Date().toDateString();
-        if (userState.last_login === today) {
-          // Already logged in today
-        } else if (isConsecutiveDay(userState.last_login, today)) {
-          userState.consecutive_days++;
-        } else {
-          userState.consecutive_days = 1;
-        }
-        userState.last_login = today;
-        
-        updateAchievementsUI();
-      }
-    } catch(e) {
-      console.error('Failed to load achievements:', e);
-    }
+  let lang = 'en';
+  try {
+    const tgl = tg?.initDataUnsafe?.user?.language_code;
+    if (tgl && tgl.startsWith('ru')) lang = 'ru';
+  } catch(e) {}
+  function t(key) {
+    const locale = locales[lang] || locales.en;
+    return locale[key] || key;
   }
-  
-  // Save state
-  function saveState() {
-    try {
-      // Convert Set to Array for storage
-      const stateToSave = {
-        ...userState,
-        used_calculators: Array.from(userState.used_calculators)
-      };
-      localStorage.setItem('trader_achievements', JSON.stringify(stateToSave));
-    } catch(e) {
-      console.error('Failed to save achievements:', e);
-    }
-  }
-  
-  // Update achievements
-  function updateAchievements() {
-    const newUnlocks = [];
-    let xpEarned = 0;
-    
-    Object.values(ACHIEVEMENTS).forEach(achievement => {
-      if (userState.unlocked.includes(achievement.id)) return;
-      
-      if (achievement.condition(userState)) {
-        userState.unlocked.push(achievement.id);
-        userState.xp += achievement.xp;
-        xpEarned += achievement.xp;
-        newUnlocks.push(achievement);
-      }
-    });
-    
-    if (newUnlocks.length > 0) {
-      saveState();
-      updateAchievementsUI();
-      
-      // Show popup for first achievement only
-      if (newUnlocks[0]) {
-        setTimeout(() => {
-          showAchievementPopup(newUnlocks[0]);
-        }, 500);
-      }
-      
-      // Track in analytics
-      if (window.TelegramAnalytics) {
-        window.TelegramAnalytics.trackEvent('achievement_unlocked', {
-          count: newUnlocks.length,
-          xp_earned: xpEarned
-        });
-      }
-    }
-  }
-  
-  // Show achievement popup
-  function showAchievementPopup(achievement) {
-    const popup = document.getElementById('achievement_popup');
-    document.getElementById('popup_icon').textContent = achievement.icon;
-    document.getElementById('popup_title').textContent = achievement.title;
-    document.getElementById('popup_desc').textContent = achievement.desc;
-    document.getElementById('popup_xp').textContent = `+${achievement.xp} XP`;
-    
-    popup.classList.add('show');
-    
-    // Add micro-interaction
-    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-    
-    setTimeout(() => {
-      popup.classList.remove('show');
-    }, 3000);
-  }
-  
-  // Update achievements UI
-  function updateAchievementsUI() {
-    // Update stats
-    document.getElementById('total_xp').textContent = userState.xp;
-    document.getElementById('user_level').textContent = Math.floor(userState.xp / 100) + 1;
-    document.getElementById('unlocked_count').textContent = `${userState.unlocked.length}/${Object.keys(ACHIEVEMENTS).length}`;
-    
-    // Render achievements grid
-    const grid = document.getElementById('achievements_grid');
-    if (!grid) return;
-    
-    grid.innerHTML = '';
-    
-    Object.values(ACHIEVEMENTS).forEach(achievement => {
-      const isUnlocked = userState.unlocked.includes(achievement.id);
-      const progress = achievement.progress ? achievement.progress(userState) : 0;
-      
-      const card = document.createElement('div');
-      card.className = `achievement-card ${isUnlocked ? 'unlocked' : 'locked'}`;
-      card.innerHTML = `
-        <span class="achievement-icon">${achievement.icon}</span>
-        <div class="achievement-title">${achievement.title}</div>
-        <div class="achievement-desc">${achievement.desc}</div>
-        ${!isUnlocked ? `
-          <div class="achievement-progress">
-            <div class="achievement-progress-fill" style="width: ${progress * 100}%"></div>
-          </div>
-        ` : ''}
-        <div class="achievement-xp">+${achievement.xp} XP</div>
-      `;
-      
-      grid.appendChild(card);
-    });
-  }
-  
-  // Check consecutive days
-  function isConsecutiveDay(last, today) {
-    const lastDate = new Date(last);
-    const todayDate = new Date(today);
-    const diff = (todayDate - lastDate) / (1000 * 60 * 60 * 24);
-    return diff === 1;
-  }
-  
-  // ======================
-  // MICRO-INTERACTIONS
-  // ======================
-  function addMicroInteraction(element) {
-    element.addEventListener('click', function(e) {
-      // Ripple effect
-      const ripple = document.createElement('span');
-      const rect = this.getBoundingClientRect();
-      const size = Math.max(rect.width, rect.height);
-      const x = e.clientX - rect.left - size / 2;
-      const y = e.clientY - rect.top - size / 2;
-      
-      ripple.style.cssText = `
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(124, 252, 0, 0.3);
-        transform: scale(0);
-        animation: ripple 0.6s linear;
-        width: ${size}px;
-        height: ${size}px;
-        top: ${y}px;
-        left: ${x}px;
-        pointer-events: none;
-      `;
-      
-      this.style.position = 'relative';
-      this.style.overflow = 'hidden';
-      this.appendChild(ripple);
-      
-      setTimeout(() => {
-        ripple.remove();
-      }, 600);
-    });
-  }
-  
-  // ======================
-  // GRID TRADING CALCULATOR
-  // ======================
-  function initGridCalculator() {
-    const investment = document.getElementById('grid_investment');
-    const lower = document.getElementById('grid_lower');
-    const upper = document.getElementById('grid_upper');
-    const count = document.getElementById('grid_count');
-    const profitPct = document.getElementById('grid_profit_pct');
-    const type = document.getElementById('grid_type');
-    const visual = document.getElementById('grid_visual');
-    const profitEl = document.getElementById('grid_profit');
-    const totalEl = document.getElementById('grid_total');
-    
-    function calculateGrid() {
-      const inv = parseFloat(investment.value) || 0;
-      const low = parseFloat(lower.value) || 0;
-      const high = parseFloat(upper.value) || 0;
-      const num = parseInt(count.value) || 10;
-      const pct = parseFloat(profitPct.value) || 1;
-      const gridType = type.value;
-      
-      if (inv <= 0 || low <= 0 || high <= low || num < 2) {
-        profitEl.textContent = '—';
-        totalEl.textContent = '—';
-        visual.innerHTML = '';
-        return;
-      }
-      
-      // Calculate grid prices
-      const gridPrices = [];
-      if (gridType === 'arithmetic') {
-        const step = (high - low) / num;
-        for (let i = 0; i <= num; i++) {
-          gridPrices.push(low + i * step);
-        }
+  function translateAll() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const translation = t(key);
+      if (el.tagName === 'INPUT') {
+        el.placeholder = translation;
       } else {
-        // Geometric grid
-        const ratio = Math.pow(high / low, 1 / num);
-        for (let i = 0; i <= num; i++) {
-          gridPrices.push(low * Math.pow(ratio, i));
-        }
-      }
-      
-      // Calculate profit per grid
-      const investmentPerGrid = inv / num;
-      const profitPerGrid = investmentPerGrid * (pct / 100);
-      const totalProfit = profitPerGrid * num;
-      
-      // Update display
-      profitEl.textContent = `$${profitPerGrid.toFixed(2)}`;
-      totalEl.textContent = `$${totalProfit.toFixed(2)}`;
-      
-      // Update visualization
-      visual.innerHTML = '';
-      gridPrices.forEach((price, i) => {
-        if (i < gridPrices.length - 1) {
-          const line = document.createElement('div');
-          line.className = 'grid-line';
-          line.style.top = `${(i / (gridPrices.length - 1)) * 100}%`;
-          line.style.opacity = 0.2 + (i % 2) * 0.3;
-          visual.appendChild(line);
-        }
-      });
-      
-      // Track achievement progress
-      userState.grid_calculations++;
-      userState.calculations++;
-      userState.used_calculators.add('grid');
-      userState.calculator_types_used = userState.used_calculators.size;
-      updateAchievements();
-      saveState();
-      
-      // Add to history
-      if (profitPerGrid > 0) {
-        addToHistory('Grid Trading', `Grid: $${profitPerGrid.toFixed(2)} per trade, Total: $${totalProfit.toFixed(2)}`);
-      }
-    }
-    
-    // Add event listeners
-    [investment, lower, upper, count, profitPct, type].forEach(input => {
-      input.addEventListener('input', calculateGrid);
-      input.addEventListener('focus', function() {
-        this.style.transform = 'scale(1.02)';
-      });
-      input.addEventListener('blur', function() {
-        this.style.transform = 'scale(1)';
-      });
-    });
-    
-    // Copy button
-    document.getElementById('grid_copy').addEventListener('click', async () => {
-      const text = `Grid Profit: ${profitEl.textContent}, Total: ${totalEl.textContent}`;
-      try {
-        await navigator.clipboard.writeText(text);
-        showToast('Copied to clipboard!');
-        userState.shares++;
-        updateAchievements();
-      } catch(e) {
-        showToast('Failed to copy');
+        el.textContent = translation;
       }
     });
-    
-    // Initial calculation
-    calculateGrid();
+    document.getElementById('share_btn').querySelector('span:last-child').textContent = t('Share');
+    document.getElementById('card_btn').querySelector('span:last-child').textContent = t('Card');
+    document.getElementById('theme_text').textContent = document.documentElement.getAttribute('data-theme') === 'light' ? t('Light') : t('Dark');
+    document.querySelectorAll('.subtab').forEach(tab => {
+      const textSpan = tab.querySelector('span:last-child');
+      if (textSpan) {
+        const key = textSpan.getAttribute('data-i18n') || textSpan.textContent;
+        textSpan.textContent = t(key);
+      }
+    });
+    document.getElementById('main_tab_calc').querySelector('span:last-child').textContent = t('Calculator');
+    document.getElementById('main_tab_support').querySelector('span:last-child').textContent = t('Support');
+    document.querySelector('.history h4').querySelector('span').textContent = t('History');
+    dcaRows.forEach(row => {
+      row.pEl.placeholder = t('Price');
+      row.vEl.placeholder = t('Volume');
+    });
   }
-  
-  // ======================
-  // RESTORE ORIGINAL FUNCTIONS
-  // ======================
-  // Most of the original functions remain the same, but need to integrate with achievements
-  
+  let toastTimer = null;
+  function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('toast_shown', { message: msg.substring(0, 50) });
+    }
+  }
+  const THEME_KEY = 'tc_theme';
+  function getInitialTheme() {
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === 'dark' || saved === 'light') return saved;
+    const tgScheme = (tg?.colorScheme || '').toLowerCase();
+    return tgScheme === 'light' ? 'light' : 'dark';
+  }
+  function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem(THEME_KEY, theme);
+    document.getElementById('theme_icon').textContent = theme === 'light' ? '☀️' : '🌙';
+    document.getElementById('theme_text').textContent = t(theme === 'light' ? 'Light' : 'Dark');
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('theme_changed', { theme: theme });
+    }
+  }
+  setTheme(getInitialTheme());
+  document.getElementById('theme_toggle').addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    setTheme(current === 'dark' ? 'light' : 'dark');
+  });
+  const COLOR_KEY = 'tc_accent_color';
+  const colorOptions = document.querySelectorAll('.color-option');
+  function setAccentColor(color) {
+    document.documentElement.style.setProperty('--accent', color);
+    localStorage.setItem(COLOR_KEY, color);
+    colorOptions.forEach(option => {
+      option.classList.toggle('active', option.dataset.color === color);
+    });
+    const pulseColor = color === '#7CFC00' ? '#7CFC00' : 
+                      color === '#2d8cff' ? '#2d8cff' :
+                      color === '#9b59b6' ? '#9b59b6' :
+                      color === '#ffa500' ? '#ffa500' :
+                      color === '#ff6b9d' ? '#ff6b9d' :
+                      color === '#2dd4bf' ? '#2dd4bf' :
+                      color === '#fbbf24' ? '#fbbf24' :
+                      '#ef4444';
+    document.documentElement.style.setProperty('--pulse-color', pulseColor);
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('color_changed', { color: color });
+    }
+  }
+  const savedColor = localStorage.getItem(COLOR_KEY) || '#7CFC00';
+  setAccentColor(savedColor);
+  colorOptions.forEach(option => {
+    option.addEventListener('click', () => {
+      setAccentColor(option.dataset.color);
+    });
+  });
   function safeNum(v) {
     const x = parseFloat(v);
     return isFinite(x) ? x : 0;
   }
-  
   function fmt(v, digits = 8) {
     if (v === null || v === undefined || !isFinite(v)) return '—';
     const n = Number(v);
@@ -1688,104 +1400,752 @@
     const d = abs >= 1000 ? 2 : (abs >= 1 ? 6 : digits);
     return n.toLocaleString(undefined, {maximumFractionDigits: d});
   }
-  
-  function showToast(msg) {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.classList.add('show');
-    clearTimeout(window.toastTimer);
-    window.toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+  const btnRu = document.getElementById('btn_ru');
+  const btnEn = document.getElementById('btn_en');
+  function syncLangButtons() {
+    btnRu.classList.toggle('active', lang === 'ru');
+    btnEn.classList.toggle('active', lang === 'en');
   }
-  
-  function addToHistory(type, summary) {
-    const arr = loadHistory();
-    arr.unshift({
-      t: Date.now(),
-      type: type,
-      summary: summary
-    });
-    if (arr.length > 50) arr.length = 50;
-    saveHistory(arr);
+  syncLangButtons();
+  btnRu.addEventListener('click', () => {
+    lang = 'ru';
+    syncLangButtons();
+    translateAll();
     renderHistory();
-    userState.history_items = arr.length;
-    updateAchievements();
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('language_changed', { language: 'ru' });
+    }
+  });
+  btnEn.addEventListener('click', () => {
+    lang = 'en';
+    syncLangButtons();
+    translateAll();
+    renderHistory();
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('language_changed', { language: 'en' });
+    }
+  });
+  document.querySelectorAll('.subtab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.subtab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      const target = btn.dataset.tab;
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(target).classList.add('active');
+      if (target === 'ind' && !lastIndicators) fetchIndicators();
+      if (window.TelegramAnalytics) {
+        window.TelegramAnalytics.trackEvent('tab_switched', { tab: target });
+      }
+    });
+  });
+  function activeTab() {
+    const act = document.querySelector('.subtab.active');
+    return act?.dataset?.tab || 'dca';
   }
-  
+  const dcaRowsEl = document.getElementById('dca_rows');
+  const dcaAvgEl = document.getElementById('dca_avg');
+  const dcaTotalVolEl = document.getElementById('dca_total_vol');
+  const dcaTotalCostEl = document.getElementById('dca_total_cost');
+  const dcaGoal = document.getElementById('dca_goal');
+  const dcaNext = document.getElementById('dca_next_price');
+  const dcaNeedVol = document.getElementById('dca_need_vol');
+  let dcaRows = [];
+  function addDcaRow(p = 0, v = 0) {
+    const rowId = Date.now() + Math.random();
+    const wrap = document.createElement('div');
+    wrap.className = 'row';
+    wrap.style.marginBottom = '8px';
+    wrap.innerHTML = `
+      <div class="field" style="flex:2">
+        <input type="number" step="any" placeholder="${t('Price')}" value="${p || ''}">
+      </div>
+      <div class="field" style="flex:2">
+        <input type="number" step="any" placeholder="${t('Volume')}" value="${v || ''}">
+      </div>
+      <div class="field" style="flex:1">
+        <button class="btn ghost" type="button" style="width:100%">×</button>
+      </div>
+    `;
+    const inputs = wrap.querySelectorAll('input');
+    const btnRemove = wrap.querySelector('button');
+    const item = { id: rowId, el: wrap, pEl: inputs[0], vEl: inputs[1] };
+    inputs.forEach(inp => inp.addEventListener('input', () => {
+      calcDCA();
+    }));
+    btnRemove.addEventListener('click', () => {
+      dcaRows = dcaRows.filter(r => r.id !== rowId);
+      wrap.remove();
+      calcDCA();
+    });
+    dcaRows.push(item);
+    dcaRowsEl.appendChild(wrap);
+    calcDCA();
+  }
+  function clearDCA() {
+    dcaRows = [];
+    dcaRowsEl.innerHTML = '';
+    addDcaRow();
+    addDcaRow();
+    dcaGoal.value = '';
+    dcaNext.value = '';
+    calcDCA();
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('dca_cleared');
+    }
+  }
+  function calcDCA() {
+    let totalVol = 0;
+    let totalCost = 0;
+    dcaRows.forEach(r => {
+      const p = safeNum(r.pEl.value);
+      const v = safeNum(r.vEl.value);
+      if (p > 0 && v > 0) {
+        totalVol += v;
+        totalCost += p * v;
+      }
+    });
+    if (totalVol <= 0) {
+      dcaAvgEl.textContent = '—';
+      dcaTotalVolEl.textContent = '—';
+      dcaTotalCostEl.textContent = '—';
+      dcaNeedVol.textContent = '—';
+      return { avg: null, totalVol: 0, totalCost: 0 };
+    }
+    const avg = totalCost / totalVol;
+    dcaAvgEl.textContent = fmt(avg, 10);
+    dcaTotalVolEl.textContent = fmt(totalVol, 8);
+    dcaTotalCostEl.textContent = fmt(totalCost, 2);
+    const target = safeNum(dcaGoal.value);
+    const nextP = safeNum(dcaNext.value);
+    if (target > 0 && nextP > 0 && nextP !== target) {
+      const x = (target * totalVol - totalCost) / (nextP - target);
+      dcaNeedVol.textContent = (isFinite(x) && x > 0) ? fmt(x, 8) : '—';
+    } else {
+      dcaNeedVol.textContent = '—';
+    }
+    if (window.TelegramAnalytics && totalVol > 0) {
+      window.TelegramAnalytics.trackEvent('calculator_used', {
+        type: 'DCA',
+        entries: dcaRows.length,
+        totalVol: totalVol
+      });
+    }
+    return { avg, totalVol, totalCost };
+  }
+  document.getElementById('dca_add').addEventListener('click', () => addDcaRow());
+  document.getElementById('dca_clear').addEventListener('click', clearDCA);
+  dcaGoal.addEventListener('input', calcDCA);
+  dcaNext.addEventListener('input', calcDCA);
+  async function copyText(text) {
+    if (!text || text === '—') return false;
+    try {
+      await navigator.clipboard.writeText(String(text));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  function getHistoryType(tab) {
+    const map = {
+      'dca': 'DCA',
+      'rr': 'R/R',
+      'cap': 'Capital',
+      'ind': 'Indicators'
+    };
+    return map[tab] || tab;
+  }
+  function bindCopy(btn, getVal, getSummary = null) {
+    btn.addEventListener('click', async () => {
+      const val = getVal();
+      const ok = await copyText(val);
+      if (ok) {
+        showToast(t('Copied!'));
+        if (getSummary) {
+          const summary = getSummary();
+          const arr = loadHistory();
+          arr.unshift({
+            t: Date.now(),
+            type: getHistoryType(activeTab()),
+            summary: summary
+          });
+          if (arr.length > 50) arr.length = 50;
+          saveHistory(arr);
+          renderHistory();
+        }
+        if (window.TelegramAnalytics) {
+          window.TelegramAnalytics.trackEvent('value_copied', {
+            value: val.substring(0, 30)
+          });
+        }
+      }
+    });
+  }
+  bindCopy(document.getElementById('dca_copy'), () => dcaAvgEl.textContent, () => {
+    return `Average: ${dcaAvgEl.textContent}, Volume: ${dcaTotalVolEl.textContent}, Cost: ${dcaTotalCostEl.textContent}`;
+  });
+  bindCopy(document.getElementById('dca_need_copy'), () => dcaNeedVol.textContent, () => {
+    return `Needed volume: ${dcaNeedVol.textContent} at next price ${dcaNext.value}`;
+  });
+  const rrEntry = document.getElementById('rr_entry');
+  const rrSl = document.getElementById('rr_sl');
+  const rrTp = document.getElementById('rr_tp');
+  const rrFee = document.getElementById('rr_fee');
+  const rrGross = document.getElementById('rr_gross');
+  const rrNet = document.getElementById('rr_net');
+  function calcRR() {
+    const e = safeNum(rrEntry.value);
+    const sl = safeNum(rrSl.value);
+    const tp = safeNum(rrTp.value);
+    const fee = safeNum(rrFee.value) / 100;
+    if (!e || !sl || !tp || e === sl) {
+      rrGross.textContent = '—';
+      rrNet.textContent = '—';
+      return { gross: null, net: null };
+    }
+    const risk = Math.abs(e - sl);
+    const reward = Math.abs(tp - e);
+    if (!risk || !reward) {
+      rrGross.textContent = '—';
+      rrNet.textContent = '—';
+      return { gross: null, net: null };
+    }
+    const gross = (reward / risk);
+    rrGross.textContent = '1:' + gross.toFixed(2);
+    const feeEntry = e * fee;
+    const feeExit = tp * fee;
+    const netReward = Math.max(0, reward - (feeEntry + feeExit));
+    const net = (netReward / (risk + feeEntry));
+    rrNet.textContent = '1:' + net.toFixed(2);
+    if (window.TelegramAnalytics && e > 0) {
+      window.TelegramAnalytics.trackEvent('calculator_used', {
+        type: 'R/R',
+        gross: gross,
+        net: net
+      });
+    }
+    return { gross, net };
+  }
+  [rrEntry, rrSl, rrTp, rrFee].forEach(x => x.addEventListener('input', calcRR));
+  bindCopy(document.getElementById('rr_copy_gross'), () => rrGross.textContent, () => {
+    return `Gross R/R: ${rrGross.textContent} (Entry: ${rrEntry.value}, SL: ${rrSl.value}, TP: ${rrTp.value})`;
+  });
+  bindCopy(document.getElementById('rr_copy_net'), () => rrNet.textContent, () => {
+    return `Net R/R: ${rrNet.textContent} (Entry: ${rrEntry.value}, SL: ${rrSl.value}, TP: ${rrTp.value}, Fee: ${rrFee.value}%)`;
+  });
+  const capDep = document.getElementById('cap_dep');
+  const capRisk = document.getElementById('cap_risk');
+  const capLev = document.getElementById('cap_lev');
+  const capEntry = document.getElementById('cap_entry');
+  const capSl = document.getElementById('cap_sl');
+  const capFee = document.getElementById('cap_fee');
+  const capPos = document.getElementById('cap_pos');
+  const capRiskUsd = document.getElementById('cap_risk_usd');
+  const capMargin = document.getElementById('cap_margin');
+  document.querySelectorAll('.chip[data-risk]').forEach(ch => {
+    ch.addEventListener('click', () => {
+      document.querySelectorAll('.chip[data-risk]').forEach(x => x.classList.remove('active'));
+      ch.classList.add('active');
+      capRisk.value = ch.dataset.risk;
+      calcCap();
+    });
+  });
+  function calcCap() {
+    const dep = safeNum(capDep.value);
+    const rp = safeNum(capRisk.value) / 100;
+    const lev = Math.max(1, safeNum(capLev.value) || 1);
+    const e = safeNum(capEntry.value);
+    const sl = safeNum(capSl.value);
+    const fee = safeNum(capFee.value) / 100;
+    if (dep <= 0 || rp <= 0 || e <= 0 || sl <= 0 || e === sl) {
+      capPos.textContent = '—';
+      capRiskUsd.textContent = '—';
+      capMargin.textContent = '—';
+      return { pos: null };
+    }
+    const riskUsd = dep * rp;
+    const move = Math.abs(e - sl) + (e * fee);
+    const pos = riskUsd / move;
+    capPos.textContent = fmt(pos, 8);
+    capRiskUsd.textContent = fmt(riskUsd, 2);
+    const notional = pos * e;
+    capMargin.textContent = fmt(notional / lev, 2);
+    if (window.TelegramAnalytics && dep > 0) {
+      window.TelegramAnalytics.trackEvent('calculator_used', {
+        type: 'Capital',
+        positionSize: pos,
+        riskUsd: riskUsd
+      });
+    }
+    return { pos };
+  }
+  [capDep, capRisk, capLev, capEntry, capSl, capFee].forEach(x => x.addEventListener('input', calcCap));
+  bindCopy(document.getElementById('cap_copy_pos'), () => capPos.textContent, () => {
+    return `Position: ${capPos.textContent}, Risk: $${capRiskUsd.textContent}, Margin: $${capMargin.textContent}`;
+  });
+  const fgText = document.getElementById('fg_text');
+  const tcapText = document.getElementById('tcap_text');
+  const altText = document.getElementById('alt_text');
+  const moodEl = document.getElementById('mood');
+  const indNote = document.getElementById('ind_note');
+  let lastIndicators = null;
+  const IND_CACHE_KEY = 'tc_ind_cache';
+  function saveIndicatorsCache(data) {
+    try {
+      localStorage.setItem(IND_CACHE_KEY, JSON.stringify({ t: Date.now(), data }));
+    } catch(e) {}
+  }
+  function loadIndicatorsCache() {
+    try {
+      const raw = localStorage.getItem(IND_CACHE_KEY);
+      if (!raw) return null;
+      const j = JSON.parse(raw);
+      return j;
+    } catch(e) {
+      return null;
+    }
+  }
+  function computeMood(fgValue) {
+    if (!isFinite(fgValue)) return '—';
+    if (fgValue >= 70) return lang === 'ru' ? 'Жадность' : 'Greed';
+    if (fgValue <= 30) return lang === 'ru' ? 'Страх' : 'Fear';
+    return lang === 'ru' ? 'Нейтрально' : 'Neutral';
+  }
+  async function fetchIndicators() {
+    indNote.textContent = t('Loading...');
+    let fgVal = null, fgClass = '—', totalMc = null, btcDom = null;
+    try {
+      const res = await fetch('https://api.alternative.me/fng/?limit=1&format=json');
+      if (res.ok) {
+        const j = await res.json();
+        const d = j?.data?.[0];
+        fgVal = d ? Number(d.value) : null;
+        fgClass = d?.value_classification || '—';
+      }
+    } catch(e) {}
+    try {
+      const res2 = await fetch('https://api.coingecko.com/api/v3/global');
+      if (res2.ok) {
+        const j2 = await res2.json();
+        totalMc = j2?.data?.total_market_cap?.usd ?? null;
+        btcDom = j2?.data?.market_cap_percentage?.btc ?? null;
+      }
+    } catch(e) {}
+    fgText.textContent = isFinite(fgVal) ? `${fgVal} · ${fgClass}` : '—';
+    tcapText.textContent = isFinite(totalMc) ? '$' + Number(totalMc).toLocaleString() : '—';
+    let altDom = null;
+    if (typeof btcDom === 'number' && isFinite(btcDom)) {
+      altDom = 100 - btcDom;
+      altText.textContent = altDom.toFixed(2) + '%';
+    } else {
+      altText.textContent = '—';
+    }
+    moodEl.textContent = computeMood(fgVal);
+    lastIndicators = { fgVal, fgClass, totalMc, btcDom, altDom };
+    saveIndicatorsCache(lastIndicators);
+    drawAllIndicatorVisuals(lastIndicators);
+    indNote.textContent = '';
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('indicators_fetched', {
+        fgIndex: fgVal
+      });
+    }
+  }
+  function drawGauge(canvas, value) {
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    const cx = w / 2, cy = h * 0.7;
+    const r = Math.min(w * 0.4, h * 0.6);
+    const start = Math.PI, end = 0;
+    ctx.lineWidth = 12;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#252525';
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, start, end, false);
+    ctx.stroke();
+    if (!isFinite(value)) return;
+    const clamped = Math.max(0, Math.min(100, value));
+    const angle = start + (end - start) * (clamped / 100);
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7CFC00';
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, start, angle, false);
+    ctx.stroke();
+  }
+  function drawDonutSplit(canvas, btcDom) {
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    const cx = w / 2, cy = h / 2, r = Math.min(w, h) * 0.3;
+    const inner = r * 0.6;
+    const border = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#252525';
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7CFC00';
+    ctx.fillStyle = border;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--chip').trim() || '#1a1a1a';
+    ctx.beginPath();
+    ctx.arc(cx, cy, inner, 0, Math.PI * 2);
+    ctx.fill();
+    if (!isFinite(btcDom)) return;
+    const btc = Math.max(0, Math.min(100, btcDom));
+    const a0 = -Math.PI / 2;
+    const aB = a0 + (Math.PI * 2) * (btc / 100);
+    ctx.fillStyle = accent;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, a0, aB, false);
+    ctx.closePath();
+    ctx.fill();
+  }
+  function drawAllIndicatorVisuals(data) {
+    drawGauge(document.getElementById('fg_canvas'), data?.fgVal);
+    drawDonutSplit(document.getElementById('dom_canvas'), data?.btcDom);
+    const fgBig = document.getElementById('fg_big');
+    const fgSub = document.getElementById('fg_sub');
+    const domBig = document.getElementById('dom_big');
+    const domSub = document.getElementById('dom_sub');
+    if (isFinite(data?.fgVal)) {
+      fgBig.textContent = String(Math.round(data.fgVal));
+      fgSub.textContent = data.fgClass || '—';
+    } else {
+      fgBig.textContent = '—';
+      fgSub.textContent = '—';
+    }
+    if (typeof data?.btcDom === 'number' && isFinite(data.btcDom)) {
+      domBig.textContent = `BTC ${data.btcDom.toFixed(1)}%`;
+      domSub.textContent = `ALTS ${(100 - data.btcDom).toFixed(1)}%`;
+    } else {
+      domBig.textContent = '—';
+      domSub.textContent = '—';
+    }
+  }
+  const cached = loadIndicatorsCache();
+  if (cached?.data) {
+    lastIndicators = cached.data;
+    fgText.textContent = isFinite(lastIndicators.fgVal) ? `${lastIndicators.fgVal} · ${lastIndicators.fgClass}` : '—';
+    tcapText.textContent = isFinite(lastIndicators.totalMc) ? '$' + Number(lastIndicators.totalMc).toLocaleString() : '—';
+    altText.textContent = isFinite(lastIndicators.altDom) ? lastIndicators.altDom.toFixed(2) + '%' : '—';
+    moodEl.textContent = computeMood(lastIndicators.fgVal);
+    indNote.textContent = t('Cached data');
+    drawAllIndicatorVisuals(lastIndicators);
+  }
+  document.getElementById('refresh_ind').addEventListener('click', fetchIndicators);
+  const HISTORY_KEY = 'tc_history';
   function loadHistory() {
     try {
-      return JSON.parse(localStorage.getItem('tc_history')) || [];
+      return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
     } catch(e) {
       return [];
     }
   }
-  
   function saveHistory(arr) {
     try {
-      localStorage.setItem('tc_history', JSON.stringify(arr));
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(arr));
     } catch(e) {}
   }
-  
-  // ======================
-  // INITIALIZE APP
-  // ======================
-  function initApp() {
-    // Load achievements
-    loadState();
-    
-    // Initialize grid calculator
-    initGridCalculator();
-    
-    // Add micro-interactions to buttons
-    document.querySelectorAll('.btn, .iconbtn, .chip, .subtab, .main-tab').forEach(btn => {
-      addMicroInteraction(btn);
-    });
-    
-    // Theme toggle with achievement tracking
-    document.getElementById('theme_toggle').addEventListener('click', () => {
-      const current = document.documentElement.getAttribute('data-theme');
-      const newTheme = current === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', newTheme);
-      document.getElementById('theme_icon').textContent = newTheme === 'dark' ? '🌙' : '☀️';
-      document.getElementById('theme_text').textContent = newTheme === 'dark' ? 'Dark' : 'Light';
-      
-      localStorage.setItem('tc_theme', newTheme);
-      
-      // Track theme change for achievement
-      userState.themes_tried++;
-      updateAchievements();
-    });
-    
-    // Initialize other calculators (simplified - you should restore the full implementations)
-    setupOriginalCalculators();
-    
-    // Update achievements UI
-    updateAchievementsUI();
-  }
-  
-  // Simplified setup for original calculators
-  function setupOriginalCalculators() {
-    // Track calculator usage for achievements
-    document.querySelectorAll('.subtab').forEach(tab => {
-      tab.addEventListener('click', function() {
-        const tabName = this.dataset.tab;
-        userState.used_calculators.add(tabName);
-        userState.calculator_types_used = userState.used_calculators.size;
-        
-        if (tabName === 'dca') userState.dca_calculations++;
-        if (tabName === 'rr') userState.rr_calculations++;
-        if (tabName === 'cap') userState.cap_calculations++;
-        if (tabName === 'ind') userState.indicator_checks++;
-        
-        userState.calculations++;
-        updateAchievements();
+  function renderHistory() {
+    const list = document.getElementById('history_list');
+    list.innerHTML = '';
+    const arr = loadHistory();
+    if (!arr.length) {
+      list.innerHTML = '<div class="small">' + t('Saved locally in your browser') + '</div>';
+      return;
+    }
+    arr.forEach((it, idx) => {
+      if (idx >= 20) return;
+      const node = document.createElement('div');
+      node.className = 'hist-item';
+      const dt = new Date(it.t).toLocaleString();
+      const left = document.createElement('div');
+      left.innerHTML = `<b>${it.type}</b><div class="small">${dt}</div><div class="small">${it.summary}</div>`;
+      const right = document.createElement('div');
+      right.className = 'hist-actions';
+      const btnCopy = document.createElement('button');
+      btnCopy.className = 'mini';
+      btnCopy.textContent = t('Copy');
+      btnCopy.addEventListener('click', async () => {
+        const ok = await copyText(it.summary);
+        if (ok) showToast(t('Copied!'));
       });
+      right.appendChild(btnCopy);
+      node.appendChild(left);
+      node.appendChild(right);
+      list.appendChild(node);
     });
   }
-  
-  // Start the app
-  document.addEventListener('DOMContentLoaded', initApp);
-  
+  document.getElementById('clear_history').addEventListener('click', () => {
+    localStorage.removeItem(HISTORY_KEY);
+    renderHistory();
+    showToast(t('History cleared'));
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('history_cleared');
+    }
+  });
+  document.getElementById('open_terms').addEventListener('click', () => {
+    window.open('/terms.html', '_blank');
+  });
+  document.getElementById('open_privacy').addEventListener('click', () => {
+    window.open('/privacy.html', '_blank');
+  });
+  document.getElementById('open_support').addEventListener('click', () => {
+    window.open('https://t.me/ChalovSupportBot', '_blank');
+  });
+  document.getElementById('link_telegram').addEventListener('click', (e) => {
+    e.preventDefault();
+    window.open('https://t.me/ChalovCrypto', '_blank');
+  });
+  document.getElementById('link_youtube').addEventListener('click', (e) => {
+    e.preventDefault();
+    window.open('https://www.youtube.com/@ChalovCrypto', '_blank');
+  });
+  const modalBackdrop = document.getElementById('modal_backdrop');
+  const modalClose = document.getElementById('modal_close');
+  const cardCanvas = document.getElementById('card_canvas');
+  const btnSave = document.getElementById('card_save');
+  const btnCopyImg = document.getElementById('card_copy');
+  function openModal() {
+    modalBackdrop.style.display = 'flex';
+  }
+  function closeModal() {
+    modalBackdrop.style.display = 'none';
+  }
+  modalClose.addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', (e) => {
+    if (e.target === modalBackdrop) closeModal();
+  });
+  function drawCard() {
+    const ctx = cardCanvas.getContext('2d');
+    const w = cardCanvas.width, h = cardCanvas.height;
+    ctx.clearRect(0, 0, w, h);
+    const theme = document.documentElement.getAttribute('data-theme');
+    const bg = theme === 'light' ? '#f5f7fa' : '#0a0a0a';
+    const panel = theme === 'light' ? '#ffffff' : '#111111';
+    const text = theme === 'light' ? '#1a1a1a' : '#ffffff';
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = panel;
+    ctx.fillRect(20, 20, w - 40, h - 40);
+    ctx.fillStyle = text;
+    ctx.font = 'bold 24px Inter';
+    ctx.fillText('Trader Calculator', 40, 60);
+    const tab = activeTab();
+    let title = t('Trade Card');
+    let data = [];
+    if (tab === 'dca') {
+      title = 'DCA Calculation';
+      data = [
+        `AVG: ${dcaAvgEl.textContent}`,
+        `VOL: ${dcaTotalVolEl.textContent}`,
+        `COST: ${dcaTotalCostEl.textContent}`
+      ];
+    } else if (tab === 'rr') {
+      title = 'Risk/Reward';
+      data = [
+        `Gross: ${rrGross.textContent}`,
+        `Net: ${rrNet.textContent}`
+      ];
+    } else if (tab === 'cap') {
+      title = 'Capital Management';
+      data = [
+        `POS: ${capPos.textContent}`,
+        `Risk: $${capRiskUsd.textContent}`,
+        `Margin: $${capMargin.textContent}`
+      ];
+    }
+    ctx.fillStyle = accent;
+    ctx.font = 'bold 20px Inter';
+    ctx.fillText(title, 40, 100);
+    ctx.fillStyle = text;
+    ctx.font = '16px Inter';
+    data.forEach((line, i) => {
+      ctx.fillText(line, 40, 140 + i * 30);
+    });
+    ctx.fillStyle = accent;
+    ctx.beginPath();
+    ctx.moveTo(40, 180);
+    ctx.lineTo(w - 40, 180);
+    ctx.stroke();
+    ctx.fillStyle = '#666';
+    ctx.font = '12px Inter';
+    ctx.fillText(new Date().toLocaleDateString(), 40, h - 30);
+  }
+  function saveCardUniversal() {
+    cardCanvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'trade-card.png';
+        
+        document.body.appendChild(link);
+        
+        try {
+          link.click();
+        } catch (e) {
+          const newWindow = window.open(url, '_blank');
+          if (!newWindow) {
+            showToast('Please allow popups to save image');
+          }
+        }
+        
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }, 100);
+      } else {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'trade-card.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+      
+      showToast('Image saved');
+      if (window.TelegramAnalytics) {
+        window.TelegramAnalytics.trackEvent('card_saved', { method: isMobile ? 'mobile' : 'desktop' });
+      }
+    }, 'image/png');
+  }
+  btnSave.addEventListener('click', saveCardUniversal);
+  btnCopyImg.addEventListener('click', async () => {
+    cardCanvas.toBlob(async (blob) => {
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+        showToast(t('Copied!'));
+        if (window.TelegramAnalytics) {
+          window.TelegramAnalytics.trackEvent('card_copied');
+        }
+      } catch (e) {
+        saveCardUniversal();
+      }
+    }, 'image/png');
+  });
+  document.getElementById('card_btn').addEventListener('click', () => {
+    drawCard();
+    openModal();
+  });
+  const TONCONNECT_MANIFEST_URL = 'https://trade-calculator-five.vercel.app/tonconnect-manifest.json';
+  const TIP_ADDRESS = 'UQD04FKshVmZaQjZq9y2AtBXWklkzQfK4sEJWrsYfqbNHGGz';
+  let tonConnectUI = null;
+  function initTonConnect() {
+    try {
+      if (!window.TON_CONNECT_UI?.TonConnectUI) return;
+      tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
+        manifestUrl: TONCONNECT_MANIFEST_URL
+      });
+      tonConnectUI.onStatusChange(() => {
+        updateWalletUI();
+      });
+      updateWalletUI();
+    } catch(e) {
+      console.error('TON Connect init error:', e);
+    }
+  }
+  function updateWalletUI() {
+    const wBtn = document.getElementById('wallet_btn');
+    const tipBtn = document.getElementById('tip_btn');
+    if (!tonConnectUI) {
+      wBtn.disabled = true;
+      tipBtn.disabled = true;
+      return;
+    }
+    wBtn.disabled = false;
+    tipBtn.disabled = !tonConnectUI.connected;
+    if (tonConnectUI.connected) {
+      const addr = tonConnectUI.account?.address || '';
+      wBtn.textContent = addr.slice(0, 6) + '...' + addr.slice(-4);
+    } else {
+      wBtn.textContent = t('Connect Wallet');
+    }
+  }
+  document.getElementById('wallet_btn').addEventListener('click', async () => {
+    if (!tonConnectUI) return;
+    if (tonConnectUI.connected) {
+      const confirm = window.confirm(t('Disconnect wallet?'));
+      if (confirm) {
+        await tonConnectUI.disconnect();
+        updateWalletUI();
+      }
+    } else {
+      await tonConnectUI.openModal();
+    }
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('wallet_action', {
+        action: tonConnectUI.connected ? 'disconnect' : 'connect_attempt'
+      });
+    }
+  });
+  document.getElementById('tip_btn').addEventListener('click', async () => {
+    if (!tonConnectUI?.connected) {
+      showToast(t('Connect wallet first'));
+      return;
+    }
+    try {
+      const tx = {
+        validUntil: Math.floor(Date.now() / 1000) + 600,
+        messages: [{
+          address: TIP_ADDRESS,
+          amount: '50000000'
+        }]
+      };
+      await tonConnectUI.sendTransaction(tx);
+      showToast(t('Transaction sent'));
+      if (window.TelegramAnalytics) {
+        window.TelegramAnalytics.trackEvent('tip_sent');
+      }
+    } catch(e) {
+      showToast(t('Error'));
+    }
+  });
+  initTonConnect();
+  document.getElementById('share_btn').addEventListener('click', async () => {
+    const tab = activeTab();
+    let text = 'Trader Calculator\n\n';
+    if (tab === 'dca') {
+      text += `DCA Calculation:\n`;
+      text += `Average: ${dcaAvgEl.textContent}\n`;
+      text += `Volume: ${dcaTotalVolEl.textContent}\n`;
+      text += `Cost: ${dcaTotalCostEl.textContent}\n`;
+    } else if (tab === 'rr') {
+      text += `Risk/Reward:\n`;
+      text += `Gross: ${rrGross.textContent}\n`;
+      text += `Net: ${rrNet.textContent}\n`;
+    } else if (tab === 'cap') {
+      text += `Capital Management:\n`;
+      text += `Position: ${capPos.textContent}\n`;
+      text += `Risk: $${capRiskUsd.textContent}\n`;
+      text += `Margin: $${capMargin.textContent}\n`;
+    }
+    text += `\nTry it: https://t.me/ChalovCrypto`;
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast(t('Copied!'));
+      if (window.TelegramAnalytics) {
+        window.TelegramAnalytics.trackEvent('app_shared', { tab: tab });
+      }
+    } catch(e) {
+      showToast('Copy failed');
+    }
+  });
+  translateAll();
+  clearDCA();
+  calcRR();
+  calcCap();
+  renderHistory();
+  if (window.TelegramAnalytics) {
+    window.TelegramAnalytics.trackEvent('app_loaded');
+  }
 })();
 </script>
 </body>
 </html>
+```
