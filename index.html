@@ -917,21 +917,24 @@
 
 .ach-item.locked{opacity:.55;filter:saturate(.6)}
 .iconbtn.active{box-shadow:0 0 0 2px rgba(var(--accent-rgb),.35) inset}
+
+  .premium-banner{
+    margin:12px 0 0;
+    border:1px solid rgba(255,255,255,.08);
+    background:linear-gradient(135deg, rgba(180,120,255,.18), rgba(0,190,255,.10));
+  }
+  [data-theme="light"] .premium-banner{
+    border:1px solid rgba(0,0,0,.08);
+    background:linear-gradient(135deg, rgba(160,90,255,.16), rgba(0,140,255,.10));
+  }
+
 </style>
 </head>
 <body>
 <div id="app">
   <header>
     <div class="leftbar">
-      <div class="lang">
-        <button id="btn_ru">RU</button>
-        <button id="btn_en" class="active">EN</button>
-      </div>
-      <button class="iconbtn" id="theme_toggle">
-        <span id="theme_icon">🌙</span>
-        <span id="theme_text">Dark</span>
-      </button>
-      <button class="iconbtn" id="share_btn">
+<button class="iconbtn" id="share_btn">
         <span>📤</span>
         <span data-i18n="Share">Share</span>
       </button>
@@ -965,6 +968,17 @@
           <span data-i18n="Indicators">Indicators</span>
         </button>
       </div>
+
+        <div class="card premium-banner" id="premium_banner">
+          <div class="row" style="justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
+            <div>
+              <div style="font-weight:800">💎 <span data-i18n="Premium">Premium</span></div>
+              <div class="muted" id="premium_status_mini">—</div>
+            </div>
+            <button class="btn" id="open_premium_from_calc" data-i18n="Open Premium">Open Premium</button>
+          </div>
+        </div>
+
       <div class="panels">
         <section id="dca" class="screen active">
           <div class="card floating">
@@ -1187,6 +1201,7 @@
         </div>
         <div class="premium-actions">
           <button class="btn ghost" id="premium_back_btn">← <span data-i18n="Back to Calculator">Back to Calculator</span></button>
+          <button class="btn" id="premium_sync_btn">🔄 <span data-i18n="Sync Premium">Sync Premium</span></button>
           <button class="btn danger ghost" id="premium_reset_btn" title="Reset premium (debug)">Reset</button>
         </div>
       </div>
@@ -1260,6 +1275,24 @@
       <div class="support-wrap">
         <div class="card" style="max-width:600px">
           <h3>💬 <span data-i18n="Support">Support</span></h3>
+
+          <div class="card mini" style="margin-top:12px">
+            <div class="row" style="justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
+              <div class="muted" style="font-weight:700" data-i18n="Interface">Interface</div>
+              <div class="row" style="gap:10px;flex-wrap:wrap">
+                <div class="lang" style="margin:0">
+                  <button id="btn_ru">RU</button>
+                  <button id="btn_en" class="active">EN</button>
+                </div>
+                <button class="iconbtn" id="theme_toggle">
+                  <span id="theme_icon">🌙</span>
+                  <span id="theme_text">Dark</span>
+                </button>
+              </div>
+            </div>
+            <div class="muted" style="margin-top:8px" data-i18n="Interface note">Language and theme were moved here to keep the header clean.</div>
+          </div>
+
           <div class="color-picker">
             <div class="color-option green active" data-color="#7CFC00"></div>
             <div class="color-option blue" data-color="#2d8cff"></div>
@@ -1370,6 +1403,7 @@
   premiumBtn.addEventListener('click', () => setMainTab('premium'));
 const locales = {
     ru: {
+
       "Calculator": "Калькулятор",
       "Support": "Поддержка",
       "Premium": "Премиум",
@@ -1501,6 +1535,16 @@ const locales = {
       "ACH_PREMIUM_DESC": "Активировать Premium.",
       "ACH_THEME_TITLE": "Повелитель тем",
       "ACH_THEME_DESC": "Применить 3 премиум темы.",
+      "Interface": "Интерфейс",
+      "Interface note": "Смена языка и темы перенесены сюда, чтобы шапка была чище.",
+      "Sync Premium": "Синхронизировать Premium",
+      "Checking Premium...": "Проверяем Premium...",
+      "Premium status updated": "Premium обновлён",
+      "Invoice canceled": "Счёт отменён",
+      "Open invoice": "Открыть счёт",
+      "Stars payment": "Оплата Stars",
+      "TON payment": "Оплата TON",
+      "Awaiting payment confirmation": "Ждём подтверждение оплаты..."
     },
     en: {
       "Calculator": "Calculator",
@@ -1688,10 +1732,33 @@ const locales = {
 
 
   // ===== Premium =====
-  const PREMIUM_KEY = 'tc_premium_v1';
-  function loadPremium(){
+  // Важно:
+  // - Для Telegram Stars: активация делается СЕРВЕРОМ через webhook (см. Worker).
+  // - Для TON: в этом мини-аппе мы можем только отправить транзакцию через TON Connect и локально отметить Premium.
+  //   Если нужна 100% защита от подмены в клиенте — делайте проверку TON-транзакции на бэкенде и выдачу Premium там.
+
+  const API_BASE = 'https://tg-stars-premium-worker.reserv-g123.workers.dev'; // <-- ваш Worker URL
+  const PREMIUM_LOCAL_KEY = 'tc_premium_v1';               // legacy/local (TON-flow)
+  const PREMIUM_SERVER_CACHE_KEY = 'tc_premium_server_v1'; // кэш статуса с сервера
+
+  function getInitData() {
+    try { return tg?.initData || ''; } catch(e) { return ''; }
+  }
+
+  async function apiGet(path) {
+    const headers = { 'X-Telegram-Init-Data': getInitData() };
+    const res = await fetch(API_BASE + path, { method: 'GET', headers });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data?.ok === false) {
+      const msg = data?.error || `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  function loadPremiumLocal(){
     try{
-      const raw = localStorage.getItem(PREMIUM_KEY);
+      const raw = localStorage.getItem(PREMIUM_LOCAL_KEY);
       if(!raw) return { lifetime:false, expiresAt:0, plan:'', tx:'' };
       const obj = JSON.parse(raw);
       return Object.assign({ lifetime:false, expiresAt:0, plan:'', tx:'' }, obj);
@@ -1699,12 +1766,41 @@ const locales = {
       return { lifetime:false, expiresAt:0, plan:'', tx:'' };
     }
   }
-  function savePremium(p){ localStorage.setItem(PREMIUM_KEY, JSON.stringify(p)); }
-  function isPremiumActive(p){
+  function savePremiumLocal(p){ localStorage.setItem(PREMIUM_LOCAL_KEY, JSON.stringify(p)); }
+
+  function loadPremiumServerCache(){
+    try{
+      const raw = localStorage.getItem(PREMIUM_SERVER_CACHE_KEY);
+      if(!raw) return { active:false, lifetime:false, expiresAt:null, ts:0 };
+      const j = JSON.parse(raw);
+      return Object.assign({ active:false, lifetime:false, expiresAt:null, ts:0 }, j);
+    }catch(e){
+      return { active:false, lifetime:false, expiresAt:null, ts:0 };
+    }
+  }
+  function savePremiumServerCache(state){
+    try{
+      localStorage.setItem(PREMIUM_SERVER_CACHE_KEY, JSON.stringify(Object.assign({}, state, { ts: Date.now() })));
+    }catch(e){}
+  }
+
+  function isPremiumActiveAny(){
+    const s = loadPremiumServerCache();
+    if (s.lifetime) return true;
+    if (s.active && s.expiresAt && Date.now() < Number(s.expiresAt)) return true;
+
+    const p = loadPremiumLocal();
     return !!p && (p.lifetime || (p.expiresAt && Date.now() < p.expiresAt));
   }
+
   function premiumStatusText(){
-    const p = loadPremium();
+    const s = loadPremiumServerCache();
+    if (s.lifetime) return t('Premium lifetime');
+    if (s.active && s.expiresAt && Date.now() < Number(s.expiresAt)) {
+      const d = new Date(Number(s.expiresAt));
+      return `${t('Premium active until')} ${d.toLocaleString()}`;
+    }
+    const p = loadPremiumLocal();
     if (p.lifetime) return t('Premium lifetime');
     if (p.expiresAt && Date.now() < p.expiresAt) {
       const d = new Date(p.expiresAt);
@@ -1712,47 +1808,88 @@ const locales = {
     }
     return t('Premium inactive');
   }
+
   function renderPremiumStatus(){
+    const text = premiumStatusText();
     const el = document.getElementById('premium_status_text');
-    if (el) el.textContent = premiumStatusText();
+    if (el) el.textContent = text;
+
+    const mini = document.getElementById('premium_status_mini');
+    if (mini) mini.textContent = text;
+
+    // Premium-only achievements are locked/unlocked based on current premium state
+    try { renderAchievements(); } catch(e){}
   }
-  function activatePremiumDays(days, plan, tx){
-    const p = loadPremium();
+
+  async function syncPremiumFromServer({ silent = false } = {}){
+    if (!getInitData()) {
+      if (!silent) showToast('initData missing (open inside Telegram)');
+      return null;
+    }
+    if (!silent) showToast(t('Checking Premium...'));
+    const data = await apiGet('/api/premium/status');
+    savePremiumServerCache({
+      active: !!data.active,
+      lifetime: !!data.lifetime,
+      expiresAt: data.expiresAt ?? null
+    });
+    renderPremiumStatus();
+    if (!silent) showToast(t('Premium status updated'));
+    if (data.active || data.lifetime) {
+      try { onAchievementEvent('premium_user'); } catch(e){}
+    }
+    return data;
+  }
+
+  async function pollPremiumSync(attempts = 6, delayMs = 1500){
+    for (let i = 0; i < attempts; i++){
+      try{
+        const st = await syncPremiumFromServer({ silent: true });
+        if (st?.active || st?.lifetime) return true;
+      } catch(e){}
+      await new Promise(r => setTimeout(r, delayMs));
+    }
+    renderPremiumStatus();
+    return false;
+  }
+
+  // TON: локальная активация (best-effort)
+  function activatePremiumDaysLocal(days, plan, tx){
+    const p = loadPremiumLocal();
     const now = Date.now();
     p.lifetime = false;
     p.expiresAt = now + days * 86400000;
     p.plan = plan || `days_${days}`;
     p.tx = tx || '';
-    savePremium(p);
+    savePremiumLocal(p);
     renderPremiumStatus();
     try{ onAchievementEvent('premium_user'); }catch(e){}
     showToast(t('Premium activated'));
   }
-  function activatePremiumLifetime(plan, tx){
-    const p = loadPremium();
+  function activatePremiumLifetimeLocal(plan, tx){
+    const p = loadPremiumLocal();
     p.lifetime = true;
     p.expiresAt = 0;
     p.plan = plan || 'lifetime';
     p.tx = tx || '';
-    savePremium(p);
+    savePremiumLocal(p);
     renderPremiumStatus();
     try{ onAchievementEvent('premium_user'); }catch(e){}
     showToast(t('Premium activated'));
   }
-  function resetPremium(){
-    localStorage.removeItem(PREMIUM_KEY);
+  function resetPremiumLocal(){
+    localStorage.removeItem(PREMIUM_LOCAL_KEY);
+    localStorage.removeItem(PREMIUM_SERVER_CACHE_KEY);
     renderPremiumStatus();
     showToast(t('Premium inactive'));
   }
   function requirePremium(reason){
-    const p = loadPremium();
-    if (isPremiumActive(p)) return true;
+    if (isPremiumActiveAny()) return true;
     showToast(`${t('Premium required')} • ${reason || ''}`.trim());
     setMainTab('premium');
     return false;
   }
-
-  const ACH_KEY = 'tc_achievements_v1';
+const ACH_KEY = 'tc_achievements_v1';
   function loadAchState() {
     try {
       const raw = localStorage.getItem(ACH_KEY);
@@ -1836,7 +1973,7 @@ const locales = {
 
     const total = achievements.length;
     const unlocked = achievements.filter(a => isUnlocked(a.id)).length;
-    const pActive = isPremiumActive(loadPremium());
+    const pActive = isPremiumActiveAny();
 
     progressText.textContent = `${unlocked}/${total}`;
     barFill.style.width = total ? `${Math.round((unlocked / total) * 100)}%` : '0%';
@@ -2673,7 +2810,13 @@ const locales = {
   initTonConnect();
   // Premium UI
   document.getElementById('premium_back_btn').addEventListener('click', () => setMainTab('calc'));
-  document.getElementById('premium_reset_btn').addEventListener('click', resetPremium);
+  document.getElementById('premium_reset_btn').addEventListener('click', resetPremiumLocal);
+  const syncBtn = document.getElementById('premium_sync_btn');
+  if (syncBtn) syncBtn.addEventListener('click', () => syncPremiumFromServer().catch(e => showToast(`${t('Error')}: ${e.message || e}`)));
+
+  const openPrem = document.getElementById('open_premium_from_calc');
+  if (openPrem) openPrem.addEventListener('click', () => setMainTab('premium'));
+
 
   // Premium themes (premium-only)
   document.querySelectorAll('[data-premium-theme]').forEach(btn => {
@@ -2713,30 +2856,38 @@ const locales = {
   async function openStarsInvoice(plan){
     if (!tg || !tg.openInvoice) { showToast('openInvoice not available'); return; }
     try{
-      // Your backend must create an invoice link with Bot API createInvoiceLink and return it.
-      // Replace URL below with your server endpoint.
-      const resp = await fetch(`/api/stars/invoice?plan=${encodeURIComponent(plan)}`, { method:'GET' });
-      const data = await resp.json();
-      if (!data || !data.url) { showToast(t('Error')); return; }
-      tg.openInvoice(data.url, (status) => {
+      // 1) просим сервер создать invoice link
+      const data = await apiGet(`/api/stars/invoice?plan=${encodeURIComponent(plan)}`);
+      if (!data?.url) { showToast(t('Error')); return; }
+
+      // 2) открываем инвойс внутри Telegram
+      tg.openInvoice(data.url, async (status) => {
         if (status === 'paid') {
-          if (plan === 'stars_30d') activatePremiumDays(30, 'stars_30d', data.payload || '');
-          if (plan === 'stars_lifetime') activatePremiumLifetime('stars_lifetime', data.payload || '');
+          showToast(t('Paid'));
+          // Сервер выдаёт Premium в webhook на successful_payment.
+          // Дадим пару секунд и подтянем статус.
+          await pollPremiumSync(8, 1500);
         } else if (status === 'cancelled') {
-          showToast('Cancelled');
+          showToast(t('Invoice canceled'));
         } else if (status === 'failed') {
-          showToast('Failed');
+          showToast(t('Error'));
+        } else {
+          // pending / opened
+          showToast(status);
         }
       });
+
     }catch(e){
-      showToast(t('Error'));
+      showToast(`${t('Error')}: ${e.message || e}`);
     }
   }
   document.getElementById('pay_stars_30').addEventListener('click', () => openStarsInvoice('stars_30d'));
   document.getElementById('pay_stars_life').addEventListener('click', () => openStarsInvoice('stars_lifetime'));
 
-  // Update premium status text when entering Premium
+  // Premium status (server-first)
   renderPremiumStatus();
+  syncPremiumFromServer({ silent: true }).catch(() => {});
+
 
   document.getElementById('share_btn').addEventListener('click', async () => {
     const tab = activeTab();
