@@ -2527,12 +2527,6 @@ const locales = {
       list.appendChild(node);
     });
   }
-      renderHistory();
-    showToast(t('History cleared'));
-    if (window.TelegramAnalytics) {
-      window.TelegramAnalytics.trackEvent('history_cleared');
-    }
-  });
   document.getElementById('open_terms').addEventListener('click', () => {
     window.open('/terms.html', '_blank');
   });
@@ -2902,13 +2896,6 @@ const locales = {
 
   // Update premium status text when entering Premium
   renderPremiumStatus();
-
-        }
-      onAchievementEvent('shared');
-    } catch(e) {
-      showToast(t('Error'));
-    }
-  });
   translateAll();
   // achievements init
   if (!isUnlocked('first_launch')) unlockAchievement('first_launch');
