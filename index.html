@@ -367,6 +367,8 @@
     @media (max-width: 480px) {
       .plan .row { flex-direction: column; }
       .plan .row .btn { width: 100%; }
+      .plan-row { flex-direction: column; align-items: stretch; }
+      .plan-row .pill { align-self: flex-start; }
     }
   </style>
 </head>
@@ -652,7 +654,7 @@
 
   <script>
   (async () => {
-  const API_BASE = 'https://tg-miniapp-worker.reserv-g123.workers.dev';
+  const API_BASE = 'https://tg-stars-premium-worker.reserv-g123.workers.dev';
   const tg = window.Telegram?.WebApp;
   try { tg?.ready?.(); } catch(e) {}
   try { tg?.expand?.(); } catch(e) {}
@@ -701,7 +703,7 @@
         'Content-Type': 'application/json',
         'X-Telegram-Init-Data': initData
       },
-      body: JSON.stringify({ data })
+      body: JSON.stringify(data)
     });
     const txt = await r.text();
     let j = null;
@@ -873,6 +875,9 @@
       "Connect wallet first": "Сначала подключите кошелёк",
       "Transaction sent": "Транзакция отправлена",
       "Error": "Ошибка",
+      "Risk": "Риск",
+      "Reward": "Награда",
+      "Copied!": "Скопировано!",
       "Achievement unlocked": "Достижение получено",
       "ACH_WELCOME_TITLE": "Добро пожаловать",
       "ACH_WELCOME_DESC": "Откройте мини-приложение впервые.",
@@ -975,6 +980,9 @@
       "Connect wallet first": "Connect wallet first",
       "Transaction sent": "Transaction sent",
       "Error": "Error",
+      "Risk": "Risk",
+      "Reward": "Reward",
+      "Copied!": "Copied!",
       "Achievement unlocked": "Achievement unlocked",
       "ACH_WELCOME_TITLE": "Welcome",
       "ACH_WELCOME_DESC": "Open the mini app for the first time.",
@@ -1589,28 +1597,30 @@
     let j = null;
     try{ j = JSON.parse(txt); }catch{}
     if (!r.ok) throw new Error(j?.error || txt || `HTTP ${r.status}`);
-    if (!j?.ok) throw new Error(j?.error || 'bad response');
-    return j;
+    return j || { ok:false, error: txt || 'bad response' };
   }
 
   async function payTonPlan(plan){
     if (!tonConnectUI?.connected) { showToast(t('Connect wallet first')); return; }
     try{
       const order = await createTonOrder(plan);
+      const amountNano = String(Math.round(Number(order.amountTon) * 1e9));
       const tx = {
-        validUntil: Math.floor(Date.now() / 1000) + 900,
+        validUntil: Number(order.validUntil) || (Math.floor(Date.now() / 1000) + 900),
         messages: [{
-          address: order.to,
-          amount: order.amount,
-          payload: order.payload
+          address: order.receiver,
+          amount: amountNano
         }]
       };
       await tonConnectUI.sendTransaction(tx);
       try{
         const res = await confirmTonOrder(order.orderId);
-        if (res.granted) {
+        if (res?.ok && res.granted) {
           showToast(t('Premium activated'));
           await refreshPremiumStatus();
+        } else if (res?.error) {
+          showToast(String(res.error));
+          window.__lastTonOrderId = order.orderId;
         } else {
           showToast(t('Waiting for confirmation'));
           window.__lastTonOrderId = order.orderId;
