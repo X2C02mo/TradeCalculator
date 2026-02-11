@@ -917,14 +917,13 @@
 
 .ach-item.locked{opacity:.55;filter:saturate(.6)}
 .iconbtn.active{box-shadow:0 0 0 2px rgba(var(--accent-rgb),.35) inset}
-
 </style>
 </head>
 <body>
 <div id="app">
   <header>
     <div class="leftbar">
-<button class="iconbtn" id="card_btn">
+      <button class="iconbtn" id="card_btn">
         <span>🃏</span>
         <span data-i18n="Card">Card</span>
       </button>
@@ -954,10 +953,6 @@
           <span data-i18n="Indicators">Indicators</span>
         </button>
       </div>
-            <button class="btn" id="open_premium_from_calc" data-i18n="Open Premium">Open Premium</button>
-          </div>
-        </div>
-
       <div class="panels">
         <section id="dca" class="screen active">
           <div class="card floating">
@@ -1163,10 +1158,7 @@
         <div class="history">
           <h4>📜 <span data-i18n="History">History</span></h4>
           <div class="history-list" id="history_list"></div>
-          <div class="controls">
-            <button class="btn ghost" id="clear_history" data-i18n="Clear History">Clear History</button>
-          </div>
-          <div class="small" data-i18n="Saved locally in your browser">Saved locally in your browser</div>
+          
         </div>
       </div>
     </section>
@@ -1180,58 +1172,43 @@
         </div>
         <div class="premium-actions">
           <button class="btn ghost" id="premium_back_btn">← <span data-i18n="Back to Calculator">Back to Calculator</span></button>
-          <button class="btn" id="premium_sync_btn">🔄 <span data-i18n="Sync Premium">Sync Premium</span></button>
 </div>
       </div>
 
       <div class="grid2">
-        <div class="card glass" id="premium_plans_card">
-          <h3 data-i18n="Premium access">Premium access</h3>
-
-          <div class="muted" style="margin-top:-4px" data-i18n="Premium intro">
-            Premium unlocks the strongest tools in the app: Advanced Analytics, AI trade hints, secret achievements + ranks, PDF report, personalization and premium themes.
+        <div class="card glass">
+          <h3 data-i18n="Plans">Plans</h3>
+          <div class="plan">
+            <div class="plan-row">
+              <b data-i18n="30 days access">Premium-status for 30 days</b>
+              <span class="pill">1 TON</span>
+              <span class="pill">89 Stars</span>
+            </div>
+            <div class="muted" data-i18n="30d note">Unlock all premium features for 30 days.</div>
+            <div class="row">
+              <button class="btn" id="pay_ton_30">Pay 1 TON</button>
+              <button class="btn" id="pay_stars_30">Pay 89 Stars</button>
+            </div>
           </div>
 
           <div class="divider"></div>
 
           <div class="plan">
             <div class="plan-row">
-              <b>✅ <span data-i18n="Premium 30d">Premium-status (30 days)</span></b>
-              <span class="pill">1 TON</span>
-              <span class="pill">89 Stars</span>
-            </div>
-            <div class="muted" data-i18n="30d note 2">
-              30 days of full access. If you buy again before it ends, time stacks.
-            </div>
-          </div>
-
-          <div class="plan" style="margin-top:10px">
-            <div class="plan-row">
-              <b>♾️ <span data-i18n="Premium lifetime">Lifetime</span></b>
+              <b data-i18n="Lifetime">Lifetime</b>
               <span class="pill">4 TON</span>
               <span class="pill">389 Stars</span>
             </div>
-            <div class="muted" data-i18n="Lifetime note 2">
-              One-time purchase. Premium stays with your Telegram account forever.
+            <div class="muted" data-i18n="Lifetime note">One-time purchase, no expiration.</div>
+            <div class="row">
+              <button class="btn" id="pay_ton_life">Pay 4 TON</button>
+              <button class="btn" id="pay_stars_life">Pay 389 Stars</button>
             </div>
           </div>
 
-          <div class="divider"></div>
-
-          <div class="row" style="justify-content:space-between;gap:10px;flex-wrap:wrap">
-            <div class="muted" style="max-width:520px" data-i18n="Payment note 2">
-              Payments are processed inside Telegram. After payment, the server activates Premium automatically (no local browser storage).
-            </div>
-            <div class="row" style="gap:10px;flex-wrap:wrap;justify-content:flex-end">
-              <button class="btn" id="pay_stars_30">⭐ 89 Stars / 30d</button>
-              <button class="btn" id="pay_stars_life">⭐ 389 Stars / Lifetime</button>
-              <button class="btn" id="pay_ton_30">💠 1 TON / 30d</button>
-              <button class="btn" id="pay_ton_life">💠 4 TON / Lifetime</button>
-            </div>
-          </div>
-
-          <div class="note" data-i18n="Payment hint">
-            Tip: Stars are instant and easiest. TON payments require a wallet and may take a few seconds to confirm.
+          <div class="note" data-i18n="Payment note">Payments are processed inside Telegram (Stars) or via your TON wallet. After payment we verify it on the server and activate Premium for your Telegram account.</div>
+          <div class="controls" style="margin-top:12px">
+            <button class="btn ghost" id="ton_check_btn" data-i18n="Check payment">Check payment</button>
           </div>
         </div>
 
@@ -1268,22 +1245,21 @@
       <div class="support-wrap">
         <div class="card" style="max-width:600px">
           <h3>💬 <span data-i18n="Support">Support</span></h3>
-
-          <div class="card mini" style="margin-top:12px">
-            <div class="row" style="justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
-              <div class="muted" style="font-weight:700" data-i18n="Interface">Interface</div>
-              <div class="row" style="gap:10px;flex-wrap:wrap">
-                <div class="lang" style="margin:0">
-                  <button id="btn_ru">RU</button>
-                  <button id="btn_en" class="active">EN</button>
-                </div>
-                <button class="iconbtn" id="theme_toggle">
-                  <span id="theme_icon">🌙</span>
-                  <span id="theme_text">Dark</span>
-                </button>
+          <div class="card glass" style="margin-top:12px">
+            <h4 style="margin:0 0 10px 0">⚙️ <span data-i18n="Settings">Settings</span></h4>
+            <div class="row" style="align-items:center; gap:10px; flex-wrap:wrap">
+              <div class="lang" style="margin:0">
+                <button id="btn_ru">RU</button>
+                <button id="btn_en" class="active">EN</button>
               </div>
+              <button class="iconbtn" id="theme_toggle" style="margin:0">
+                <span id="theme_icon">🌙</span>
+                <span id="theme_text">Dark</span>
+              </button>
             </div>
-            <div class="muted" style="margin-top:8px" data-i18n="Interface note">Language and theme were moved here to keep the header clean.</div>
+            <div class="small" style="margin-top:10px;color:var(--muted)" data-i18n="Settings note">
+              Language and theme are saved to your account.
+            </div>
           </div>
 
           <div class="color-picker">
@@ -1316,11 +1292,9 @@
               <div class="small"><span data-i18n="Progress">Progress</span>: <b id="ach_progress_text">—</b></div>
               <div class="ach-bar"><div id="ach_bar_fill"></div></div>
             </div>
-            <button class="btn ghost" id="ach_reset" data-i18n="Reset Achievements">Reset Achievements</button>
-          </div>
+</div>
           <div class="ach-list" id="ach_list"></div>
-          <div class="small" data-i18n="Achievements saved locally">Achievements saved locally</div>
-        </div>
+</div>
         <div style="text-align:center">
           <div style="color:var(--accent);font-weight:700;margin-bottom:12px">AIRDROP • NEWS • TRADING</div>
           <div class="support-links">
@@ -1373,10 +1347,66 @@
     tg.ready();
   }
 
-  // Load server-backed storage before reading any saved data
-  await loadServerStorage();
 
+  // ---- Backend base (Cloudflare Worker) ----
+  // IMPORTANT: set this to YOUR Worker URL.
+  const API_BASE = 'https://tg-stars-premium-worker.reserv-g123.workers.dev';
+
+  // ---- Server-backed storage (replaces browser localStorage) ----
+  // We keep the same API as localStorage so the rest of the app doesn't need rewrites.
+  const __mem = Object.create(null);
+  let __loaded = false;
+  let __saveTimer = null;
+
+  function getInitData(){
+    // Telegram Mini App initData string (signed). Needed for backend auth.
+    return (window.Telegram?.WebApp?.initData) || '';
   }
+
+  async function loadServerStorage(){
+    if (__loaded) return;
+    const initData = getInitData();
+    if (!initData) { __loaded = true; return; } // allow running outside Telegram for dev
+    try{
+      const r = await fetch(`${API_BASE}/api/user/storage`, {
+        method:'GET',
+        headers:{ 'X-Telegram-Init-Data': initData }
+      });
+      const j = await r.json().catch(()=>null);
+      if (j?.ok && j.storage && typeof j.storage === 'object'){
+        Object.assign(__mem, j.storage);
+      }
+    }catch(e){
+      console.warn('Storage load failed', e);
+    }finally{
+      __loaded = true;
+    }
+  }
+
+  function scheduleSave(){
+    if (__saveTimer) clearTimeout(__saveTimer);
+    __saveTimer = setTimeout(async () => {
+      const initData = getInitData();
+      if (!initData) return;
+      try{
+        await fetch(`${API_BASE}/api/user/storage`, {
+          method:'POST',
+          headers:{ 'content-type':'application/json', 'X-Telegram-Init-Data': initData },
+          body: JSON.stringify({ storage: __mem })
+        });
+      }catch(e){
+        console.warn('Storage save failed', e);
+      }
+    }, 600);
+  }
+
+  const localStorage = {
+    getItem(k){ return Object.prototype.hasOwnProperty.call(__mem, k) ? String(__mem[k]) : null; },
+    setItem(k,v){ __mem[k] = String(v); scheduleSave(); },
+    removeItem(k){ delete __mem[k]; scheduleSave(); }
+  };
+
+
   const mainCalc = document.getElementById('main_calc');
   const mainPremium = document.getElementById('main_premium');
   const mainSupport = document.getElementById('main_support');
@@ -1401,9 +1431,16 @@
   premiumBtn.addEventListener('click', () => setMainTab('premium'));
 const locales = {
     ru: {
-
       "Calculator": "Калькулятор",
       "Support": "Поддержка",
+      "Settings": "Настройки",
+      "Settings note": "Язык и тема сохраняются в вашем аккаунте.",
+      "Check payment": "Проверить оплату",
+      "Waiting for confirmation": "Ожидаем подтверждение",
+      "No pending payment": "Нет ожидающей оплаты",
+      "Payment successful": "Оплата успешна",
+      "Cancelled": "Отменено",
+      "Premium activated": "Премиум активирован",
       "Premium": "Премиум",
       "Premium Features": "Премиум-функции",
       "Back to Calculator": "Назад к калькулятору",
@@ -1474,8 +1511,6 @@ const locales = {
       "Contact": "Контакты",
       "Share": "Поделиться",
       "Card": "Карточка",
-      "Open in Telegram": "Откройте мини‑приложение внутри Telegram.",
-      "Payment canceled": "Платёж отменён или не прошёл.",
       "Copied!": "Скопировано!",
       "Save PNG": "Сохранить PNG",
       "Dark": "Тёмная",
@@ -1535,20 +1570,18 @@ const locales = {
       "ACH_PREMIUM_DESC": "Активировать Premium.",
       "ACH_THEME_TITLE": "Повелитель тем",
       "ACH_THEME_DESC": "Применить 3 премиум темы.",
-      "Interface": "Интерфейс",
-      "Interface note": "Смена языка и темы перенесены сюда, чтобы шапка была чище.",
-      "Sync Premium": "Синхронизировать Premium",
-      "Checking Premium...": "Проверяем Premium...",
-      "Premium status updated": "Premium обновлён",
-      "Invoice canceled": "Счёт отменён",
-      "Open invoice": "Открыть счёт",
-      "Stars payment": "Оплата Stars",
-      "TON payment": "Оплата TON",
-      "Awaiting payment confirmation": "Ждём подтверждение оплаты..."
     },
     en: {
       "Calculator": "Calculator",
       "Support": "Support",
+      "Settings": "Settings",
+      "Settings note": "Language and theme are saved to your account.",
+      "Check payment": "Check payment",
+      "Waiting for confirmation": "Waiting for confirmation",
+      "No pending payment": "No pending payment",
+      "Payment successful": "Payment successful",
+      "Cancelled": "Cancelled",
+      "Premium activated": "Premium activated",
       "Premium": "Premium",
       "Premium Features": "Premium Features",
       "Back to Calculator": "Back to Calculator",
@@ -1619,8 +1652,6 @@ const locales = {
       "Contact": "Contact",
       "Share": "Share",
       "Card": "Card",
-      "Open in Telegram": "Open this mini app inside Telegram.",
-      "Payment canceled": "Payment canceled or failed.",
       "Copied!": "Copied!",
       "Save PNG": "Save PNG",
       "Dark": "Dark",
@@ -1701,16 +1732,7 @@ const locales = {
         el.textContent = translation;
       }
     });
-    document.getElementById('card_btn').querySelector('span:last-child').textContent = t('Card');
-    document.getElementById('theme_text').textContent = document.documentElement.getAttribute('data-theme') === 'light' ? t('Light') : t('Dark');
-    document.querySelectorAll('.subtab').forEach(tab => {
-      const textSpan = tab.querySelector('span:last-child');
-      if (textSpan) {
-        const key = textSpan.getAttribute('data-i18n') || textSpan.textContent;
-        textSpan.textContent = t(key);
-      }
-    });
-    document.getElementById('main_tab_calc').querySelector('span:last-child').textContent = t('Calculator');
+        document.getElementById('main_tab_calc').querySelector('span:last-child').textContent = t('Calculator');
     document.getElementById('main_tab_support').querySelector('span:last-child').textContent = t('Support');
     document.querySelector('.history h4').querySelector('span').textContent = t('History');
     dcaRows.forEach(row => {
@@ -1733,109 +1755,10 @@ const locales = {
 
 
   // ===== Premium =====
-  // Важно:
-  // - Для Telegram Stars: активация делается СЕРВЕРОМ через webhook (см. Worker).
-  // - Для TON: в этом мини-аппе мы можем только отправить транзакцию через TON Connect и локально отметить Premium.
-  //   Если нужна 100% защита от подмены в клиенте — делайте проверку TON-транзакции на бэкенде и выдачу Premium там.
-
-  const API_BASE = 'https://tg-stars-premium-worker.reserv-g123.workers.dev'; // <-- ваш Worker URL
-  const PREMIUM_LOCAL_KEY = 'tc_premium_v1';               // legacy/local (TON-flow)
-  const PREMIUM_SERVER_CACHE_KEY = 'tc_premium_server_v1'; // кэш статуса с сервера
-
-  function getInitData() {
-    try { return tg?.initData || ''; } catch(e) { return ''; }
-  }
-
-  
-  // -------------------- SERVER STORAGE (no browser persistence) --------------------
-  // We emulate localStorage API in-memory, but persist it to the server (Cloudflare Worker KV)
-  // so all user data lives on the backend, not in the browser.
-  const __storageMem = new Map();
-  let __storageLoaded = false;
-  let __storageSaveTimer = null;
-
-  // Shadow global localStorage inside this module (code below uses localStorage.* heavily).
-  const localStorage = {
-    getItem(key) {
-      const v = __storageMem.get(String(key));
-      return v === undefined ? null : v;
-    },
-    setItem(key, value) {
-      __storageMem.set(String(key), String(value));
-      scheduleStorageSave();
-    },
-    removeItem(key) {
-      __storageMem.delete(String(key));
-      scheduleStorageSave();
-    }
-  };
-
-  function requireInitDataOrThrow() {
-    const init = getInitData();
-    if (!init) {
-      throw new Error(i18n.t('Open in Telegram') || 'Open this mini app inside Telegram to continue.');
-    }
-    return init;
-  }
-
-  async function loadServerStorage() {
-    if (__storageLoaded) return;
-    const initData = getInitData();
-    // If opened outside Telegram, we keep memory-only (no persistence).
-    if (!initData) { __storageLoaded = true; return; }
-
-    const res = await fetch(`${API_BASE}/api/user/storage`, {
-      method: 'GET',
-      headers: { 'X-Telegram-Init-Data': initData }
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.ok && data?.ok && data.storage && typeof data.storage === 'object') {
-      for (const [k, v] of Object.entries(data.storage)) __storageMem.set(String(k), String(v));
-    }
-    __storageLoaded = true;
-  }
-
-  function scheduleStorageSave() {
-    if (__storageSaveTimer) clearTimeout(__storageSaveTimer);
-    __storageSaveTimer = setTimeout(() => void saveServerStorage(), 600);
-  }
-
-  async function saveServerStorage() {
-    __storageSaveTimer = null;
-    const initData = getInitData();
-    if (!initData) return; // outside Telegram: no persistence
-
-    const storageObj = Object.fromEntries(__storageMem.entries());
-    try {
-      await fetch(`${API_BASE}/api/user/storage`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'X-Telegram-Init-Data': initData },
-        body: JSON.stringify({ storage: storageObj })
-      });
-    } catch (e) {
-      // ignore transient network errors; UI continues to work
-    }
-  }
-
-async function apiGet(path) {
-    const initData = requireInitDataOrThrow();
-    const headers = { 'X-Telegram-Init-Data': initData };
-    const res = await fetch(API_BASE + path, { method: 'GET', headers });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || data?.ok === false) {
-      const msg = data?.error || `HTTP ${res.status}`;
-      // make initData errors human
-      const friendly = (String(msg).includes('initData') || res.status === 401)
-        ? (t('Open in Telegram') || 'Open this mini app inside Telegram to continue.')
-        : msg;
-      throw new Error(friendly);
-    }
-    return data;
-  }
-
-  function loadPremiumLocal(){
+  const PREMIUM_KEY = 'tc_premium_v1';
+  function loadPremium(){
     try{
-      const raw = localStorage.getItem(PREMIUM_LOCAL_KEY);
+      const raw = localStorage.getItem(PREMIUM_KEY);
       if(!raw) return { lifetime:false, expiresAt:0, plan:'', tx:'' };
       const obj = JSON.parse(raw);
       return Object.assign({ lifetime:false, expiresAt:0, plan:'', tx:'' }, obj);
@@ -1843,41 +1766,12 @@ async function apiGet(path) {
       return { lifetime:false, expiresAt:0, plan:'', tx:'' };
     }
   }
-  function savePremiumLocal(p){ localStorage.setItem(PREMIUM_LOCAL_KEY, JSON.stringify(p)); }
-
-  function loadPremiumServerCache(){
-    try{
-      const raw = localStorage.getItem(PREMIUM_SERVER_CACHE_KEY);
-      if(!raw) return { active:false, lifetime:false, expiresAt:null, ts:0 };
-      const j = JSON.parse(raw);
-      return Object.assign({ active:false, lifetime:false, expiresAt:null, ts:0 }, j);
-    }catch(e){
-      return { active:false, lifetime:false, expiresAt:null, ts:0 };
-    }
-  }
-  function savePremiumServerCache(state){
-    try{
-      localStorage.setItem(PREMIUM_SERVER_CACHE_KEY, JSON.stringify(Object.assign({}, state, { ts: Date.now() })));
-    }catch(e){}
-  }
-
-  function isPremiumActiveAny(){
-    const s = loadPremiumServerCache();
-    if (s.lifetime) return true;
-    if (s.active && s.expiresAt && Date.now() < Number(s.expiresAt)) return true;
-
-    const p = loadPremiumLocal();
+  function savePremium(p){ localStorage.setItem(PREMIUM_KEY, JSON.stringify(p)); }
+  function isPremiumActive(p){
     return !!p && (p.lifetime || (p.expiresAt && Date.now() < p.expiresAt));
   }
-
   function premiumStatusText(){
-    const s = loadPremiumServerCache();
-    if (s.lifetime) return t('Premium lifetime');
-    if (s.active && s.expiresAt && Date.now() < Number(s.expiresAt)) {
-      const d = new Date(Number(s.expiresAt));
-      return `${t('Premium active until')} ${d.toLocaleString()}`;
-    }
-    const p = loadPremiumLocal();
+    const p = loadPremium();
     if (p.lifetime) return t('Premium lifetime');
     if (p.expiresAt && Date.now() < p.expiresAt) {
       const d = new Date(p.expiresAt);
@@ -1885,88 +1779,47 @@ async function apiGet(path) {
     }
     return t('Premium inactive');
   }
-
   function renderPremiumStatus(){
-    const text = premiumStatusText();
     const el = document.getElementById('premium_status_text');
-    if (el) el.textContent = text;
-
-    const mini = document.getElementById('premium_status_mini');
-    if (mini) mini.textContent = text;
-
-    // Premium-only achievements are locked/unlocked based on current premium state
-    try { renderAchievements(); } catch(e){}
+    if (el) el.textContent = premiumStatusText();
   }
-
-  async function syncPremiumFromServer({ silent = false } = {}){
-    if (!getInitData()) {
-      if (!silent) showToast('initData missing (open inside Telegram)');
-      return null;
-    }
-    if (!silent) showToast(t('Checking Premium...'));
-    const data = await apiGet('/api/premium/status');
-    savePremiumServerCache({
-      active: !!data.active,
-      lifetime: !!data.lifetime,
-      expiresAt: data.expiresAt ?? null
-    });
-    renderPremiumStatus();
-    if (!silent) showToast(t('Premium status updated'));
-    if (data.active || data.lifetime) {
-      try { onAchievementEvent('premium_user'); } catch(e){}
-    }
-    return data;
-  }
-
-  async function pollPremiumSync(attempts = 6, delayMs = 1500){
-    for (let i = 0; i < attempts; i++){
-      try{
-        const st = await syncPremiumFromServer({ silent: true });
-        if (st?.active || st?.lifetime) return true;
-      } catch(e){}
-      await new Promise(r => setTimeout(r, delayMs));
-    }
-    renderPremiumStatus();
-    return false;
-  }
-
-  // TON: локальная активация (best-effort)
-  function activatePremiumDaysLocal(days, plan, tx){
-    const p = loadPremiumLocal();
+  function activatePremiumDays(days, plan, tx){
+    const p = loadPremium();
     const now = Date.now();
     p.lifetime = false;
     p.expiresAt = now + days * 86400000;
     p.plan = plan || `days_${days}`;
     p.tx = tx || '';
-    savePremiumLocal(p);
+    savePremium(p);
     renderPremiumStatus();
     try{ onAchievementEvent('premium_user'); }catch(e){}
     showToast(t('Premium activated'));
   }
-  function activatePremiumLifetimeLocal(plan, tx){
-    const p = loadPremiumLocal();
+  function activatePremiumLifetime(plan, tx){
+    const p = loadPremium();
     p.lifetime = true;
     p.expiresAt = 0;
     p.plan = plan || 'lifetime';
     p.tx = tx || '';
-    savePremiumLocal(p);
+    savePremium(p);
     renderPremiumStatus();
     try{ onAchievementEvent('premium_user'); }catch(e){}
     showToast(t('Premium activated'));
   }
-  function resetPremiumLocal(){
-    localStorage.removeItem(PREMIUM_LOCAL_KEY);
-    localStorage.removeItem(PREMIUM_SERVER_CACHE_KEY);
+  function resetPremium(){
+    localStorage.removeItem(PREMIUM_KEY);
     renderPremiumStatus();
     showToast(t('Premium inactive'));
   }
   function requirePremium(reason){
-    if (isPremiumActiveAny()) return true;
+    const p = loadPremium();
+    if (isPremiumActive(p)) return true;
     showToast(`${t('Premium required')} • ${reason || ''}`.trim());
     setMainTab('premium');
     return false;
   }
-const ACH_KEY = 'tc_achievements_v1';
+
+  const ACH_KEY = 'tc_achievements_v1';
   function loadAchState() {
     try {
       const raw = localStorage.getItem(ACH_KEY);
@@ -2050,7 +1903,7 @@ const ACH_KEY = 'tc_achievements_v1';
 
     const total = achievements.length;
     const unlocked = achievements.filter(a => isUnlocked(a.id)).length;
-    const pActive = isPremiumActiveAny();
+    const pActive = isPremiumActive(loadPremium());
 
     progressText.textContent = `${unlocked}/${total}`;
     barFill.style.width = total ? `${Math.round((unlocked / total) * 100)}%` : '0%';
@@ -2645,9 +2498,7 @@ const ACH_KEY = 'tc_achievements_v1';
       list.appendChild(node);
     });
   }
-  document.getElementById('clear_history').addEventListener('click', () => {
-    localStorage.removeItem(HISTORY_KEY);
-    renderHistory();
+      renderHistory();
     showToast(t('History cleared'));
     if (window.TelegramAnalytics) {
       window.TelegramAnalytics.trackEvent('history_cleared');
@@ -2662,14 +2513,7 @@ const ACH_KEY = 'tc_achievements_v1';
   document.getElementById('open_support').addEventListener('click', () => {
     window.open('https://t.me/ChalovSupportBot', '_blank');
   });
-  const achResetBtn = document.getElementById('ach_reset');
-  if (achResetBtn) {
-    achResetBtn.addEventListener('click', () => {
-      const ok = window.confirm(lang === 'ru' ? 'Сбросить достижения?' : 'Reset achievements?');
-      if (ok) resetAchievements();
-    });
-  }
-  document.getElementById('link_telegram').addEventListener('click', (e) => {
+    document.getElementById('link_telegram').addEventListener('click', (e) => {
     e.preventDefault();
     window.open('https://t.me/ChalovCrypto', '_blank');
   });
@@ -2881,20 +2725,13 @@ const ACH_KEY = 'tc_achievements_v1';
         window.TelegramAnalytics.trackEvent('tip_sent');
       }
     } catch(e) {
-      showToast(t('Payment canceled') || 'Payment canceled or failed.');
+      showToast(t('Error'));
     }
   });
   initTonConnect();
   // Premium UI
   document.getElementById('premium_back_btn').addEventListener('click', () => setMainTab('calc'));
-  document.getElementById('premium_reset_btn').addEventListener('click', resetPremiumLocal);
-  const syncBtn = document.getElementById('premium_sync_btn');
-  if (syncBtn) syncBtn.addEventListener('click', () => syncPremiumFromServer().catch(e => showToast(`${t('Error')}: ${e.message || e}`)));
-
-  const openPrem = document.getElementById('open_premium_from_calc');
-  if (openPrem) openPrem.addEventListener('click', () => setMainTab('premium'));
-
-
+  
   // Premium themes (premium-only)
   document.querySelectorAll('[data-premium-theme]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -2913,58 +2750,136 @@ const ACH_KEY = 'tc_achievements_v1';
     if (savedTheme) document.documentElement.setAttribute('data-premium-theme', savedTheme);
   } catch(e){}
 
-  // TON payments for Premium (replace PREMIUM_ADDRESS with your wallet)
-  const PREMIUM_ADDRESS = TIP_ADDRESS;
-  async function payTon(amountTon, onOk){
-    if (!tonConnectUI) { showToast(t('Connect wallet')); return; }
+  // TON payments for Premium (server-verified)
+  // Backend creates an order with a UNIQUE amount (anti-spoof). Then we verify on server.
+  async function createTonOrder(plan){
+    const initData = getInitData();
+    if (!initData) throw new Error('no_initdata');
+    const resp = await fetch(`${API_BASE}/api/ton/order?plan=${encodeURIComponent(plan)}`, {
+      method:'GET',
+      headers:{ 'X-Telegram-Init-Data': initData }
+    });
+    const data = await resp.json();
+    if (!data?.ok) throw new Error(data?.error || 'order_failed');
+    return data;
+  }
+
+  async function confirmTonOrder(orderId){
+    const initData = getInitData();
+    if (!initData) throw new Error('no_initdata');
+    const resp = await fetch(`${API_BASE}/api/ton/confirm`, {
+      method:'POST',
+      headers:{ 'content-type':'application/json', 'X-Telegram-Init-Data': initData },
+      body: JSON.stringify({ orderId })
+    });
+    const data = await resp.json();
+    if (!data?.ok) throw new Error(data?.error || 'confirm_failed');
+    return data;
+  }
+
+  async function payTonPlan(plan){
+    if (!tonConnectUI?.connected) {
+      showToast(t('Connect wallet first'));
+      return;
+    }
     try{
-      const nano = String(Math.round(amountTon * 1e9));
-      const tx = { validUntil: Math.floor(Date.now()/1000) + 600, messages: [{ address: PREMIUM_ADDRESS, amount: nano }] };
+      const order = await createTonOrder(plan);
+      const tx = {
+        validUntil: order.validUntil,
+        messages: [{
+          address: order.to,
+          amount: String(order.amountNano)
+        }]
+      };
       await tonConnectUI.sendTransaction(tx);
-      onOk && onOk('ton');
+      showToast(t('Transaction sent'));
+
+      // One quick confirm attempt; if blockchain is slow, user can press "Check payment".
+      try{
+        const res = await confirmTonOrder(order.orderId);
+        if (res.granted) {
+          showToast(t('Premium activated'));
+          await refreshPremiumStatus();
+        } else {
+          showToast(t('Waiting for confirmation'));
+          window.__lastTonOrderId = order.orderId;
+        }
+      }catch(e){
+        window.__lastTonOrderId = order.orderId;
+        showToast(t('Waiting for confirmation'));
+      }
     }catch(e){
+      console.error(e);
       showToast(t('Error'));
     }
   }
-  document.getElementById('pay_ton_30').addEventListener('click', () => payTon(1, () => activatePremiumDays(30, 'ton_30d')));
-  document.getElementById('pay_ton_life').addEventListener('click', () => payTon(4, () => activatePremiumLifetime('ton_lifetime')));
+
+  // Extra button for manual re-check (appears in Premium screen)
+  const tonCheckBtn = document.getElementById('ton_check_btn');
+  if (tonCheckBtn){
+    tonCheckBtn.addEventListener('click', async () => {
+      const orderId = window.__lastTonOrderId;
+      if (!orderId) { showToast(t('No pending payment')); return; }
+      try{
+        const res = await confirmTonOrder(orderId);
+        if (res.granted) {
+          showToast(t('Premium activated'));
+          await refreshPremiumStatus();
+          window.__lastTonOrderId = null;
+        } else {
+          showToast(t('Waiting for confirmation'));
+        }
+      }catch(e){
+        showToast(t('Waiting for confirmation'));
+      }
+    });
+  }
+
+  document.getElementById('pay_ton_30').addEventListener('click', () => payTonPlan('ton_30d'));
+  document.getElementById('pay_ton_life').addEventListener('click', () => payTonPlan('ton_lifetime'));
 
   // Telegram Stars payments (needs backend that returns an invoice link)
   async function openStarsInvoice(plan){
-    if (!tg || !tg.openInvoice) { showToast('openInvoice not available'); return; }
+    if (!tg || !tg.openInvoice) { showToast(t('Error')); return; }
+    const initData = getInitData();
+    if (!initData) { showToast(t('Error')); return; }
     try{
-      // 1) просим сервер создать invoice link
-      const data = await apiGet(`/api/stars/invoice?plan=${encodeURIComponent(plan)}`);
-      if (!data?.url) { showToast(t('Error')); return; }
+      const resp = await fetch(`${API_BASE}/api/stars/invoice?plan=${encodeURIComponent(plan)}`, {
+        method:'GET',
+        headers:{ 'X-Telegram-Init-Data': initData }
+      });
+      const data = await resp.json();
+      if (!data?.ok || !data.url) { showToast(t('Error')); return; }
 
-      // 2) открываем инвойс внутри Telegram
       tg.openInvoice(data.url, async (status) => {
         if (status === 'paid') {
-          showToast(t('Paid'));
-          // Сервер выдаёт Premium в webhook на successful_payment.
-          // Дадим пару секунд и подтянем статус.
-          await pollPremiumSync(8, 1500);
+          showToast(t('Payment successful'));
+          // Backend will grant premium via webhook; we refresh status from server.
+          await refreshPremiumStatus();
         } else if (status === 'cancelled') {
-          showToast(t('Invoice canceled'));
-        } else if (status === 'failed') {
-          showToast(t('Error'));
+          showToast(t('Cancelled'));
         } else {
-          // pending / opened
+          // failed / pending etc.
           showToast(status);
         }
       });
-
     }catch(e){
-      showToast(`${t('Error')}: ${e.message || e}`);
+      console.error(e);
+      showToast(t('Error'));
     }
   }
   document.getElementById('pay_stars_30').addEventListener('click', () => openStarsInvoice('stars_30d'));
   document.getElementById('pay_stars_life').addEventListener('click', () => openStarsInvoice('stars_lifetime'));
 
-  // Premium status (server-first)
+  // Update premium status text when entering Premium
   renderPremiumStatus();
-  syncPremiumFromServer({ silent: true }).catch(() => {});
 
+        }
+      onAchievementEvent('shared');
+    } catch(e) {
+      showToast(t('Error'));
+    }
+  });
   translateAll();
   // achievements init
   if (!isUnlocked('first_launch')) unlockAchievement('first_launch');
