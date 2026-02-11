@@ -863,6 +863,11 @@
       }
     }
     @media (max-width: 480px) {
+      #main_premium .row{flex-direction:column;}
+      #main_premium .row > button{width:100%;}
+      .premium-actions{width:100%;}
+    }
+    @media (max-width: 480px) {
       .subtabs {
         justify-content: center;
       }
@@ -937,6 +942,10 @@
       <button class="iconbtn" id="premium_btn">
         <span>💎</span>
         <span data-i18n="Premium">Premium</span>
+      </button>
+      <button class="iconbtn" id="settings_btn">
+        <span>⚙️</span>
+        <span data-i18n="Settings">Settings</span>
       </button>
     </div>
   </header>
@@ -1248,12 +1257,13 @@
       </div>
     </section>
 
-<section id="main_support" class="main-screen">
+
+<section id="main_settings" class="main-screen">
       <div class="support-wrap">
         <div class="card" style="max-width:600px">
-          <h3>💬 <span data-i18n="Support">Support</span></h3>
+          <h3>⚙️ <span data-i18n="Settings">Settings</span></h3>
           <div class="card glass" style="margin-top:12px">
-            <h4 style="margin:0 0 10px 0">⚙️ <span data-i18n="Settings">Settings</span></h4>
+            <h4 style="margin:0 0 10px 0">🌐 <span data-i18n="Settings">Settings</span></h4>
             <div class="row" style="align-items:center; gap:10px; flex-wrap:wrap">
               <div class="lang" style="margin:0">
                 <button id="btn_ru">RU</button>
@@ -1272,6 +1282,38 @@
           <div class="color-picker">
             <div class="color-option green active" data-color="#7CFC00"></div>
             <div class="color-option blue" data-color="#2d8cff"></div>
+            <div class="color-option purple" data-color="#9b59b6"></div>
+            <div class="color-option teal" data-color="#2dd4bf"></div>
+          </div>
+        </div>
+
+        <div class="card ach-card" style="max-width:600px">
+          <h3>🏆 <span data-i18n="Achievements">Achievements</span></h3>
+          <div class="ach-summary">
+            <div class="ach-progress">
+              <div class="small"><span data-i18n="Progress">Progress</span>: <b id="ach_progress_text">—</b></div>
+              <div class="ach-bar"><div id="ach_bar_fill"></div></div>
+            </div>
+          </div>
+          <div class="ach-list" id="ach_list"></div>
+        </div>
+      </div>
+    </section>
+
+<section id="main_support" class="main-screen">
+      <div class="support-wrap">
+        <div class="card" style="max-width:600px">
+          <h3>💬 <span data-i18n="Support">Support</span></h3>
+<button class="iconbtn" id="theme_toggle" style="margin:0">
+                <span id="theme_icon">🌙</span>
+                <span id="theme_text">Dark</span>
+              </button>
+            </div>
+            <div class="small" style="margin-top:10px;color:var(--muted)" data-i18n="Settings note">
+              Language and theme are saved to your account.
+            </div>
+          </div>
+<div class="color-option blue" data-color="#2d8cff"></div>
             <div class="color-option purple" data-color="#9b59b6"></div>
             <div class="color-option orange" data-color="#ffa500"></div>
             <div class="color-option pink" data-color="#ff6b9d"></div>
@@ -1292,12 +1334,7 @@
             <button class="btn ghost" id="open_support" data-i18n="Contact">Contact</button>
           </div>
         </div>
-        <div class="card ach-card" style="max-width:600px">
-          <h3>🏆 <span data-i18n="Achievements">Achievements</span></h3>
-          <div class="ach-summary">
-            <div class="ach-progress">
-              <div class="small"><span data-i18n="Progress">Progress</span>: <b id="ach_progress_text">—</b></div>
-              <div class="ach-bar"><div id="ach_bar_fill"></div></div>
+<div class="ach-bar"><div id="ach_bar_fill"></div></div>
             </div>
 </div>
           <div class="ach-list" id="ach_list"></div>
@@ -1430,8 +1467,7 @@
     removeItem(k){ delete __mem[k]; scheduleSave(); }
   };
 
-  // Kick off storage loading in background (do not await)
-  loadServerStorage();
+  const storageReady = loadServerStorage();
 
 
 
@@ -1439,17 +1475,21 @@
   const mainCalc = document.getElementById('main_calc');
   const mainPremium = document.getElementById('main_premium');
   const mainSupport = document.getElementById('main_support');
+  const mainSettings = document.getElementById('main_settings');
   const mainBtnCalc = document.getElementById('main_tab_calc');
   const mainBtnSupport = document.getElementById('main_tab_support');
   const premiumBtn = document.getElementById('premium_btn');
+  const settingsBtn = document.getElementById('settings_btn');
 
   function setMainTab(which){
     mainCalc.classList.toggle('active', which === 'calc');
     mainPremium.classList.toggle('active', which === 'premium');
     mainSupport.classList.toggle('active', which === 'support');
+    mainSettings.classList.toggle('active', which === 'settings');
     mainBtnCalc.classList.toggle('active', which === 'calc');
     mainBtnSupport.classList.toggle('active', which === 'support');
     premiumBtn.classList.toggle('active', which === 'premium');
+    settingsBtn.classList.toggle('active', which === 'settings');
     if (window.TelegramAnalytics) {
       window.TelegramAnalytics.trackEvent('screen_view', { screen: which });
     }
@@ -1458,6 +1498,7 @@
   mainBtnCalc.addEventListener('click', () => setMainTab('calc'));
   mainBtnSupport.addEventListener('click', () => setMainTab('support'));
   premiumBtn.addEventListener('click', () => setMainTab('premium'));
+  settingsBtn.addEventListener('click', () => setMainTab('settings'));
 const locales = {
     ru: {
       "Calculator": "Калькулятор",
@@ -1878,6 +1919,7 @@ const locales = {
     { id: 'premium_user', icon: '💎', titleKey: 'ACH_PREMIUM_TITLE', descKey: 'ACH_PREMIUM_DESC', type: 'one', premium: true },
     { id: 'theme_master', icon: '🌈', titleKey: 'ACH_THEME_TITLE', descKey: 'ACH_THEME_DESC', type: 'count', counter: 'premium_themes', need: 3, premium: true }
 ];
+  await storageReady;
   let achState = loadAchState();
 
   function isUnlocked(id) { return !!achState.unlocked[id]; }
