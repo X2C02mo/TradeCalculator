@@ -918,27 +918,13 @@
 .ach-item.locked{opacity:.55;filter:saturate(.6)}
 .iconbtn.active{box-shadow:0 0 0 2px rgba(var(--accent-rgb),.35) inset}
 
-  .premium-banner{
-    margin:12px 0 0;
-    border:1px solid rgba(255,255,255,.08);
-    background:linear-gradient(135deg, rgba(180,120,255,.18), rgba(0,190,255,.10));
-  }
-  [data-theme="light"] .premium-banner{
-    border:1px solid rgba(0,0,0,.08);
-    background:linear-gradient(135deg, rgba(160,90,255,.16), rgba(0,140,255,.10));
-  }
-
 </style>
 </head>
 <body>
 <div id="app">
   <header>
     <div class="leftbar">
-<button class="iconbtn" id="share_btn">
-        <span>📤</span>
-        <span data-i18n="Share">Share</span>
-      </button>
-      <button class="iconbtn" id="card_btn">
+<button class="iconbtn" id="card_btn">
         <span>🃏</span>
         <span data-i18n="Card">Card</span>
       </button>
@@ -968,13 +954,6 @@
           <span data-i18n="Indicators">Indicators</span>
         </button>
       </div>
-
-        <div class="card premium-banner" id="premium_banner">
-          <div class="row" style="justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
-            <div>
-              <div style="font-weight:800">💎 <span data-i18n="Premium">Premium</span></div>
-              <div class="muted" id="premium_status_mini">—</div>
-            </div>
             <button class="btn" id="open_premium_from_calc" data-i18n="Open Premium">Open Premium</button>
           </div>
         </div>
@@ -1202,43 +1181,57 @@
         <div class="premium-actions">
           <button class="btn ghost" id="premium_back_btn">← <span data-i18n="Back to Calculator">Back to Calculator</span></button>
           <button class="btn" id="premium_sync_btn">🔄 <span data-i18n="Sync Premium">Sync Premium</span></button>
-          <button class="btn danger ghost" id="premium_reset_btn" title="Reset premium (debug)">Reset</button>
-        </div>
+</div>
       </div>
 
       <div class="grid2">
-        <div class="card glass">
-          <h3 data-i18n="Plans">Plans</h3>
-          <div class="plan">
-            <div class="plan-row">
-              <b data-i18n="30 days access">Premium-status for 30 days</b>
-              <span class="pill">1 TON</span>
-              <span class="pill">89 Stars</span>
-            </div>
-            <div class="muted" data-i18n="30d note">Unlock all premium features for 30 days.</div>
-            <div class="row">
-              <button class="btn" id="pay_ton_30">Pay 1 TON</button>
-              <button class="btn" id="pay_stars_30">Pay 89 Stars</button>
-            </div>
+        <div class="card glass" id="premium_plans_card">
+          <h3 data-i18n="Premium access">Premium access</h3>
+
+          <div class="muted" style="margin-top:-4px" data-i18n="Premium intro">
+            Premium unlocks the strongest tools in the app: Advanced Analytics, AI trade hints, secret achievements + ranks, PDF report, personalization and premium themes.
           </div>
 
           <div class="divider"></div>
 
           <div class="plan">
             <div class="plan-row">
-              <b data-i18n="Lifetime">Lifetime</b>
-              <span class="pill">4 TON</span>
-              <span class="pill">389 Stars</span>
+              <b>✅ <span data-i18n="Premium 30d">Premium-status (30 days)</span></b>
+              <span class="pill">1 TON</span>
+              <span class="pill">89 Stars</span>
             </div>
-            <div class="muted" data-i18n="Lifetime note">One-time purchase, no expiration.</div>
-            <div class="row">
-              <button class="btn" id="pay_ton_life">Pay 4 TON</button>
-              <button class="btn" id="pay_stars_life">Pay 389 Stars</button>
+            <div class="muted" data-i18n="30d note 2">
+              30 days of full access. If you buy again before it ends, time stacks.
             </div>
           </div>
 
-          <div class="note" data-i18n="Payment note">
-            Payments are processed inside Telegram. After successful payment, Premium will be activated on this device.
+          <div class="plan" style="margin-top:10px">
+            <div class="plan-row">
+              <b>♾️ <span data-i18n="Premium lifetime">Lifetime</span></b>
+              <span class="pill">4 TON</span>
+              <span class="pill">389 Stars</span>
+            </div>
+            <div class="muted" data-i18n="Lifetime note 2">
+              One-time purchase. Premium stays with your Telegram account forever.
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="row" style="justify-content:space-between;gap:10px;flex-wrap:wrap">
+            <div class="muted" style="max-width:520px" data-i18n="Payment note 2">
+              Payments are processed inside Telegram. After payment, the server activates Premium automatically (no local browser storage).
+            </div>
+            <div class="row" style="gap:10px;flex-wrap:wrap;justify-content:flex-end">
+              <button class="btn" id="pay_stars_30">⭐ 89 Stars / 30d</button>
+              <button class="btn" id="pay_stars_life">⭐ 389 Stars / Lifetime</button>
+              <button class="btn" id="pay_ton_30">💠 1 TON / 30d</button>
+              <button class="btn" id="pay_ton_life">💠 4 TON / Lifetime</button>
+            </div>
+          </div>
+
+          <div class="note" data-i18n="Payment hint">
+            Tip: Stars are instant and easiest. TON payments require a wallet and may take a few seconds to confirm.
           </div>
         </div>
 
@@ -1372,12 +1365,17 @@
 </div>
 <script>
 
-(function(){
+(async function(){
   'use strict';
   const tg = window.Telegram?.WebApp || null;
   if (tg) {
     tg.expand();
     tg.ready();
+  }
+
+  // Load server-backed storage before reading any saved data
+  await loadServerStorage();
+
   }
   const mainCalc = document.getElementById('main_calc');
   const mainPremium = document.getElementById('main_premium');
@@ -1476,6 +1474,8 @@ const locales = {
       "Contact": "Контакты",
       "Share": "Поделиться",
       "Card": "Карточка",
+      "Open in Telegram": "Откройте мини‑приложение внутри Telegram.",
+      "Payment canceled": "Платёж отменён или не прошёл.",
       "Copied!": "Скопировано!",
       "Save PNG": "Сохранить PNG",
       "Dark": "Тёмная",
@@ -1619,6 +1619,8 @@ const locales = {
       "Contact": "Contact",
       "Share": "Share",
       "Card": "Card",
+      "Open in Telegram": "Open this mini app inside Telegram.",
+      "Payment canceled": "Payment canceled or failed.",
       "Copied!": "Copied!",
       "Save PNG": "Save PNG",
       "Dark": "Dark",
@@ -1699,7 +1701,6 @@ const locales = {
         el.textContent = translation;
       }
     });
-    document.getElementById('share_btn').querySelector('span:last-child').textContent = t('Share');
     document.getElementById('card_btn').querySelector('span:last-child').textContent = t('Card');
     document.getElementById('theme_text').textContent = document.documentElement.getAttribute('data-theme') === 'light' ? t('Light') : t('Dark');
     document.querySelectorAll('.subtab').forEach(tab => {
@@ -1745,13 +1746,89 @@ const locales = {
     try { return tg?.initData || ''; } catch(e) { return ''; }
   }
 
-  async function apiGet(path) {
-    const headers = { 'X-Telegram-Init-Data': getInitData() };
+  
+  // -------------------- SERVER STORAGE (no browser persistence) --------------------
+  // We emulate localStorage API in-memory, but persist it to the server (Cloudflare Worker KV)
+  // so all user data lives on the backend, not in the browser.
+  const __storageMem = new Map();
+  let __storageLoaded = false;
+  let __storageSaveTimer = null;
+
+  // Shadow global localStorage inside this module (code below uses localStorage.* heavily).
+  const localStorage = {
+    getItem(key) {
+      const v = __storageMem.get(String(key));
+      return v === undefined ? null : v;
+    },
+    setItem(key, value) {
+      __storageMem.set(String(key), String(value));
+      scheduleStorageSave();
+    },
+    removeItem(key) {
+      __storageMem.delete(String(key));
+      scheduleStorageSave();
+    }
+  };
+
+  function requireInitDataOrThrow() {
+    const init = getInitData();
+    if (!init) {
+      throw new Error(i18n.t('Open in Telegram') || 'Open this mini app inside Telegram to continue.');
+    }
+    return init;
+  }
+
+  async function loadServerStorage() {
+    if (__storageLoaded) return;
+    const initData = getInitData();
+    // If opened outside Telegram, we keep memory-only (no persistence).
+    if (!initData) { __storageLoaded = true; return; }
+
+    const res = await fetch(`${API_BASE}/api/user/storage`, {
+      method: 'GET',
+      headers: { 'X-Telegram-Init-Data': initData }
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data?.ok && data.storage && typeof data.storage === 'object') {
+      for (const [k, v] of Object.entries(data.storage)) __storageMem.set(String(k), String(v));
+    }
+    __storageLoaded = true;
+  }
+
+  function scheduleStorageSave() {
+    if (__storageSaveTimer) clearTimeout(__storageSaveTimer);
+    __storageSaveTimer = setTimeout(() => void saveServerStorage(), 600);
+  }
+
+  async function saveServerStorage() {
+    __storageSaveTimer = null;
+    const initData = getInitData();
+    if (!initData) return; // outside Telegram: no persistence
+
+    const storageObj = Object.fromEntries(__storageMem.entries());
+    try {
+      await fetch(`${API_BASE}/api/user/storage`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'X-Telegram-Init-Data': initData },
+        body: JSON.stringify({ storage: storageObj })
+      });
+    } catch (e) {
+      // ignore transient network errors; UI continues to work
+    }
+  }
+
+async function apiGet(path) {
+    const initData = requireInitDataOrThrow();
+    const headers = { 'X-Telegram-Init-Data': initData };
     const res = await fetch(API_BASE + path, { method: 'GET', headers });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || data?.ok === false) {
       const msg = data?.error || `HTTP ${res.status}`;
-      throw new Error(msg);
+      // make initData errors human
+      const friendly = (String(msg).includes('initData') || res.status === 401)
+        ? (t('Open in Telegram') || 'Open this mini app inside Telegram to continue.')
+        : msg;
+      throw new Error(friendly);
     }
     return data;
   }
@@ -2804,7 +2881,7 @@ const ACH_KEY = 'tc_achievements_v1';
         window.TelegramAnalytics.trackEvent('tip_sent');
       }
     } catch(e) {
-      showToast(t('Error'));
+      showToast(t('Payment canceled') || 'Payment canceled or failed.');
     }
   });
   initTonConnect();
@@ -2888,37 +2965,6 @@ const ACH_KEY = 'tc_achievements_v1';
   renderPremiumStatus();
   syncPremiumFromServer({ silent: true }).catch(() => {});
 
-
-  document.getElementById('share_btn').addEventListener('click', async () => {
-    const tab = activeTab();
-    let text = 'Trader Calculator\n\n';
-    if (tab === 'dca') {
-      text += `DCA Calculation:\n`;
-      text += `Average: ${dcaAvgEl.textContent}\n`;
-      text += `Volume: ${dcaTotalVolEl.textContent}\n`;
-      text += `Cost: ${dcaTotalCostEl.textContent}\n`;
-    } else if (tab === 'rr') {
-      text += `Risk/Reward:\n`;
-      text += `Gross: ${rrGross.textContent}\n`;
-      text += `Net: ${rrNet.textContent}\n`;
-    } else if (tab === 'cap') {
-      text += `Capital Management:\n`;
-      text += `Position: ${capPos.textContent}\n`;
-      text += `Risk: $${capRiskUsd.textContent}\n`;
-      text += `Margin: $${capMargin.textContent}\n`;
-    }
-    text += `\nTry it: https://t.me/ChalovCrypto`;
-    try {
-      await navigator.clipboard.writeText(text);
-      showToast(t('Copied!'));
-      if (window.TelegramAnalytics) {
-        window.TelegramAnalytics.trackEvent('app_shared', { tab: tab });
-      }
-      onAchievementEvent('shared');
-    } catch(e) {
-      showToast(t('Error'));
-    }
-  });
   translateAll();
   // achievements init
   if (!isUnlocked('first_launch')) unlockAchievement('first_launch');
