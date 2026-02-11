@@ -21,7 +21,7 @@
       trackView: () => {}
     };
 
-    document.addEventListener('DOMContentLoaded', () => {
+    const boot = async () => {
       if (!validateAnalyticsConfig()) {
         console.error('Invalid analytics token');
         return;
@@ -61,7 +61,14 @@
           }
         });
       }, 1000);
-    });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => { boot().catch(console.error); });
+  } else {
+    boot().catch(console.error);
+  }
+;
   </script>
   <style>
     :root {
@@ -1373,8 +1380,8 @@
         headers:{ 'X-Telegram-Init-Data': initData }
       });
       const j = await r.json().catch(()=>null);
-      if (j?.ok && j.storage && typeof j.storage === 'object'){
-        Object.assign(__mem, j.storage);
+      if (j?.ok && j.data && typeof j.data === 'object'){
+        Object.assign(__mem, j.data);
       }
     }catch(e){
       console.warn('Storage load failed', e);
@@ -1405,6 +1412,10 @@
     setItem(k,v){ __mem[k] = String(v); scheduleSave(); },
     removeItem(k){ delete __mem[k]; scheduleSave(); }
   };
+
+  // Load server storage once at startup
+  await loadServerStorage();
+
 
 
   const mainCalc = document.getElementById('main_calc');
