@@ -1360,31 +1360,46 @@
   const API_BASE = 'https://tg-stars-premium-worker.reserv-g123.workers.dev';
 
   // ---- Server-backed storage (replaces browser localStorage) ----
-  // We keep the same API as localStorage so the rest of the app doesn't need rewrites.
+  // IMPORTANT: we must NOT block UI initialization on network.
+  // So we load storage in the background with a short timeout, and we save with debouncing.
   const __mem = Object.create(null);
   let __loaded = false;
   let __saveTimer = null;
 
   function getInitData(){
-    // Telegram Mini App initData string (signed). Needed for backend auth.
     return (window.Telegram?.WebApp?.initData) || '';
+  }
+
+  async function fetchWithTimeout(url, options, ms){
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), ms);
+    try{
+      const res = await fetch(url, { ...options, signal: controller.signal });
+      return res;
+    } finally {
+      clearTimeout(t);
+    }
   }
 
   async function loadServerStorage(){
     if (__loaded) return;
     const initData = getInitData();
     if (!initData) { __loaded = true; return; } // allow running outside Telegram for dev
+
     try{
-      const r = await fetch(`${API_BASE}/api/user/storage`, {
+      const r = await fetchWithTimeout(`${API_BASE}/api/user/storage`, {
         method:'GET',
         headers:{ 'X-Telegram-Init-Data': initData }
-      });
+      }, 2500);
+
       const j = await r.json().catch(()=>null);
+      // Worker returns { ok:true, data:{...} }
       if (j?.ok && j.data && typeof j.data === 'object'){
         Object.assign(__mem, j.data);
       }
     }catch(e){
-      console.warn('Storage load failed', e);
+      // AbortError / network issues should not break UI
+      console.warn('Storage load skipped:', e?.name || e);
     }finally{
       __loaded = true;
     }
@@ -1399,7 +1414,8 @@
         await fetch(`${API_BASE}/api/user/storage`, {
           method:'POST',
           headers:{ 'content-type':'application/json', 'X-Telegram-Init-Data': initData },
-          body: JSON.stringify({ storage: __mem })
+          // Send the storage object as-is. Worker stores the entire JSON.
+          body: JSON.stringify(__mem)
         });
       }catch(e){
         console.warn('Storage save failed', e);
@@ -1407,14 +1423,16 @@
     }, 600);
   }
 
+  // localStorage-like shim used by the app code below
   const localStorage = {
     getItem(k){ return Object.prototype.hasOwnProperty.call(__mem, k) ? String(__mem[k]) : null; },
     setItem(k,v){ __mem[k] = String(v); scheduleSave(); },
     removeItem(k){ delete __mem[k]; scheduleSave(); }
   };
 
-  // Load server storage once at startup
-  await loadServerStorage();
+  // Kick off storage loading in background (do not await)
+  loadServerStorage();
+
 
 
 
