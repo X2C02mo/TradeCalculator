@@ -2861,36 +2861,45 @@ const locales = {
   document.getElementById('pay_ton_30').addEventListener('click', () => payTonPlan('ton_30d'));
   document.getElementById('pay_ton_life').addEventListener('click', () => payTonPlan('ton_lifetime'));
 
-  // Telegram Stars payments (needs backend that returns an invoice link)
-  async function openStarsInvoice(plan){
-    if (!tg || !tg.openInvoice) { showToast(t('Error')); return; }
-    const initData = getInitData();
-    if (!initData) { showToast(t('Error')); return; }
-    try{
-      const resp = await fetch(`${API_BASE}/api/stars/invoice?plan=${encodeURIComponent(plan)}`, {
-        method:'GET',
-        headers:{ 'X-Telegram-Init-Data': initData }
-      });
-      const data = await resp.json();
-      if (!data?.ok || !data.url) { showToast(t('Error')); return; }
+async function openStarsInvoice(plan){
+  if (!tg || !tg.openInvoice) { showToast('tg.openInvoice not available'); return; }
 
-      tg.openInvoice(data.url, async (status) => {
-        if (status === 'paid') {
-          showToast(t('Payment successful'));
-          // Backend will grant premium via webhook; we refresh status from server.
-          await refreshPremiumStatus();
-        } else if (status === 'cancelled') {
-          showToast(t('Cancelled'));
-        } else {
-          // failed / pending etc.
-          showToast(status);
-        }
-      });
-    }catch(e){
-      console.error(e);
-      showToast(t('Error'));
+  const initData = getInitData();
+  if (!initData) { showToast('No initData (open inside Telegram)'); return; }
+
+  try{
+    const resp = await fetch(`${API_BASE}/api/stars/invoice?plan=${encodeURIComponent(plan)}`, {
+      method:'GET',
+      headers:{ 'X-Telegram-Init-Data': initData }
+    });
+
+    const text = await resp.text();
+    let data = null;
+    try { data = JSON.parse(text); } catch {}
+
+    if (!resp.ok) {
+      showToast(`API ${resp.status}: ${data?.error || text}`);
+      return;
     }
+
+    if (!data?.ok || !data.url) {
+      showToast(`API: ${data?.error || text || 'bad response'}`);
+      return;
+    }
+
+    tg.openInvoice(data.url, async (status) => {
+      // status: paid / cancelled / failed / pending ...
+      showToast(`Invoice status: ${status}`);
+      if (status === 'paid') {
+        await refreshPremiumStatus();
+      }
+    });
+  }catch(e){
+    console.error(e);
+    showToast(`Exception: ${e?.message || e}`);
   }
+}
+
   document.getElementById('pay_stars_30').addEventListener('click', () => openStarsInvoice('stars_30d'));
   document.getElementById('pay_stars_life').addEventListener('click', () => openStarsInvoice('stars_lifetime'));
 
