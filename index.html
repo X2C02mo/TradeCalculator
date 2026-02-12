@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -61,14 +60,13 @@
           }
         });
       }, 1000);
-  };
+    };
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => { boot().catch(console.error); });
-  } else {
-    boot().catch(console.error);
-  }
-;
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => { boot().catch(console.error); });
+    } else {
+      boot().catch(console.error);
+    }
   </script>
   <style>
     :root {
@@ -974,6 +972,7 @@
             <div class="controls">
               <button class="btn" id="dca_add" data-i18n="Add entry">Add entry</button>
               <button class="btn ghost" id="dca_clear" data-i18n="Clear">Clear</button>
+              <button class="btn ghost" id="dca_save" data-i18n="Save">Save</button>
             </div>
             <div class="result">
               <div>
@@ -1042,6 +1041,9 @@
               <label data-i18n="Fee % (entry+exit)">Fee % (entry+exit)</label>
               <input id="rr_fee" type="number" step="any" value="0.2" />
             </div>
+            <div class="controls">
+              <button class="btn ghost" id="rr_save" data-i18n="Save">Save</button>
+            </div>
             <div class="result">
               <div>
                 <div class="small" data-i18n="Gross R/R">Gross R/R</div>
@@ -1094,6 +1096,9 @@
                 <label data-i18n="Fee % (entry+exit)">Fee % (entry+exit)</label>
                 <input id="cap_fee" type="number" step="any" value="0.2" />
               </div>
+            </div>
+            <div class="controls">
+              <button class="btn ghost" id="cap_save" data-i18n="Save">Save</button>
             </div>
             <div class="result">
               <div>
@@ -1529,7 +1534,6 @@
       "Fear & Greed Gauge": "Индикатор F&G",
       "Dominance Split": "Распределение доли",
       "History": "История",
-      "Saved locally in your browser": "Сохранено локально в браузере",
       "Connect your wallet for tips and donations. Contact us through the links below.": "Подключите кошелёк для донатов. Контакты и ссылки ниже.",
       "Connect Wallet": "Подключить кошелёк",
       "Tip 0.05 TON": "Донат 0.05 TON",
@@ -1608,7 +1612,9 @@
       "Neon": "Неон",
       "Gold": "Золото",
       "Midnight_Pro": "Полуночный Про",
-      "AIRDROP_NEWS_TRADING": "ЭЙРДРОП • НОВОСТИ • ТРЕЙДИНГ"
+      "AIRDROP_NEWS_TRADING": "ЭЙРДРОП • НОВОСТИ • ТРЕЙДИНГ",
+      "Save": "Сохранить",
+      "Saved to history": "Сохранено в историю"
     },
     en: {
       "Calculator": "Calculator",
@@ -1682,7 +1688,6 @@
       "Fear & Greed Gauge": "Fear & Greed Gauge",
       "Dominance Split": "Dominance Split",
       "History": "History",
-      "Saved locally in your browser": "Saved locally in your browser",
       "Connect your wallet for tips and donations. Contact us through the links below.": "Connect your wallet for tips and donations. Contact us through the links below.",
       "Connect Wallet": "Connect Wallet",
       "Tip 0.05 TON": "Tip 0.05 TON",
@@ -1761,7 +1766,9 @@
       "Neon": "Neon",
       "Gold": "Gold",
       "Midnight_Pro": "Midnight Pro",
-      "AIRDROP_NEWS_TRADING": "AIRDROP • NEWS • TRADING"
+      "AIRDROP_NEWS_TRADING": "AIRDROP • NEWS • TRADING",
+      "Save": "Save",
+      "Saved to history": "Saved to history"
     }
   };
   let lang = 'en';
@@ -2203,6 +2210,40 @@
   document.getElementById('dca_clear').addEventListener('click', clearDCA);
   dcaGoal.addEventListener('input', calcDCA);
   dcaNext.addEventListener('input', calcDCA);
+
+  // --- Save to history functions ---
+  function saveCalculationToHistory(type, summary) {
+    const arr = loadHistory();
+    arr.unshift({
+      t: Date.now(),
+      type: type,
+      summary: summary
+    });
+    if (arr.length > 50) arr.length = 50;
+    saveHistory(arr);
+    renderHistory();
+    onAchievementEvent('history_saved');
+    showToast(t('Saved to history'));
+  }
+
+  // DCA Save button
+  document.getElementById('dca_save').addEventListener('click', () => {
+    const summary = `DCA: Avg ${dcaAvgEl.textContent}, Vol ${dcaTotalVolEl.textContent}, Cost ${dcaTotalCostEl.textContent}`;
+    saveCalculationToHistory('DCA', summary);
+  });
+
+  // R/R Save button
+  document.getElementById('rr_save').addEventListener('click', () => {
+    const summary = `R/R: Gross ${rrGross.textContent}, Net ${rrNet.textContent} (Entry: ${rrEntry.value}, SL: ${rrSl.value}, TP: ${rrTp.value}, Fee: ${rrFee.value}%)`;
+    saveCalculationToHistory('R/R', summary);
+  });
+
+  // Capital Save button
+  document.getElementById('cap_save').addEventListener('click', () => {
+    const summary = `Capital: Pos ${capPos.textContent}, Risk $${capRiskUsd.textContent}, Margin $${capMargin.textContent}`;
+    saveCalculationToHistory('Capital', summary);
+  });
+
   async function copyText(text) {
     if (!text || text === '—') return false;
     try {
@@ -2228,19 +2269,7 @@
       if (ok) {
         showToast(t('Copied!'));
         onAchievementEvent('value_copied');
-        if (getSummary) {
-          const summary = getSummary();
-          const arr = loadHistory();
-          arr.unshift({
-            t: Date.now(),
-            type: getHistoryType(activeTab()),
-            summary: summary
-          });
-          if (arr.length > 50) arr.length = 50;
-          saveHistory(arr);
-          renderHistory();
-          onAchievementEvent('history_saved');
-        }
+        // History is NOT saved on copy anymore
         if (window.TelegramAnalytics) {
           window.TelegramAnalytics.trackEvent('value_copied', {
             value: val.substring(0, 30)
@@ -2249,12 +2278,8 @@
       }
     });
   }
-  bindCopy(document.getElementById('dca_copy'), () => dcaAvgEl.textContent, () => {
-    return `Average: ${dcaAvgEl.textContent}, Volume: ${dcaTotalVolEl.textContent}, Cost: ${dcaTotalCostEl.textContent}`;
-  });
-  bindCopy(document.getElementById('dca_need_copy'), () => dcaNeedVol.textContent, () => {
-    return `Needed volume: ${dcaNeedVol.textContent} at next price ${dcaNext.value}`;
-  });
+  bindCopy(document.getElementById('dca_copy'), () => dcaAvgEl.textContent);
+  bindCopy(document.getElementById('dca_need_copy'), () => dcaNeedVol.textContent);
   const rrEntry = document.getElementById('rr_entry');
   const rrSl = document.getElementById('rr_sl');
   const rrTp = document.getElementById('rr_tp');
@@ -2295,12 +2320,8 @@
     return { gross, net };
   }
   [rrEntry, rrSl, rrTp, rrFee].forEach(x => x.addEventListener('input', calcRR));
-  bindCopy(document.getElementById('rr_copy_gross'), () => rrGross.textContent, () => {
-    return `Gross R/R: ${rrGross.textContent} (Entry: ${rrEntry.value}, SL: ${rrSl.value}, TP: ${rrTp.value})`;
-  });
-  bindCopy(document.getElementById('rr_copy_net'), () => rrNet.textContent, () => {
-    return `Net R/R: ${rrNet.textContent} (Entry: ${rrEntry.value}, SL: ${rrSl.value}, TP: ${rrTp.value}, Fee: ${rrFee.value}%)`;
-  });
+  bindCopy(document.getElementById('rr_copy_gross'), () => rrGross.textContent);
+  bindCopy(document.getElementById('rr_copy_net'), () => rrNet.textContent);
   const capDep = document.getElementById('cap_dep');
   const capRisk = document.getElementById('cap_risk');
   const capLev = document.getElementById('cap_lev');
@@ -2348,9 +2369,7 @@
     return { pos };
   }
   [capDep, capRisk, capLev, capEntry, capSl, capFee].forEach(x => x.addEventListener('input', calcCap));
-  bindCopy(document.getElementById('cap_copy_pos'), () => capPos.textContent, () => {
-    return `Position: ${capPos.textContent}, Risk: $${capRiskUsd.textContent}, Margin: $${capMargin.textContent}`;
-  });
+  bindCopy(document.getElementById('cap_copy_pos'), () => capPos.textContent);
   const fgText = document.getElementById('fg_text');
   const tcapText = document.getElementById('tcap_text');
   const altText = document.getElementById('alt_text');
@@ -2521,7 +2540,6 @@
     list.innerHTML = '';
     const arr = loadHistory();
     if (!arr.length) {
-      list.innerHTML = '<div class="small">' + t('Saved locally in your browser') + '</div>';
       return;
     }
     arr.forEach((it, idx) => {
@@ -2930,4 +2948,3 @@
 </script>
 </body>
 </html>
-```
