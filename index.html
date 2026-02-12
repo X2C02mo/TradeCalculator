@@ -2211,7 +2211,6 @@
   dcaGoal.addEventListener('input', calcDCA);
   dcaNext.addEventListener('input', calcDCA);
 
-  // --- Save to history functions ---
   function saveCalculationToHistory(type, summary) {
     const arr = loadHistory();
     arr.unshift({
@@ -2226,19 +2225,16 @@
     showToast(t('Saved to history'));
   }
 
-  // DCA Save button
   document.getElementById('dca_save').addEventListener('click', () => {
     const summary = `DCA: Avg ${dcaAvgEl.textContent}, Vol ${dcaTotalVolEl.textContent}, Cost ${dcaTotalCostEl.textContent}`;
     saveCalculationToHistory('DCA', summary);
   });
 
-  // R/R Save button
   document.getElementById('rr_save').addEventListener('click', () => {
     const summary = `R/R: Gross ${rrGross.textContent}, Net ${rrNet.textContent} (Entry: ${rrEntry.value}, SL: ${rrSl.value}, TP: ${rrTp.value}, Fee: ${rrFee.value}%)`;
     saveCalculationToHistory('R/R', summary);
   });
 
-  // Capital Save button
   document.getElementById('cap_save').addEventListener('click', () => {
     const summary = `Capital: Pos ${capPos.textContent}, Risk $${capRiskUsd.textContent}, Margin $${capMargin.textContent}`;
     saveCalculationToHistory('Capital', summary);
@@ -2269,7 +2265,6 @@
       if (ok) {
         showToast(t('Copied!'));
         onAchievementEvent('value_copied');
-        // History is NOT saved on copy anymore
         if (window.TelegramAnalytics) {
           window.TelegramAnalytics.trackEvent('value_copied', {
             value: val.substring(0, 30)
@@ -2843,8 +2838,8 @@
       const tx = {
         validUntil: order.validUntil,
         messages: [{
-          address: order.to,
-          amount: String(order.amountNano)
+          address: order.receiver,
+          amount: order.amountNano
         }]
       };
       await tonConnectUI.sendTransaction(tx);
