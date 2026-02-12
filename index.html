@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -553,7 +553,6 @@
       background: var(--accent);
       color: #000;
     }
-    /* Achievements */
     .ach-card .ach-summary{
       display:flex;
       gap:12px;
@@ -898,7 +897,6 @@
       }
     }
   
-/* Premium */
 .premium-head{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
 .premium-title h2{margin:8px 0 4px 0}
 .premium-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -910,13 +908,9 @@
 .pill{padding:4px 10px;border-radius:999px;background:rgba(var(--accent-rgb),.14);border:1px solid rgba(var(--accent-rgb),.22);font-weight:700}
 .checklist{margin:0;padding-left:18px}
 .checklist li{margin:6px 0}
-.chip{border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.08);padding:8px 10px;border-radius:999px;cursor:pointer}
-.chip:active{transform:translateY(1px)}
 .note{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(0,0,0,.12);border:1px dashed rgba(255,255,255,.18)}
 .glass{backdrop-filter: blur(10px);-webkit-backdrop-filter: blur(10px)}
 
-
-/* Premium theme variants */
 :root[data-premium-theme="neon"]{
   --accent:#00ffd1;
 }
@@ -1174,7 +1168,6 @@
         <div class="history">
           <h4>📜 <span data-i18n="History">History</span></h4>
           <div class="history-list" id="history_list"></div>
-          
         </div>
       </div>
     </section>
@@ -1188,7 +1181,7 @@
         </div>
         <div class="premium-actions">
           <button class="btn ghost" id="premium_back_btn">← <span data-i18n="Back to Calculator">Back to Calculator</span></button>
-</div>
+        </div>
       </div>
 
       <div class="grid2">
@@ -1197,13 +1190,13 @@
           <div class="plan">
             <div class="plan-row">
               <b data-i18n="30 days access">Premium-status for 30 days</b>
-              <span class="pill">1 TON</span>
-              <span class="pill">89 Stars</span>
+              <span class="pill" data-i18n="1_TON">1 TON</span>
+              <span class="pill" data-i18n="89_Stars">89 Stars</span>
             </div>
             <div class="muted" data-i18n="30d note">Unlock all premium features for 30 days.</div>
             <div class="row">
-              <button class="btn" id="pay_ton_30">Pay 1 TON</button>
-              <button class="btn" id="pay_stars_30">Pay 89 Stars</button>
+              <button class="btn" id="pay_ton_30" data-i18n="Pay_1_TON">Pay 1 TON</button>
+              <button class="btn" id="pay_stars_30" data-i18n="Pay_89_Stars">Pay 89 Stars</button>
             </div>
           </div>
 
@@ -1212,13 +1205,13 @@
           <div class="plan">
             <div class="plan-row">
               <b data-i18n="Lifetime">Lifetime</b>
-              <span class="pill">4 TON</span>
-              <span class="pill">389 Stars</span>
+              <span class="pill" data-i18n="4_TON">4 TON</span>
+              <span class="pill" data-i18n="389_Stars">389 Stars</span>
             </div>
             <div class="muted" data-i18n="Lifetime note">One-time purchase, no expiration.</div>
             <div class="row">
-              <button class="btn" id="pay_ton_life">Pay 4 TON</button>
-              <button class="btn" id="pay_stars_life">Pay 389 Stars</button>
+              <button class="btn" id="pay_ton_life" data-i18n="Pay_4_TON">Pay 4 TON</button>
+              <button class="btn" id="pay_stars_life" data-i18n="Pay_389_Stars">Pay 389 Stars</button>
             </div>
           </div>
 
@@ -1241,9 +1234,9 @@
           <div class="divider"></div>
           <h4 data-i18n="Premium Themes">Premium themes</h4>
           <div class="row wrap">
-            <button class="chip" data-premium-theme="neon">Neon</button>
-            <button class="chip" data-premium-theme="gold">Gold</button>
-            <button class="chip" data-premium-theme="midnight">Midnight Pro</button>
+            <button class="chip" data-premium-theme="neon" data-i18n="Neon">Neon</button>
+            <button class="chip" data-premium-theme="gold" data-i18n="Gold">Gold</button>
+            <button class="chip" data-premium-theme="midnight" data-i18n="Midnight_Pro">Midnight Pro</button>
           </div>
           <div class="muted" data-i18n="Themes note">Themes apply instantly (premium required).</div>
         </div>
@@ -1257,8 +1250,7 @@
       </div>
     </section>
 
-
-<section id="main_settings" class="main-screen">
+    <section id="main_settings" class="main-screen">
       <div class="support-wrap">
         <div class="card" style="max-width:600px">
           <h3>⚙️ <span data-i18n="Settings">Settings</span></h3>
@@ -1300,27 +1292,10 @@
       </div>
     </section>
 
-<section id="main_support" class="main-screen">
+    <section id="main_support" class="main-screen">
       <div class="support-wrap">
         <div class="card" style="max-width:600px">
           <h3>💬 <span data-i18n="Support">Support</span></h3>
-<button class="iconbtn" id="theme_toggle" style="margin:0">
-                <span id="theme_icon">🌙</span>
-                <span id="theme_text">Dark</span>
-              </button>
-            </div>
-            <div class="small" style="margin-top:10px;color:var(--muted)" data-i18n="Settings note">
-              Language and theme are saved to your account.
-            </div>
-          </div>
-<div class="color-option blue" data-color="#2d8cff"></div>
-            <div class="color-option purple" data-color="#9b59b6"></div>
-            <div class="color-option orange" data-color="#ffa500"></div>
-            <div class="color-option pink" data-color="#ff6b9d"></div>
-            <div class="color-option teal" data-color="#2dd4bf"></div>
-            <div class="color-option yellow" data-color="#fbbf24"></div>
-            <div class="color-option red" data-color="#ef4444"></div>
-          </div>
           <div class="small" style="margin-bottom:16px" data-i18n="Connect your wallet for tips and donations. Contact us through the links below.">
             Connect your wallet for tips and donations. Contact us through the links below.
           </div>
@@ -1334,13 +1309,8 @@
             <button class="btn ghost" id="open_support" data-i18n="Contact">Contact</button>
           </div>
         </div>
-<div class="ach-bar"><div id="ach_bar_fill"></div></div>
-            </div>
-</div>
-          <div class="ach-list" id="ach_list"></div>
-</div>
         <div style="text-align:center">
-          <div style="color:var(--accent);font-weight:700;margin-bottom:12px">AIRDROP • NEWS • TRADING</div>
+          <div style="color:var(--accent);font-weight:700;margin-bottom:12px" data-i18n="AIRDROP_NEWS_TRADING">AIRDROP • NEWS • TRADING</div>
           <div class="support-links">
             <a id="link_telegram" href="https://t.me/ChalovCrypto" target="_blank" data-i18n="TELEGRAM">TELEGRAM</a>
             <a id="link_youtube" href="https://www.youtube.com/@ChalovCrypto" target="_blank" data-i18n="YOUTUBE">YOUTUBE</a>
@@ -1382,7 +1352,6 @@
   </div>
 </div>
 <script>
-
 (async function(){
   'use strict';
   const tg = window.Telegram?.WebApp || null;
@@ -1391,14 +1360,8 @@
     tg.ready();
   }
 
-
-  // ---- Backend base (Cloudflare Worker) ----
-  // IMPORTANT: set this to YOUR Worker URL.
   const API_BASE = 'https://tg-miniapp-worker.reserv-g123.workers.dev';
 
-  // ---- Server-backed storage (replaces browser localStorage) ----
-  // IMPORTANT: we must NOT block UI initialization on network.
-  // So we load storage in the background with a short timeout, and we save with debouncing.
   const __mem = Object.create(null);
   let __loaded = false;
   let __saveTimer = null;
@@ -1421,7 +1384,7 @@
   async function loadServerStorage(){
     if (__loaded) return;
     const initData = getInitData();
-    if (!initData) { __loaded = true; return; } // allow running outside Telegram for dev
+    if (!initData) { __loaded = true; return; }
 
     try{
       const r = await fetchWithTimeout(`${API_BASE}/api/user/storage`, {
@@ -1430,12 +1393,10 @@
       }, 2500);
 
       const j = await r.json().catch(()=>null);
-      // Worker returns { ok:true, data:{...} }
       if (j?.ok && j.data && typeof j.data === 'object'){
         Object.assign(__mem, j.data);
       }
     }catch(e){
-      // AbortError / network issues should not break UI
       console.warn('Storage load skipped:', e?.name || e);
     }finally{
       __loaded = true;
@@ -1451,7 +1412,6 @@
         await fetch(`${API_BASE}/api/user/storage`, {
           method:'POST',
           headers:{ 'content-type':'application/json', 'X-Telegram-Init-Data': initData },
-          // Send the storage object as-is. Worker stores the entire JSON.
           body: JSON.stringify(__mem)
         });
       }catch(e){
@@ -1460,7 +1420,6 @@
     }, 600);
   }
 
-  // localStorage-like shim used by the app code below
   const localStorage = {
     getItem(k){ return Object.prototype.hasOwnProperty.call(__mem, k) ? String(__mem[k]) : null; },
     setItem(k,v){ __mem[k] = String(v); scheduleSave(); },
@@ -1468,9 +1427,6 @@
   };
 
   const storageReady = loadServerStorage();
-
-
-
 
   const mainCalc = document.getElementById('main_calc');
   const mainPremium = document.getElementById('main_premium');
@@ -1499,7 +1455,8 @@
   mainBtnSupport.addEventListener('click', () => setMainTab('support'));
   premiumBtn.addEventListener('click', () => setMainTab('premium'));
   settingsBtn.addEventListener('click', () => setMainTab('settings'));
-const locales = {
+
+  const locales = {
     ru: {
       "Calculator": "Калькулятор",
       "Support": "Поддержка",
@@ -1640,6 +1597,18 @@ const locales = {
       "ACH_PREMIUM_DESC": "Активировать Premium.",
       "ACH_THEME_TITLE": "Повелитель тем",
       "ACH_THEME_DESC": "Применить 3 премиум темы.",
+      "1_TON": "1 TON",
+      "89_Stars": "89 Stars",
+      "4_TON": "4 TON",
+      "389_Stars": "389 Stars",
+      "Pay_1_TON": "Оплатить 1 TON",
+      "Pay_89_Stars": "Оплатить 89 Stars",
+      "Pay_4_TON": "Оплатить 4 TON",
+      "Pay_389_Stars": "Оплатить 389 Stars",
+      "Neon": "Неон",
+      "Gold": "Золото",
+      "Midnight_Pro": "Полуночный Про",
+      "AIRDROP_NEWS_TRADING": "ЭЙРДРОП • НОВОСТИ • ТРЕЙДИНГ"
     },
     en: {
       "Calculator": "Calculator",
@@ -1781,6 +1750,18 @@ const locales = {
       "ACH_PREMIUM_DESC": "Activate Premium.",
       "ACH_THEME_TITLE": "Theme master",
       "ACH_THEME_DESC": "Apply 3 premium themes.",
+      "1_TON": "1 TON",
+      "89_Stars": "89 Stars",
+      "4_TON": "4 TON",
+      "389_Stars": "389 Stars",
+      "Pay_1_TON": "Pay 1 TON",
+      "Pay_89_Stars": "Pay 89 Stars",
+      "Pay_4_TON": "Pay 4 TON",
+      "Pay_389_Stars": "Pay 389 Stars",
+      "Neon": "Neon",
+      "Gold": "Gold",
+      "Midnight_Pro": "Midnight Pro",
+      "AIRDROP_NEWS_TRADING": "AIRDROP • NEWS • TRADING"
     }
   };
   let lang = 'en';
@@ -1802,7 +1783,7 @@ const locales = {
         el.textContent = translation;
       }
     });
-        document.getElementById('main_tab_calc').querySelector('span:last-child').textContent = t('Calculator');
+    document.getElementById('main_tab_calc').querySelector('span:last-child').textContent = t('Calculator');
     document.getElementById('main_tab_support').querySelector('span:last-child').textContent = t('Support');
     document.querySelector('.history h4').querySelector('span').textContent = t('History');
     dcaRows.forEach(row => {
@@ -1820,11 +1801,8 @@ const locales = {
     if (window.TelegramAnalytics) {
       window.TelegramAnalytics.trackEvent('toast_shown', { message: msg.substring(0, 50) });
     }
-  // ===== Achievements =====
   }
 
-
-  // ===== Premium =====
   const PREMIUM_KEY = 'tc_premium_v1';
   function loadPremium(){
     try{
@@ -1914,11 +1892,10 @@ const locales = {
     { id: 'card_open', icon: '🃏', titleKey: 'ACH_CARD_TITLE', descKey: 'ACH_CARD_DESC', type: 'one' },
     { id: 'share', icon: '📤', titleKey: 'ACH_SHARE_TITLE', descKey: 'ACH_SHARE_DESC', type: 'one' },
     { id: 'tip', icon: '💎', titleKey: 'ACH_TIP_TITLE', descKey: 'ACH_TIP_DESC', type: 'one' },
-    { id: 'history_10', icon: '📜', titleKey: 'ACH_HISTORY_TITLE', descKey: 'ACH_HISTORY_DESC', type: 'count', counter: 'history_saved', need: 10 }
-      ,
+    { id: 'history_10', icon: '📜', titleKey: 'ACH_HISTORY_TITLE', descKey: 'ACH_HISTORY_DESC', type: 'count', counter: 'history_saved', need: 10 },
     { id: 'premium_user', icon: '💎', titleKey: 'ACH_PREMIUM_TITLE', descKey: 'ACH_PREMIUM_DESC', type: 'one', premium: true },
     { id: 'theme_master', icon: '🌈', titleKey: 'ACH_THEME_TITLE', descKey: 'ACH_THEME_DESC', type: 'count', counter: 'premium_themes', need: 3, premium: true }
-];
+  ];
   await storageReady;
   let achState = loadAchState();
 
@@ -2578,7 +2555,7 @@ const locales = {
   document.getElementById('open_support').addEventListener('click', () => {
     window.open('https://t.me/ChalovSupportBot', '_blank');
   });
-    document.getElementById('link_telegram').addEventListener('click', (e) => {
+  document.getElementById('link_telegram').addEventListener('click', (e) => {
     e.preventDefault();
     window.open('https://t.me/ChalovCrypto', '_blank');
   });
@@ -2794,10 +2771,9 @@ const locales = {
     }
   });
   initTonConnect();
-  // Premium UI
+
   document.getElementById('premium_back_btn').addEventListener('click', () => setMainTab('calc'));
   
-  // Premium themes (premium-only)
   document.querySelectorAll('[data-premium-theme]').forEach(btn => {
     btn.addEventListener('click', () => {
       const theme = btn.getAttribute('data-premium-theme');
@@ -2809,14 +2785,11 @@ const locales = {
     });
   });
 
-  // Restore premium theme
   try {
     const savedTheme = localStorage.getItem('tc_premium_theme');
     if (savedTheme) document.documentElement.setAttribute('data-premium-theme', savedTheme);
   } catch(e){}
 
-  // TON payments for Premium (server-verified)
-  // Backend creates an order with a UNIQUE amount (anti-spoof). Then we verify on server.
   async function createTonOrder(plan){
     const initData = getInitData();
     if (!initData) throw new Error('no_initdata');
@@ -2859,7 +2832,6 @@ const locales = {
       await tonConnectUI.sendTransaction(tx);
       showToast(t('Transaction sent'));
 
-      // One quick confirm attempt; if blockchain is slow, user can press "Check payment".
       try{
         const res = await confirmTonOrder(order.orderId);
         if (res.granted) {
@@ -2879,7 +2851,6 @@ const locales = {
     }
   }
 
-  // Extra button for manual re-check (appears in Premium screen)
   const tonCheckBtn = document.getElementById('ton_check_btn');
   if (tonCheckBtn){
     tonCheckBtn.addEventListener('click', async () => {
@@ -2903,52 +2874,49 @@ const locales = {
   document.getElementById('pay_ton_30').addEventListener('click', () => payTonPlan('ton_30d'));
   document.getElementById('pay_ton_life').addEventListener('click', () => payTonPlan('ton_lifetime'));
 
-async function openStarsInvoice(plan){
-  if (!tg || !tg.openInvoice) { showToast('tg.openInvoice not available'); return; }
+  async function openStarsInvoice(plan){
+    if (!tg || !tg.openInvoice) { showToast('tg.openInvoice not available'); return; }
 
-  const initData = getInitData();
-  if (!initData) { showToast('No initData (open inside Telegram)'); return; }
+    const initData = getInitData();
+    if (!initData) { showToast('No initData (open inside Telegram)'); return; }
 
-  try{
-    const resp = await fetch(`${API_BASE}/api/stars/invoice?plan=${encodeURIComponent(plan)}`, {
-      method:'GET',
-      headers:{ 'X-Telegram-Init-Data': initData }
-    });
+    try{
+      const resp = await fetch(`${API_BASE}/api/stars/invoice?plan=${encodeURIComponent(plan)}`, {
+        method:'GET',
+        headers:{ 'X-Telegram-Init-Data': initData }
+      });
 
-    const text = await resp.text();
-    let data = null;
-    try { data = JSON.parse(text); } catch {}
+      const text = await resp.text();
+      let data = null;
+      try { data = JSON.parse(text); } catch {}
 
-    if (!resp.ok) {
-      showToast(`API ${resp.status}: ${data?.error || text}`);
-      return;
-    }
-
-    if (!data?.ok || !data.url) {
-      showToast(`API: ${data?.error || text || 'bad response'}`);
-      return;
-    }
-
-    tg.openInvoice(data.url, async (status) => {
-      // status: paid / cancelled / failed / pending ...
-      showToast(`Invoice status: ${status}`);
-      if (status === 'paid') {
-        await refreshPremiumStatus();
+      if (!resp.ok) {
+        showToast(`API ${resp.status}: ${data?.error || text}`);
+        return;
       }
-    });
-  }catch(e){
-    console.error(e);
-    showToast(`Exception: ${e?.message || e}`);
+
+      if (!data?.ok || !data.url) {
+        showToast(`API: ${data?.error || text || 'bad response'}`);
+        return;
+      }
+
+      tg.openInvoice(data.url, async (status) => {
+        showToast(`Invoice status: ${status}`);
+        if (status === 'paid') {
+          await refreshPremiumStatus();
+        }
+      });
+    }catch(e){
+      console.error(e);
+      showToast(`Exception: ${e?.message || e}`);
+    }
   }
-}
 
   document.getElementById('pay_stars_30').addEventListener('click', () => openStarsInvoice('stars_30d'));
   document.getElementById('pay_stars_life').addEventListener('click', () => openStarsInvoice('stars_lifetime'));
 
-  // Update premium status text when entering Premium
   renderPremiumStatus();
   translateAll();
-  // achievements init
   if (!isUnlocked('first_launch')) unlockAchievement('first_launch');
   renderAchievements();
   clearDCA();
@@ -2962,3 +2930,4 @@ async function openStarsInvoice(plan){
 </script>
 </body>
 </html>
+```
