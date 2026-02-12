@@ -1838,6 +1838,32 @@
     const el = document.getElementById('premium_status_text');
     if (el) el.textContent = premiumStatusText();
   }
+  
+  async function refreshPremiumStatus() {
+    try {
+      const initData = getInitData();
+      if (!initData) return;
+      const resp = await fetch(`${API_BASE}/api/premium/status`, {
+        headers: { 'X-Telegram-Init-Data': initData }
+      });
+      const data = await resp.json();
+      if (data.ok) {
+        if (data.lifetime) {
+          activatePremiumLifetime('from_server', '');
+        } else if (data.expiresAt) {
+          const remaining = data.expiresAt - Date.now();
+          if (remaining > 0) {
+            activatePremiumDays(Math.ceil(remaining / 86400000), 'from_server', '');
+          }
+        } else {
+          resetPremium();
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to refresh premium status', e);
+    }
+  }
+
   function activatePremiumDays(days, plan, tx){
     const p = loadPremium();
     const now = Date.now();
