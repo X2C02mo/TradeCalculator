@@ -7,12 +7,18 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
   <script type="module">
-    const TG_ANALYTICS_TOKEN = "your_analytics_token_here";
+    const TG_ANALYTICS_TOKEN = "eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=";
     const TG_ANALYTICS_APP_NAME = "trader_calculator";
 
     function validateAnalyticsConfig() {
       return TG_ANALYTICS_TOKEN && TG_ANALYTICS_TOKEN.length > 10;
     }
+
+    window.TelegramAnalytics = {
+      init: () => {},
+      trackEvent: () => {},
+      trackView: () => {}
+    };
 
     const boot = async () => {
       if (!validateAnalyticsConfig()) {
@@ -28,6 +34,9 @@
       setTimeout(() => {
         import('https://esm.sh/@telegram-apps/analytics').then(({ init, trackEvent, trackView }) => {
           try {
+            const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+            const userId = user?.id?.toString();
+
             init({
               token: TG_ANALYTICS_TOKEN,
               appName: TG_ANALYTICS_APP_NAME,
@@ -37,11 +46,13 @@
 
             trackEvent('app_launch', {
               platform: navigator.platform,
+              user_id: userId,
               theme: window.Telegram?.WebApp?.colorScheme,
-              language: window.Telegram?.WebApp?.initDataUnsafe?.user?.language_code || 'en'
+              user_agent: navigator.userAgent.substring(0, 100)
             });
 
             trackView('main_screen');
+            console.log('Telegram Analytics SDK initialized');
 
             window.TelegramAnalytics = { init, trackEvent, trackView };
           } catch (error) {
@@ -910,26 +921,6 @@
 
 .ach-item.locked{opacity:.55;filter:saturate(.6)}
 .iconbtn.active{box-shadow:0 0 0 2px rgba(var(--accent-rgb),.35) inset}
-
-.plan .row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 12px;
-}
-.plan .row .btn {
-  flex: 1 1 calc(50% - 5px);
-  min-width: 140px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
-@media (max-width: 480px) {
-  .plan .row .btn {
-    flex: 1 1 100%;
-    min-width: 100%;
-  }
-}
 </style>
 </head>
 <body>
@@ -1367,6 +1358,7 @@
 </div>
 <script>
 (async function(){
+  'use strict';
   const tg = window.Telegram?.WebApp || null;
   if (tg) {
     tg.expand();
@@ -1459,8 +1451,8 @@
     mainBtnSupport.classList.toggle('active', which === 'support');
     premiumBtn.classList.toggle('active', which === 'premium');
     settingsBtn.classList.toggle('active', which === 'settings');
-    if (window.TelegramAnalytics?.trackView) {
-      window.TelegramAnalytics.trackView(`${which}_screen`);
+    if (window.TelegramAnalytics) {
+      window.TelegramAnalytics.trackEvent('screen_view', { screen: which });
     }
   }
 
@@ -1847,6 +1839,7 @@
     if (el) el.textContent = premiumStatusText();
   }
 
+  // ✅ NEW: refreshPremiumStatus – fetch server state and update local storage
   async function refreshPremiumStatus() {
     const initData = getInitData();
     if (!initData) return;
@@ -2135,9 +2128,6 @@
       const target = btn.dataset.tab;
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(target).classList.add('active');
-      if (window.TelegramAnalytics?.trackView) {
-        window.TelegramAnalytics.trackView(`calculator_${target}_tab`);
-      }
       if (target === 'ind' && !lastIndicators) fetchIndicators();
       if (window.TelegramAnalytics) {
         window.TelegramAnalytics.trackEvent('tab_switched', { tab: target });
@@ -2863,6 +2853,7 @@
     return data;
   }
 
+  // ✅ IMPROVED: payTonPlan with detailed error messages
   async function payTonPlan(plan){
     if (!tonConnectUI?.connected) {
       showToast(t('Connect wallet first'));
@@ -2890,6 +2881,7 @@
           window.__lastTonOrderId = order.orderId;
         }
       }catch(e){
+        // Extract server error message if possible
         let errMsg = t('Error');
         if (e.response) {
           try {
