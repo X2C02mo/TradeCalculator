@@ -427,6 +427,28 @@
       color: var(--accent);
       transform: translateY(-2px);
     }
+    .btn.loading {
+      color: transparent !important;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    .btn.loading::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      top: 50%;
+      left: 50%;
+      margin-left: -10px;
+      margin-top: -10px;
+      border: 2px solid rgba(0,0,0,0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
     .chips {
       display: flex;
       gap: 8px;
@@ -2887,11 +2909,25 @@
     return data;
   }
 
-  async function payTonPlan(plan){
+  // Вспомогательная функция для управления состоянием загрузки кнопки
+  function setButtonLoading(button, isLoading) {
+    if (!button) return;
+    if (isLoading) {
+      button.classList.add('loading');
+      button.disabled = true;
+    } else {
+      button.classList.remove('loading');
+      button.disabled = false;
+    }
+  }
+
+  // Оплата TON с индикатором загрузки
+  async function payTonPlan(plan, button){
     if (!tonConnectUI?.connected) {
       showToast(t('Connect wallet in the support tab'));
       return;
     }
+    setButtonLoading(button, true);
     try{
       const order = await createTonOrder(plan);
       const tx = {
@@ -2938,38 +2974,40 @@
       }
       showToast(errMsg);
       console.error(e);
+    } finally {
+      setButtonLoading(button, false);
     }
   }
 
-  const tonCheckBtn = document.getElementById('ton_check_btn');
-  if (tonCheckBtn){
-    tonCheckBtn.addEventListener('click', async () => {
-      const orderId = window.__lastTonOrderId;
-      if (!orderId) { showToast(t('No pending payment')); return; }
-      try{
-        const res = await confirmTonOrder(orderId);
-        if (res.granted) {
-          showToast(t('Premium activated'));
-          await refreshPremiumStatus();
-          window.__lastTonOrderId = null;
-        } else {
-          showToast(t('Waiting for confirmation'));
-        }
-      }catch(e){
+  // Проверка платежа TON с индикатором загрузки
+  async function handleCheckPayment(button) {
+    const orderId = window.__lastTonOrderId;
+    if (!orderId) { showToast(t('No pending payment')); return; }
+    setButtonLoading(button, true);
+    try{
+      const res = await confirmTonOrder(orderId);
+      if (res.granted) {
+        showToast(t('Premium activated'));
+        await refreshPremiumStatus();
+        window.__lastTonOrderId = null;
+      } else {
         showToast(t('Waiting for confirmation'));
       }
-    });
+    }catch(e){
+      showToast(t('Waiting for confirmation'));
+    } finally {
+      setButtonLoading(button, false);
+    }
   }
 
-  document.getElementById('pay_ton_30').addEventListener('click', () => payTonPlan('ton_30d'));
-  document.getElementById('pay_ton_life').addEventListener('click', () => payTonPlan('ton_lifetime'));
-
-  async function openStarsInvoice(plan){
+  // Оплата Stars с индикатором загрузки
+  async function openStarsInvoice(plan, button){
     if (!tg || !tg.openInvoice) { showToast('tg.openInvoice not available'); return; }
 
     const initData = getInitData();
     if (!initData) { showToast('No initData (open inside Telegram)'); return; }
 
+    setButtonLoading(button, true);
     try{
       const resp = await fetch(`${API_BASE}/api/stars/invoice?plan=${encodeURIComponent(plan)}`, {
         method:'GET',
@@ -2982,11 +3020,13 @@
 
       if (!resp.ok) {
         showToast(`API ${resp.status}: ${data?.error || text}`);
+        setButtonLoading(button, false);
         return;
       }
 
       if (!data?.ok || !data.url) {
         showToast(`API: ${data?.error || text || 'bad response'}`);
+        setButtonLoading(button, false);
         return;
       }
 
@@ -2995,15 +3035,44 @@
         if (status === 'paid') {
           await refreshPremiumStatus();
         }
+        setButtonLoading(button, false);
       });
+      // Не убираем лоадер сразу – он снимется в колбэке после закрытия инвойса
     }catch(e){
       console.error(e);
       showToast(`Exception: ${e?.message || e}`);
+      setButtonLoading(button, false);
     }
   }
 
-  document.getElementById('pay_stars_30').addEventListener('click', () => openStarsInvoice('stars_30d'));
-  document.getElementById('pay_stars_life').addEventListener('click', () => openStarsInvoice('stars_lifetime'));
+  // Привязываем обработчики с передачей кнопки
+  document.getElementById('pay_ton_30').addEventListener('click', function(e) {
+    payTonPlan('ton_30d', this);
+  });
+  document.getElementById('pay_ton_life').addEventListener('click', function(e) {
+    payTonPlan('ton_lifetime', this);
+  });
+  document.getElementById('pay_stars_30').addEventListener('click', function(e) {
+    openStarsInvoice('stars_30d', this);
+  });
+  document.getElementById('pay_stars_life').addEventListener('click', function(e) {
+    openStarsInvoice('stars_lifetime', this);
+  });
+  document.getElementById('ton_check_btn').addEventListener('click', function(e) {
+    handleCheckPayment(this);
+  });
+
+  renderPremiumStatus();
+  translateAll();
+  if (!isUnlocked('first_launch')) unlockAchievement('first_launch');
+  renderAchievements();
+  clearDCA();
+  calcRR();
+  calcCap();
+  renderHistory();
+  if (window.TelegramAnalytics) {
+    window.TelegramAnalytics.trackEvent('app_loaded');
+  }
 
   // === Premium feature implementations ===
 
@@ -3066,18 +3135,6 @@
       if (!requirePremium('Font selection')) return;
       setFont('roboto');
     });
-  }
-
-  renderPremiumStatus();
-  translateAll();
-  if (!isUnlocked('first_launch')) unlockAchievement('first_launch');
-  renderAchievements();
-  clearDCA();
-  calcRR();
-  calcCap();
-  renderHistory();
-  if (window.TelegramAnalytics) {
-    window.TelegramAnalytics.trackEvent('app_loaded');
   }
 })();
 </script>
