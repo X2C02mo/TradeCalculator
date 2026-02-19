@@ -4,60 +4,33 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Trader Calculator</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
-<script type="module">
-const TG_ANALYTICS_TOKEN = "eyJhcHBfbmFtZSI6IkNhbGN1bGF0b3JUcmFkZXJCb3QiLCJhcHBfdXJsIjoiaHR0cHM6Ly90Lm1lL0NhbGN1bGF0b3JUcmFkZXJCb3QiLCJhcHBfZG9tYWluIjoiaHR0cHM6Ly92ZXJjZWwuY29tLzJzLXByb2plY3RzLTFiMmZiYmM4L3RyYWRlLWNhbGN1bGF0b3IvQTFGb0o3ZkdFVE1oVHk0SFV4MTF1YkJYbjI4dSJ9!/lyGG65X4/RVvUKaoGS+/6HXHmNpuTlgpxRdD5xcelo=";
-const TG_ANALYTICS_APP_NAME = "CalculatorTraderBot";
-function validateAnalyticsConfig() {
-return TG_ANALYTICS_TOKEN && TG_ANALYTICS_TOKEN.length > 10;
-}
-window.TelegramAnalytics = {
-init: () => {},
-trackEvent: () => {},
-trackView: () => {}
-};
-const boot = async () => {
-if (!validateAnalyticsConfig()) {
-console.error('Invalid analytics token');
-return;
-}
-if (!window.Telegram?.WebApp) {
-console.log('Not in Telegram environment');
-return;
-}
-setTimeout(() => {
-import('https://esm.sh/@telegram-apps/analytics').then(({ init, trackEvent, trackView }) => {
-try {
-const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
-const userId = user?.id?.toString();
-init({
-token: TG_ANALYTICS_TOKEN,
-appName: TG_ANALYTICS_APP_NAME,
-autotrack: true,
-debug: false
-});
-trackEvent('app_launch', {
-platform: navigator.platform,
-user_id: userId,
-theme: window.Telegram?.WebApp?.colorScheme,
-user_agent: navigator.userAgent.substring(0, 100)
-});
-trackView('main_screen');
-console.log('Telegram Analytics SDK initialized');
-window.TelegramAnalytics = { init, trackEvent, trackView };
-} catch (error) {
-console.error('Telegram Analytics SDK error:', error);
-}
-});
-}, 1000);
-};
-if (document.readyState === 'loading') {
-document.addEventListener('DOMContentLoaded', () => { boot().catch(console.error); });
-} else {
-boot().catch(console.error);
-}
-</script>
+    <script 
+        async 
+        src="https://tganalytics.xyz/index.js" 
+        onload="initAnalytics()" 
+        type="text/javascript"
+    ></script>
+
+    <script>
+        function initAnalytics() {
+            // Убедитесь, что объект analytics загружен
+            if (window.telegramAnalytics) {
+                window.telegramAnalytics.init({
+                    token: 'ВАШ_ТОКЕН', // Токен от @DataChief_bot
+                    appName: 'trader_calculator' // Или то, что указали в боте
+                });
+                console.log('Telegram Analytics SDK initialized successfully');
+                
+                /
+                window.telegramAnalytics.trackEvent('app_launch', {
+                    platform: navigator.platform
+                });
+            } else {
+                console.error('Telegram Analytics SDK failed to load');
+            }
+        }
+    </script>
+</head>
 <style>
 :root {
 --bg: #0a0a0a;
