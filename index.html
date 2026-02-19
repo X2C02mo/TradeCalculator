@@ -384,7 +384,7 @@
       font-size: 13px;
       transition: all 0.3s ease;
       position: relative;
-      overflow: hidden;
+      overflow: hidden; /* для ripple, но для loading отключим */
     }
     .btn::after {
       content: '';
@@ -427,12 +427,13 @@
       color: var(--accent);
       transform: translateY(-2px);
     }
-    /* Улучшенные стили для состояния загрузки */
+    /* Улучшенные стили для состояния загрузки - переопределяем overflow */
     .btn.loading {
       color: transparent !important;
       pointer-events: none;
       opacity: 0.7;
       position: relative;
+      overflow: visible !important; /* чтобы спиннер не обрезался */
     }
     .btn.loading::after {
       content: '';
