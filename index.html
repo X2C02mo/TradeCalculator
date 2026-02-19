@@ -4,38 +4,59 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Trader Calculator</title>
-
-
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-
 <script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
-
-
-<script 
-    async 
-    src="https://tganalytics.xyz/index.js" 
-    onload="initAnalytics()" 
-    type="text/javascript"
-></script>
-
-<script>
-    function initAnalytics() {
-        if (window.telegramAnalytics) {
-            window.telegramAnalytics.init({
-                token: 'eyJhcHBfbmFtZSI6IkNhbGN1bGF0b3JUcmFkZXIiLCJhcHBfdXJsIjoiaHR0cHM6Ly90Lm1lL0NhbGN1bGF0b3JUcmFkZXJCb3QiLCJhcHBfZG9tYWluIjoiaHR0cHM6Ly90cmFkZS1jYWxjdWxhdG9yLWZpdmUudmVyY2VsLmFwcCJ9!zWnEmg/2eMVbB1RuP0DEIz1FSSOi0Q5+a4V/NZcCNB0=',
-                appName: 'CalculatorTrader'
-            });
-            console.log('Telegram Analytics SDK initialized successfully');
-            
-            
-            window.telegramAnalytics.trackEvent('app_launch', {
-                platform: navigator.platform
-            });
-        } else {
-            console.error('Telegram Analytics SDK failed to load');
-        }
-    }
+<script type="module">
+const TG_ANALYTICS_TOKEN = "eyJhcHBfbmFtZSI6InRyYWRlcl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAifQ==!+ZTX3Nk0y5cUIMvJ8jWfv22EWL8UPctpRGiFct3mBr0=";
+const TG_ANALYTICS_APP_NAME = "trader_calculator";
+function validateAnalyticsConfig() {
+return TG_ANALYTICS_TOKEN && TG_ANALYTICS_TOKEN.length > 10;
+}
+window.TelegramAnalytics = {
+init: () => {},
+trackEvent: () => {},
+trackView: () => {}
+};
+const boot = async () => {
+if (!validateAnalyticsConfig()) {
+console.error('Invalid analytics token');
+return;
+}
+if (!window.Telegram?.WebApp) {
+console.log('Not in Telegram environment');
+return;
+}
+setTimeout(() => {
+import('https://esm.sh/@telegram-apps/analytics').then(({ init, trackEvent, trackView }) => {
+try {
+const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+const userId = user?.id?.toString();
+init({
+token: TG_ANALYTICS_TOKEN,
+appName: TG_ANALYTICS_APP_NAME,
+autotrack: true,
+debug: false
+});
+trackEvent('app_launch', {
+platform: navigator.platform,
+user_id: userId,
+theme: window.Telegram?.WebApp?.colorScheme,
+user_agent: navigator.userAgent.substring(0, 100)
+});
+trackView('main_screen');
+console.log('Telegram Analytics SDK initialized');
+window.TelegramAnalytics = { init, trackEvent, trackView };
+} catch (error) {
+console.error('Telegram Analytics SDK error:', error);
+}
+});
+}, 1000);
+};
+if (document.readyState === 'loading') {
+document.addEventListener('DOMContentLoaded', () => { boot().catch(console.error); });
+} else {
+boot().catch(console.error);
+}
 </script>
 <style>
 :root {
@@ -158,20 +179,27 @@ box-shadow: 0 2px 8px rgba(124, 252, 0, 0.3);
 border: 1px solid var(--border);
 background: var(--chip);
 color: var(--text);
-padding: 6px 12px;
-border-radius: 8px;
+padding: 10px 16px;
+border-radius: 12px;
 cursor: pointer;
 font-size: 13px;
 font-weight: 600;
 display: inline-flex;
 align-items: center;
-gap: 6px;
+gap: 8px;
 transition: all 0.3s ease;
 }
 .iconbtn:hover {
 border-color: var(--accent);
 transform: translateY(-2px);
 box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.iconbtn.active {
+background: linear-gradient(135deg, var(--accent), rgba(var(--accent-rgb), 0.8));
+color: #000;
+border-color: var(--accent);
+box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.3);
+transform: translateY(-2px);
 }
 main {
 flex: 1;
@@ -192,32 +220,38 @@ animation: fadeIn 0.4s ease;
 display: block;
 }
 .subtabs {
-display: flex;
-gap: 8px;
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 10px;
 margin-bottom: 20px;
 flex-wrap: wrap;
 }
 .subtab {
 background: var(--chip);
-border: 1px solid var(--border);
+border: 2px solid var(--border);
 color: var(--muted);
 font-size: 14px;
-padding: 8px 16px;
+padding: 12px 16px;
 cursor: pointer;
-border-radius: 8px;
-font-weight: 600;
+border-radius: 14px;
+font-weight: 700;
 transition: all 0.3s ease;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
 }
 .subtab:hover {
-border-color: var(--accent);
+border-color: rgba(var(--accent-rgb), 0.5);
+background: rgba(var(--accent-rgb), 0.1);
 transform: translateY(-2px);
 }
 .subtab.active {
-background: var(--accent);
+background: linear-gradient(135deg, var(--accent), rgba(var(--accent-rgb), 0.9));
 color: #000;
 border-color: var(--accent);
-transform: scale(1.05);
-box-shadow: 0 4px 12px rgba(124, 252, 0, 0.3);
+transform: scale(1.02);
+box-shadow: 0 6px 20px rgba(var(--accent-rgb), 0.4);
 }
 .panels {
 display: flex;
@@ -613,7 +647,8 @@ bottom: 0;
 z-index: 100;
 padding: 12px 16px;
 border-top: 1px solid var(--border);
-background: var(--panel);
+background: rgba(var(--panel), 0.95);
+backdrop-filter: blur(20px);
 display: flex;
 justify-content: center;
 animation: slideUp 0.4s ease;
@@ -628,10 +663,10 @@ flex: 1;
 border: 1px solid var(--border);
 background: var(--chip);
 color: var(--muted);
-border-radius: 8px;
-padding: 10px;
+border-radius: 12px;
+padding: 12px 16px;
 cursor: pointer;
-font-weight: 600;
+font-weight: 700;
 font-size: 13px;
 display: flex;
 align-items: center;
@@ -644,11 +679,11 @@ border-color: var(--accent);
 transform: translateY(-2px);
 }
 .main-tab.active {
-background: var(--accent);
+background: linear-gradient(135deg, var(--accent), rgba(var(--accent-rgb), 0.8));
 color: #000;
 border-color: var(--accent);
 transform: scale(1.05);
-box-shadow: 0 4px 12px rgba(124, 252, 0, 0.3);
+box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.3);
 }
 #toast {
 position: fixed;
@@ -866,7 +901,7 @@ display: inline-flex !important;
 align-items: center;
 }
 .main-tab {
-padding: 8px 10px;
+padding: 10px 12px;
 font-size: 12px;
 gap: 6px;
 }
@@ -878,7 +913,7 @@ display: inline !important;
 .main-tab {
 font-size: 11px;
 gap: 4px;
-padding: 6px 8px;
+padding: 8px 10px;
 }
 .main-tab span:last-child {
 max-width: 60px;
@@ -911,180 +946,12 @@ white-space: nowrap;
 }
 .ach-item.locked{opacity:.55;filter:saturate(.6)}
 .iconbtn.active{box-shadow:0 0 0 2px rgba(var(--accent-rgb),.35) inset}
-/* Premium font options */
 :root[data-font="roboto"] {
 font-family: 'Roboto', system-ui, -apple-system, sans-serif;
 }
 :root[data-font="inter"] {
 font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
-/* === Premium Plans Cards Styles === */
-.premium-plans {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    margin: 20px 0;
-}
-
-.premium-plan-card {
-    background: linear-gradient(135deg, rgba(0,255,136,0.1) 0%, rgba(0,255,136,0.05) 100%);
-    border: 2px solid rgba(0,255,136,0.3);
-    border-radius: 16px;
-    padding: 20px;
-    position: relative;
-    overflow: hidden;
-}
-
-.premium-plan-card.lifetime {
-    background: linear-gradient(135deg, rgba(255,215,0,0.15) 0%, rgba(255,215,0,0.05) 100%);
-    border-color: rgba(255,215,0,0.4);
-}
-
-.premium-plan-card.recommended::after {
-    content: "🔥 POPULAR";
-    position: absolute;
-    top: 10px;
-    right: -30px;
-    background: linear-gradient(90deg, #00ff88, #00cc6a);
-    color: #000;
-    padding: 4px 40px;
-    font-size: 11px;
-    font-weight: bold;
-    transform: rotate(45deg);
-}
-
-.plan-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.plan-title {
-    font-size: 20px;
-    font-weight: bold;
-    color: var(--text);
-}
-
-.plan-prices {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.price-tag {
-    background: rgba(0,255,136,0.2);
-    border: 1px solid rgba(0,255,136,0.5);
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.price-tag.stars {
-    background: rgba(255,193,7,0.2);
-    border-color: rgba(255,193,7,0.5);
-}
-
-.plan-description {
-    color: var(--muted);
-    font-size: 14px;
-    margin-bottom: 16px;
-    line-height: 1.5;
-}
-
-.plan-payment-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.payment-btn {
-    background: linear-gradient(90deg, #00ff88, #00cc6a);
-    color: #000;
-    border: none;
-    padding: 14px 20px;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-align: center;
-    text-decoration: none;
-    display: block;
-}
-
-.payment-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0,255,136,0.4);
-}
-
-.payment-btn.stars {
-    background: linear-gradient(90deg, #ffc107, #ff9800);
-}
-
-.payment-btn.lifetime {
-    background: linear-gradient(90deg, #ffd700, #ffb300);
-}
-
-.payment-btn.lifetime:hover {
-    box-shadow: 0 8px 20px rgba(255,215,0,0.4);
-}
-
-/* Features List */
-.premium-features {
-    background: rgba(255,255,255,0.05);
-    border-radius: 12px;
-    padding: 20px;
-    margin-top: 30px;
-}
-
-.feature-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    margin-bottom: 12px;
-    font-size: 14px;
-}
-
-.feature-item:last-child {
-    margin-bottom: 0;
-}
-
-.feature-icon {
-    font-size: 18px;
-    flex-shrink: 0;
-}
-
-/* Themes Grid */
-.themes-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 12px;
-    margin-top: 15px;
-}
-
-.theme-card {
-    border: 2px solid rgba(255,255,255,0.1);
-    border-radius: 10px;
-    padding: 15px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.theme-card:hover {
-    border-color: var(--accent);
-    transform: translateY(-3px);
-}
-
-.theme-card.active {
-    border-color: var(--accent);
-    background: rgba(0,255,136,0.1);
-}
-
 @media (max-width: 600px) {
 .premium-head {
 flex-wrap: wrap;
@@ -1344,7 +1211,6 @@ Add multiple entries to calculate average price, total volume and cost.
 <button class="btn" id="refresh_ind" data-i18n="Refresh Data">Refresh Data</button>
 <span class="small" id="ind_note"></span>
 </div>
-<!-- AI Tips block (Premium) -->
 <div class="card" style="margin-top:16px; padding:16px;" id="ai_tips_block">
 <h4 style="margin:0 0 8px 0; color:var(--accent);">🤖 <span data-i18n="AI Tips">AI Tips</span></h4>
 <div id="ai_tip_text" style="font-size:14px; margin-bottom:12px;">—</div>
@@ -1370,7 +1236,6 @@ Add multiple entries to calculate average price, total volume and cost.
 <div class="history">
 <h4>📜 <span data-i18n="History">History</span></h4>
 <div class="history-list" id="history_list"></div>
-<!-- Analytics button (Premium) -->
 <button class="btn ghost" id="analytics_btn" style="margin-top:12px; width:100%;" data-i18n="Trade Analytics">Trade Analytics</button>
 </div>
 </div>
@@ -1386,93 +1251,59 @@ Add multiple entries to calculate average price, total volume and cost.
 <button class="btn ghost" id="premium_back_btn">← <span data-i18n="Back to Calculator">Back to Calculator</span></button>
 </div>
 </div>
-
-<!-- NEW PREMIUM PLANS STRUCTURE -->
-<div class="premium-plans">
-    <!-- 30 Days Plan -->
-    <div class="premium-plan-card recommended">
-        <div class="plan-header">
-            <div class="plan-title">🎯 <span data-i18n="30 days access">Premium 30 days</span></div>
-            <div class="plan-prices">
-                <span class="price-tag" data-i18n="1_TON">1 TON</span>
-                <span class="price-tag stars" data-i18n="89_Stars">89 Stars</span>
-            </div>
-        </div>
-        <p class="plan-description" data-i18n="30d note">Full access to all premium features for 30 days. Perfect for testing!</p>
-        <div class="plan-payment-buttons">
-            <button class="payment-btn" id="pay_ton_30" data-i18n="Pay_1_TON">💎 Pay 1 TON</button>
-            <button class="payment-btn stars" id="pay_stars_30" data-i18n="Pay_89_Stars">⭐ Pay 89 Stars</button>
-        </div>
-    </div>
-
-    <!-- Lifetime Plan -->
-    <div class="premium-plan-card lifetime">
-        <div class="plan-header">
-            <div class="plan-title">👑 <span data-i18n="Lifetime">Lifetime Access</span></div>
-            <div class="plan-prices">
-                <span class="price-tag" data-i18n="4_TON">4 TON</span>
-                <span class="price-tag stars" data-i18n="389_Stars">389 Stars</span>
-            </div>
-        </div>
-        <p class="plan-description" data-i18n="Lifetime note">One-time purchase. Unlimited access forever. Best value! 💰</p>
-        <div class="plan-payment-buttons">
-            <button class="payment-btn lifetime" id="pay_ton_life" data-i18n="Pay_4_TON">💎 Pay 4 TON</button>
-            <button class="payment-btn stars lifetime" id="pay_stars_life" data-i18n="Pay_389_Stars">⭐ Pay 389 Stars</button>
-        </div>
-    </div>
+<div class="grid2">
+<div class="card glass">
+<h3 data-i18n="Plans">Plans</h3>
+<div class="plan">
+<div class="plan-row">
+<b data-i18n="30 days access">Premium-status for 30 days</b>
+<span class="pill" data-i18n="1_TON">1 TON</span>
+<span class="pill" data-i18n="89_Stars">89 Stars</span>
 </div>
-
-<!-- Features Section -->
-<div class="premium-features">
-    <h3 style="margin-bottom: 15px; font-size: 18px; color: var(--accent);">✨ <span data-i18n="What you get">What you get</span></h3>
-    <div class="feature-item">
-        <span class="feature-icon">📊</span>
-        <span><strong data-i18n="Advanced Analytics">Advanced Analytics</strong> – deep trade statistics, charts, reports</span>
-    </div>
-    <div class="feature-item">
-        <span class="feature-icon">🤖</span>
-        <span><strong data-i18n="AI Tips">AI tips</strong> – entry/exit recommendations based on market data</span>
-    </div>
-    <div class="feature-item">
-        <span class="feature-icon">🏆</span>
-        <span><strong data-i18n="Secret Achievements">Secret achievements + ranks</strong> – unique badges and levels</span>
-    </div>
-    <div class="feature-item">
-        <span class="feature-icon">🎨</span>
-        <span><strong data-i18n="Personalization">Personalization</strong> – custom colors, fonts, widgets</span>
-    </div>
-    <div class="feature-item">
-        <span class="feature-icon">🌈</span>
-        <span><strong data-i18n="Premium Themes">Premium themes</strong> – exclusive color schemes (Neon, Gold, Midnight)</span>
-    </div>
-    <div class="feature-item">
-        <span class="feature-icon">⚡</span>
-        <span><strong data-i18n="Priority Support">Priority Support</strong> – faster responses</span>
-    </div>
+<div class="muted" data-i18n="30d note">Unlock all premium features for 30 days.</div>
+<div class="row">
+<button class="btn" id="pay_ton_30" data-i18n="Pay_1_TON">Pay 1 TON</button>
+<button class="btn" id="pay_stars_30" data-i18n="Pay_89_Stars">Pay 89 Stars</button>
 </div>
-
-<!-- Themes Section -->
-<div style="margin-top: 30px;">
-    <h3 style="font-size: 18px; margin-bottom: 10px; color: var(--accent);">🎨 <span data-i18n="Premium Themes">Premium Themes</span></h3>
-    <div class="themes-grid">
-        <div class="theme-card" data-premium-theme="neon" style="background: linear-gradient(135deg, #00f2ff, #00ff88);">
-            <div style="color: #000; font-weight: bold;" data-i18n="Neon">Neon</div>
-        </div>
-        <div class="theme-card" data-premium-theme="gold" style="background: linear-gradient(135deg, #ffd700, #ffaa00);">
-            <div style="color: #000; font-weight: bold;" data-i18n="Gold">Gold</div>
-        </div>
-        <div class="theme-card" data-premium-theme="midnight" style="background: linear-gradient(135deg, #1a1a2e, #16213e);">
-            <div style="color: #fff; font-weight: bold;" data-i18n="Midnight_Pro">Midnight Pro</div>
-        </div>
-    </div>
-    <p style="font-size: 12px; color: var(--muted); margin-top: 10px;" data-i18n="Themes note">Themes apply instantly (premium required).</p>
 </div>
-
-<div class="note" style="margin-top: 20px;" data-i18n="Payment note">Payments are processed inside Telegram. After successful payment, Premium will be activated on this device.</div>
+<div class="divider"></div>
+<div class="plan">
+<div class="plan-row">
+<b data-i18n="Lifetime">Lifetime</b>
+<span class="pill" data-i18n="4_TON">4 TON</span>
+<span class="pill" data-i18n="389_Stars">389 Stars</span>
+</div>
+<div class="muted" data-i18n="Lifetime note">One-time purchase, no expiration.</div>
+<div class="row">
+<button class="btn" id="pay_ton_life" data-i18n="Pay_4_TON">Pay 4 TON</button>
+<button class="btn" id="pay_stars_life" data-i18n="Pay_389_Stars">Pay 389 Stars</button>
+</div>
+</div>
+<div class="note" data-i18n="Payment note">Payments are processed inside Telegram. After successful payment, Premium will be activated on this device.</div>
 <div class="controls" style="margin-top:12px">
-    <button class="btn ghost" id="ton_check_btn" data-i18n="Check payment">✓ Check payment</button>
+<button class="btn ghost" id="ton_check_btn" data-i18n="Check payment">Check payment</button>
 </div>
-
+</div>
+<div class="card glass">
+<h3 data-i18n="What you get">What you get</h3>
+<ul class="checklist">
+<li>✅ <span data-i18n="Advanced Analytics">Advanced Analytics – deep trade statistics, charts, reports</span></li>
+<li>✅ <span data-i18n="AI Tips">AI tips – entry/exit recommendations based on market data</span></li>
+<li>✅ <span data-i18n="Secret Achievements">Secret achievements + ranks – unique badges and levels</span></li>
+<li>✅ <span data-i18n="Personalization">Personalization – custom colors, fonts, widgets</span></li>
+<li>✅ <span data-i18n="Premium Themes">Premium themes – exclusive color schemes (Neon, Gold, Midnight)</span></li>
+<li>✅ <span data-i18n="Priority Support">Priority Support – faster responses</span></li>
+</ul>
+<div class="divider"></div>
+<h4 data-i18n="Premium Themes">Premium themes</h4>
+<div class="row wrap">
+<button class="chip" data-premium-theme="neon" data-i18n="Neon">Neon</button>
+<button class="chip" data-premium-theme="gold" data-i18n="Gold">Gold</button>
+<button class="chip" data-premium-theme="midnight" data-i18n="Midnight_Pro">Midnight Pro</button>
+</div>
+<div class="muted" data-i18n="Themes note">Themes apply instantly (premium required).</div>
+</div>
+</div>
 </section>
 <section id="main_settings" class="main-screen">
 <div class="support-wrap">
@@ -1500,7 +1331,6 @@ Language and theme are saved to your account.
 <div class="color-option purple" data-color="#9b59b6"></div>
 <div class="color-option teal" data-color="#2dd4bf"></div>
 </div>
-<!-- Font selector (Premium) -->
 <div class="card glass" style="margin-top:16px;">
 <h4 style="margin:0 0 10px 0">✒️ <span data-i18n="Font">Font</span> <span class="small">(Premium)</span></h4>
 <div class="row">
@@ -1532,7 +1362,6 @@ Connect your wallet for tips and donations. Contact us through the links below.
 <button class="btn" id="wallet_btn" data-i18n="Connect Wallet">Connect Wallet</button>
 <button class="btn" id="tip_btn" data-i18n="Tip 0.05 TON">Tip 0.05 TON</button>
 </div>
-<!-- Priority support button (Premium) -->
 <button class="btn ghost" id="priority_support_btn" style="margin-top:12px; width:100%;" data-i18n="Priority Support (Premium)">Priority Support (Premium)</button>
 <div class="controls" style="margin-top:20px">
 <button class="btn ghost" id="open_terms" data-i18n="Terms">Terms</button>
@@ -3002,8 +2831,6 @@ showToast(t('Error'));
 });
 initTonConnect();
 document.getElementById('premium_back_btn').addEventListener('click', () => setMainTab('calc'));
-
-// Premium themes
 document.querySelectorAll('[data-premium-theme]').forEach(btn => {
 btn.addEventListener('click', () => {
 const theme = btn.getAttribute('data-premium-theme');
@@ -3014,12 +2841,10 @@ try{ onAchievementEvent('premium_theme_applied'); }catch(e){}
 showToast(`${t('Premium Themes')}: ${theme}`);
 });
 });
-
 try {
 const savedTheme = localStorage.getItem('tc_premium_theme');
 if (savedTheme) document.documentElement.setAttribute('data-premium-theme', savedTheme);
 } catch(e){}
-
 async function createTonOrder(plan){
 const initData = getInitData();
 if (!initData) throw new Error('no_initdata');
@@ -3163,8 +2988,32 @@ showToast(`Exception: ${e?.message || e}`);
 setButtonLoading(button, false);
 }
 }
-
-// AI Tips
+document.getElementById('pay_ton_30').addEventListener('click', function(e) {
+payTonPlan('ton_30d', this);
+});
+document.getElementById('pay_ton_life').addEventListener('click', function(e) {
+payTonPlan('ton_lifetime', this);
+});
+document.getElementById('pay_stars_30').addEventListener('click', function(e) {
+openStarsInvoice('stars_30d', this);
+});
+document.getElementById('pay_stars_life').addEventListener('click', function(e) {
+openStarsInvoice('stars_lifetime', this);
+});
+document.getElementById('ton_check_btn').addEventListener('click', function(e) {
+handleCheckPayment(this);
+});
+renderPremiumStatus();
+translateAll();
+if (!isUnlocked('first_launch')) unlockAchievement('first_launch');
+renderAchievements();
+clearDCA();
+calcRR();
+calcCap();
+renderHistory();
+if (window.TelegramAnalytics) {
+window.TelegramAnalytics.trackEvent('app_loaded');
+}
 const aiTips = [
 "Consider buying on dip, RSI oversold.",
 "Market momentum is strong, consider trailing stop.",
@@ -3178,12 +3027,11 @@ function refreshAITip() {
 if (!requirePremium('AI Tips')) return;
 const randomTip = aiTips[Math.floor(Math.random() * aiTips.length)];
 aiTipText.textContent = randomTip;
+onAchievementEvent('ai_tip_used');
 }
 if (aiRefreshBtn) {
 aiRefreshBtn.addEventListener('click', refreshAITip);
 }
-
-// Analytics
 document.getElementById('analytics_btn').addEventListener('click', () => {
 if (!requirePremium('Trade Analytics')) return;
 const history = loadHistory();
@@ -3192,17 +3040,14 @@ showToast('No history data');
 return;
 }
 const totalTrades = history.length;
+const avgProfit = 'N/A';
 showToast(`Analytics: ${totalTrades} trades saved`);
 onAchievementEvent('analytics_view');
 });
-
-// Priority Support
 document.getElementById('priority_support_btn').addEventListener('click', () => {
 if (!requirePremium('Priority Support')) return;
 window.open('https://t.me/ChalovSupportBot?start=priority', '_blank');
 });
-
-// Font selector
 const fontInter = document.getElementById('font_inter');
 const fontRoboto = document.getElementById('font_roboto');
 function setFont(font) {
@@ -3220,18 +3065,6 @@ fontRoboto.addEventListener('click', () => {
 if (!requirePremium('Font selection')) return;
 setFont('roboto');
 });
-}
-
-renderPremiumStatus();
-translateAll();
-if (!isUnlocked('first_launch')) unlockAchievement('first_launch');
-renderAchievements();
-clearDCA();
-calcRR();
-calcCap();
-renderHistory();
-if (window.TelegramAnalytics) {
-window.TelegramAnalytics.trackEvent('app_loaded');
 }
 })();
 </script>
