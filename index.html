@@ -4,33 +4,39 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Trader Calculator</title>
-    <script 
-        async 
-        src="https://tganalytics.xyz/index.js" 
-        onload="initAnalytics()" 
-        type="text/javascript"
-    ></script>
 
-    <script>
-        function initAnalytics() {
-            // Убедитесь, что объект analytics загружен
-            if (window.telegramAnalytics) {
-                window.telegramAnalytics.init({
-                    token: 'ВАШ_ТОКЕН', // Токен от @DataChief_bot
-                    appName: 'trader_calculator' // Или то, что указали в боте
-                });
-                console.log('Telegram Analytics SDK initialized successfully');
-                
-                /
-                window.telegramAnalytics.trackEvent('app_launch', {
-                    platform: navigator.platform
-                });
-            } else {
-                console.error('Telegram Analytics SDK failed to load');
-            }
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+
+<script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
+
+
+<script 
+    async 
+    src="https://tganalytics.xyz/index.js" 
+    onload="initAnalytics()" 
+    type="text/javascript"
+></script>
+
+<script>
+    function initAnalytics() {
+        if (window.telegramAnalytics) {
+            window.telegramAnalytics.init({
+                token: 'eyJhcHBfbmFtZSI6IkNhbGN1bGF0b3JUcmFkZXIiLCJhcHBfdXJsIjoiaHR0cHM6Ly90Lm1lL0NhbGN1bGF0b3JUcmFkZXJCb3QiLCJhcHBfZG9tYWluIjoiaHR0cHM6Ly90cmFkZS1jYWxjdWxhdG9yLWZpdmUudmVyY2VsLmFwcCJ9!zWnEmg/2eMVbB1RuP0DEIz1FSSOi0Q5+a4V/NZcCNB0=',
+                appName: 'CalculatorTrader'
+            });
+            console.log('Telegram Analytics SDK initialized successfully');
+            
+            
+            window.telegramAnalytics.trackEvent('app_launch', {
+                platform: navigator.platform
+            });
+        } else {
+            console.error('Telegram Analytics SDK failed to load');
         }
-    </script>
-</head>
+    }
+</script>
 <style>
 :root {
 --bg: #0a0a0a;
