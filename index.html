@@ -1261,42 +1261,53 @@
       </div>
 
       <div class="grid2">
+        <!-- Левая карточка с тарифами (улучшенная структура) -->
         <div class="card glass">
           <h3 data-i18n="Plans">Plans</h3>
-          <div class="plan">
-            <div class="plan-row">
-              <b data-i18n="30 days access">Premium-status for 30 days</b>
-              <span class="pill" data-i18n="1_TON">1 TON</span>
-              <span class="pill" data-i18n="89_Stars">89 Stars</span>
+          <!-- 30 days plan -->
+          <div class="plan" style="margin-bottom: 24px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <b style="font-size: 18px;" data-i18n="30 days access">30 days Premium</b>
             </div>
-            <div class="muted" data-i18n="30d note">Unlock all premium features for 30 days.</div>
-            <div class="row">
-              <button class="btn" id="pay_ton_30" data-i18n="Pay_1_TON">Pay 1 TON</button>
-              <button class="btn" id="pay_stars_30" data-i18n="Pay_89_Stars">Pay 89 Stars</button>
-            </div>
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="plan">
-            <div class="plan-row">
-              <b data-i18n="Lifetime">Lifetime</b>
-              <span class="pill" data-i18n="4_TON">4 TON</span>
-              <span class="pill" data-i18n="389_Stars">389 Stars</span>
-            </div>
-            <div class="muted" data-i18n="Lifetime note">One-time purchase, no expiration.</div>
-            <div class="row">
-              <button class="btn" id="pay_ton_life" data-i18n="Pay_4_TON">Pay 4 TON</button>
-              <button class="btn" id="pay_stars_life" data-i18n="Pay_389_Stars">Pay 389 Stars</button>
+            <div class="muted" style="margin-bottom: 16px;" data-i18n="30d note">Full access for 30 days</div>
+            <div class="row" style="gap: 8px;">
+              <button class="btn" id="pay_ton_30" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <span>💎</span> 1 TON
+              </button>
+              <button class="btn ghost" id="pay_stars_30" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <span>⭐️</span> 89 Stars
+              </button>
             </div>
           </div>
 
-          <div class="note" data-i18n="Payment note">Payments are processed inside Telegram. After successful payment, Premium will be activated on this device.</div>
-          <div class="controls" style="margin-top:12px">
+          <!-- Разделитель -->
+          <div style="border-top: 1px solid var(--border); margin: 20px 0;"></div>
+
+          <!-- Lifetime plan с бейджем "Best value" -->
+          <div class="plan" style="position: relative;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <b style="font-size: 18px;" data-i18n="Lifetime">Lifetime</b>
+              <span class="badge" style="background: #FFA500; color: #000; border-radius: 12px; padding: 4px 8px; font-size: 11px; font-weight: 700;">Best value</span>
+            </div>
+            <div class="muted" style="margin-bottom: 16px;" data-i18n="Lifetime note">One-time payment, no expiration</div>
+            <div class="row" style="gap: 8px;">
+              <button class="btn" id="pay_ton_life" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <span>💎</span> 4 TON
+              </button>
+              <button class="btn ghost" id="pay_stars_life" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <span>⭐️</span> 389 Stars
+              </button>
+            </div>
+          </div>
+
+          <!-- Примечание и кнопка проверки (без изменений) -->
+          <div class="note" style="margin-top: 20px;" data-i18n="Payment note">Payments are processed inside Telegram. After successful payment, Premium will be activated on this device.</div>
+          <div class="controls" style="margin-top: 12px">
             <button class="btn ghost" id="ton_check_btn" data-i18n="Check payment">Check payment</button>
           </div>
         </div>
 
+        <!-- Правая карточка (преимущества, темы) без изменений -->
         <div class="card glass">
           <h3 data-i18n="What you get">What you get</h3>
           <ul class="checklist">
@@ -1317,8 +1328,6 @@
           <div class="muted" data-i18n="Themes note">Themes apply instantly (premium required).</div>
         </div>
       </div>
-
-      <!-- Premium features preview / placeholders removed, already in checklist -->
     </section>
 
     <section id="main_settings" class="main-screen">
