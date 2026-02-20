@@ -2035,6 +2035,8 @@ dcaRows.forEach(row => {
 row.pEl.placeholder = t('Price');
 row.vEl.placeholder = t('Volume');
 });
+// Обновляем статус премиума при смене языка
+renderPremiumStatus();
 }
 let toastTimer = null;
 function showToast(msg) {
@@ -3016,9 +3018,19 @@ const resp = await fetch(`${API_BASE}/api/ton/order?plan=${encodeURIComponent(pl
 method:'GET',
 headers:{ 'X-Telegram-Init-Data': initData }
 });
-const data = await resp.json();
-if (!data?.ok) throw new Error(data?.error || 'order_failed');
+// Проверяем статус ответа и пытаемся получить тело ошибки
+let errorText = '';
+try {
+const text = await resp.text();
+let data;
+try { data = JSON.parse(text); } catch { data = null; }
+if (!resp.ok) {
+throw new Error(`API ${resp.status}: ${data?.error || text || 'Unknown error'}`);
+}
 return data;
+} catch (e) {
+throw new Error(`Network error: ${e.message}`);
+}
 }
 async function confirmTonOrder(orderId){
 const initData = getInitData();
@@ -3028,8 +3040,12 @@ method:'POST',
 headers:{ 'content-type':'application/json', 'X-Telegram-Init-Data': initData },
 body: JSON.stringify({ orderId })
 });
-const data = await resp.json();
-if (!data?.ok) throw new Error(data?.error || 'confirm_failed');
+const text = await resp.text();
+let data;
+try { data = JSON.parse(text); } catch { data = null; }
+if (!resp.ok) {
+throw new Error(`API ${resp.status}: ${data?.error || text || 'Unknown error'}`);
+}
 return data;
 }
 function setButtonLoading(button, isLoading) {
@@ -3069,28 +3085,12 @@ showToast(t('Waiting for confirmation'));
 window.__lastTonOrderId = order.orderId;
 }
 }catch(e){
-let errMsg = t('Error');
-if (e.response) {
-try {
-const errData = await e.response.json();
-errMsg = errData.error || errMsg;
-} catch {}
-} else if (e.message) {
-errMsg = e.message;
-}
+let errMsg = e.message || t('Error');
 showToast(errMsg);
 window.__lastTonOrderId = order.orderId;
 }
 }catch(e){
-let errMsg = t('Error');
-if (e.response) {
-try {
-const errData = await e.response.json();
-errMsg = errData.error || errMsg;
-} catch {}
-} else if (e.message) {
-errMsg = e.message;
-}
+let errMsg = e.message || t('Error');
 showToast(errMsg);
 console.error(e);
 } finally {
