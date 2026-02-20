@@ -1551,7 +1551,7 @@ Connect your wallet for tips and donations. Contact us through the links below.
 </div>
 <div class="controls">
 <button class="btn" id="wallet_btn" data-i18n="Connect Wallet">Connect Wallet</button>
-<button class="btn" id="tip_btn" data-i18n="Tip 0.05 TON">Tip 0.05 TON</button>
+<!-- Tip button removed as requested -->
 </div>
 <!-- Priority support button (Premium) -->
 <button class="btn ghost" id="priority_support_btn" style="margin-top:12px; width:100%;" data-i18n="Priority Support (Premium)">Priority Support (Premium)</button>
@@ -1562,7 +1562,8 @@ Connect your wallet for tips and donations. Contact us through the links below.
 </div>
 </div>
 <div style="text-align:center">
-<div style="color:var(--accent);font-weight:700;margin-bottom:12px" data-i18n="AIRDROP_NEWS_TRADING">AIRDROP • NEWS • TRADING</div>
+<!-- Replaced AIRDROP_NEWS_TRADING with CHANNEL -->
+<div style="color:var(--accent);font-weight:700;margin-bottom:12px" data-i18n="CHANNEL">CHANNEL</div>
 <div class="support-links">
 <a id="link_telegram" href="https://t.me/ChalovCrypto" target="_blank" data-i18n="TELEGRAM">TELEGRAM</a>
 <a id="link_youtube" href="https://www.youtube.com/@ChalovCrypto" target="_blank" data-i18n="YOUTUBE">YOUTUBE</a>
@@ -1766,7 +1767,6 @@ ru: {
 "History": "История",
 "Connect your wallet for tips and donations. Contact us through the links below.": "Подключите кошелёк для донатов. Контакты и ссылки ниже.",
 "Connect Wallet": "Подключить кошелёк",
-"Tip 0.05 TON": "Донат 0.05 TON",
 "Terms": "Условия",
 "Privacy": "Конфиденциальность",
 "Contact": "Контакты",
@@ -1823,8 +1823,6 @@ ru: {
 "ACH_CARD_DESC": "Откройте Trade Card.",
 "ACH_SHARE_TITLE": "Поделиться",
 "ACH_SHARE_DESC": "Нажмите «Поделиться».",
-"ACH_TIP_TITLE": "Поддержка проекта",
-"ACH_TIP_DESC": "Отправьте донат 0.05 TON.",
 "ACH_HISTORY_TITLE": "Летописец",
 "ACH_HISTORY_DESC": "Сохраните 10 действий в истории.",
 "ACH_PREMIUM_TITLE": "Алмазный статус",
@@ -1844,7 +1842,7 @@ ru: {
 "Neon": "Неон",
 "Gold": "Золото",
 "Midnight_Pro": "Полуночный Про",
-"AIRDROP_NEWS_TRADING": "ЭЙРДРОП • НОВОСТИ • ТРЕЙДИНГ",
+"CHANNEL": "КАНАЛ",  // replaced AIRDROP_NEWS_TRADING
 "Save": "Сохранить",
 "Saved to history": "Сохранено в историю",
 "Connect wallet in the support tab": "Подключите кошелёк во вкладке поддержки",
@@ -1925,7 +1923,6 @@ en: {
 "History": "History",
 "Connect your wallet for tips and donations. Contact us through the links below.": "Connect your wallet for tips and donations. Contact us through the links below.",
 "Connect Wallet": "Connect Wallet",
-"Tip 0.05 TON": "Tip 0.05 TON",
 "Terms": "Terms",
 "Privacy": "Privacy",
 "Contact": "Contact",
@@ -1982,8 +1979,6 @@ en: {
 "ACH_CARD_DESC": "Open the Trade Card.",
 "ACH_SHARE_TITLE": "Share it",
 "ACH_SHARE_DESC": "Tap the Share button.",
-"ACH_TIP_TITLE": "Supporter",
-"ACH_TIP_DESC": "Send a 0.05 TON tip.",
 "ACH_HISTORY_TITLE": "Historian",
 "ACH_HISTORY_DESC": "Save 10 actions to history.",
 "ACH_PREMIUM_TITLE": "Diamond status",
@@ -2003,7 +1998,7 @@ en: {
 "Neon": "Neon",
 "Gold": "Gold",
 "Midnight_Pro": "Midnight Pro",
-"AIRDROP_NEWS_TRADING": "AIRDROP • NEWS • TRADING",
+"CHANNEL": "CHANNEL",  // replaced AIRDROP_NEWS_TRADING
 "Save": "Save",
 "Saved to history": "Saved to history",
 "Connect wallet in the support tab": "Connect wallet in the support tab",
@@ -2161,7 +2156,6 @@ const achievements = [
 { id: 'ind_refresh', icon: '🛰️', titleKey: 'ACH_DATA_TITLE', descKey: 'ACH_DATA_DESC', type: 'one' },
 { id: 'card_open', icon: '🃏', titleKey: 'ACH_CARD_TITLE', descKey: 'ACH_CARD_DESC', type: 'one' },
 { id: 'share', icon: '📤', titleKey: 'ACH_SHARE_TITLE', descKey: 'ACH_SHARE_DESC', type: 'one' },
-{ id: 'tip', icon: '💎', titleKey: 'ACH_TIP_TITLE', descKey: 'ACH_TIP_DESC', type: 'one' },
 { id: 'history_10', icon: '📜', titleKey: 'ACH_HISTORY_TITLE', descKey: 'ACH_HISTORY_DESC', type: 'count', counter: 'history_saved', need: 10 },
 { id: 'premium_user', icon: '💎', titleKey: 'ACH_PREMIUM_TITLE', descKey: 'ACH_PREMIUM_DESC', type: 'one', premium: true },
 { id: 'theme_master', icon: '🌈', titleKey: 'ACH_THEME_TITLE', descKey: 'ACH_THEME_DESC', type: 'count', counter: 'premium_themes', need: 3, premium: true },
@@ -2200,7 +2194,6 @@ if (evt === 'language_changed') unlockAchievement('lang_switch');
 if (evt === 'indicators_fetched') unlockAchievement('ind_refresh');
 if (evt === 'card_opened') unlockAchievement('card_open');
 if (evt === 'shared') unlockAchievement('share');
-if (evt === 'tip_sent') unlockAchievement('tip');
 if (evt === 'premium_user') unlockAchievement('premium_user');
 if (evt === 'premium_theme_applied') incCounter('premium_themes', 1);
 if (evt === 'analytics_view') unlockAchievement('analytics_view');
@@ -2966,14 +2959,11 @@ console.error('TON Connect init error:', e);
 }
 function updateWalletUI() {
 const wBtn = document.getElementById('wallet_btn');
-const tipBtn = document.getElementById('tip_btn');
 if (!tonConnectUI) {
 wBtn.disabled = true;
-tipBtn.disabled = true;
 return;
 }
 wBtn.disabled = false;
-tipBtn.disabled = !tonConnectUI.connected;
 if (tonConnectUI.connected) {
 const addr = tonConnectUI.account?.address || '';
 wBtn.textContent = addr.slice(0, 6) + '...' + addr.slice(-4);
@@ -2998,29 +2988,7 @@ action: tonConnectUI.connected ? 'disconnect' : 'connect_attempt'
 });
 }
 });
-document.getElementById('tip_btn').addEventListener('click', async () => {
-if (!tonConnectUI?.connected) {
-showToast(t('Connect wallet first'));
-return;
-}
-try {
-const tx = {
-validUntil: Math.floor(Date.now() / 1000) + 600,
-messages: [{
-address: TIP_ADDRESS,
-amount: '50000000'
-}]
-};
-await tonConnectUI.sendTransaction(tx);
-showToast(t('Transaction sent'));
-onAchievementEvent('tip_sent');
-if (window.TelegramAnalytics) {
-window.TelegramAnalytics.trackEvent('tip_sent');
-}
-} catch(e) {
-showToast(t('Error'));
-}
-});
+// Tip button removed as requested
 initTonConnect();
 document.getElementById('premium_back_btn').addEventListener('click', () => setMainTab('calc'));
 
@@ -3184,6 +3152,13 @@ showToast(`Exception: ${e?.message || e}`);
 setButtonLoading(button, false);
 }
 }
+
+// Attach payment button listeners
+document.getElementById('pay_ton_30').addEventListener('click', function() { payTonPlan('30days', this); });
+document.getElementById('pay_stars_30').addEventListener('click', function() { openStarsInvoice('30days', this); });
+document.getElementById('pay_ton_life').addEventListener('click', function() { payTonPlan('lifetime', this); });
+document.getElementById('pay_stars_life').addEventListener('click', function() { openStarsInvoice('lifetime', this); });
+document.getElementById('ton_check_btn').addEventListener('click', function() { handleCheckPayment(this); });
 
 // AI Tips
 const aiTips = [
