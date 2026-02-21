@@ -3154,10 +3154,10 @@ setButtonLoading(button, false);
 }
 
 // Attach payment button listeners
-document.getElementById('pay_ton_30').addEventListener('click', function() { payTonPlan('30days', this); });
-document.getElementById('pay_stars_30').addEventListener('click', function() { openStarsInvoice('30days', this); });
-document.getElementById('pay_ton_life').addEventListener('click', function() { payTonPlan('lifetime', this); });
-document.getElementById('pay_stars_life').addEventListener('click', function() { openStarsInvoice('lifetime', this); });
+document.getElementById('pay_ton_30').addEventListener('click', function() { payTonPlan('ton_30d', this); });
+document.getElementById('pay_stars_30').addEventListener('click', function() { openStarsInvoice('stars_30d', this); });
+document.getElementById('pay_ton_life').addEventListener('click', function() { payTonPlan('ton_lifetime', this); });
+document.getElementById('pay_stars_life').addEventListener('click', function() { openStarsInvoice('stars_lifetime', this); });
 document.getElementById('ton_check_btn').addEventListener('click', function() { handleCheckPayment(this); });
 
 // AI Tips
