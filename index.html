@@ -1132,6 +1132,114 @@ padding: 8px 10px;
 padding: 16px;
 }
 }
+
+/* === Обновлённый блок каналов (поддержка) === */
+.channel-container {
+    text-align: center;
+    margin: 20px 0;
+    width: 100%;
+}
+
+.channel-title {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, var(--accent), #ffaa00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 20px rgba(var(--accent-rgb), 0.5);
+    animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+    0% { text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5); }
+    50% { text-shadow: 0 0 25px rgba(var(--accent-rgb), 0.9); }
+    100% { text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5); }
+}
+
+.social-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.social-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 32px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 18px;
+    text-decoration: none;
+    color: #fff;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.social-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.social-button:hover::before {
+    left: 100%;
+}
+
+.social-button:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+}
+
+.social-button .icon {
+    font-size: 24px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.social-button.telegram {
+    background: linear-gradient(135deg, #0088cc, #00a2ff);
+}
+
+.social-button.telegram:hover {
+    background: linear-gradient(135deg, #00a2ff, #0088cc);
+    box-shadow: 0 0 20px #0088cc;
+}
+
+.social-button.youtube {
+    background: linear-gradient(135deg, #FF0000, #CC0000);
+}
+
+.social-button.youtube:hover {
+    background: linear-gradient(135deg, #CC0000, #FF0000);
+    box-shadow: 0 0 20px #FF0000;
+}
+
+@media (max-width: 600px) {
+    .channel-title {
+        font-size: 28px;
+    }
+    .social-button {
+        padding: 12px 24px;
+        font-size: 16px;
+        width: 100%;
+        justify-content: center;
+    }
+    .social-buttons {
+        flex-direction: column;
+        gap: 15px;
+    }
+}
 </style>
 </head>
 <body>
@@ -1561,13 +1669,19 @@ Connect your wallet for tips and donations. Contact us through the links below.
 <button class="btn ghost" id="open_support" data-i18n="Contact">Contact</button>
 </div>
 </div>
-<div style="text-align:center">
-<!-- Replaced AIRDROP_NEWS_TRADING with CHANNEL -->
-<div style="color:var(--accent);font-weight:700;margin-bottom:12px" data-i18n="CHANNEL">CHANNEL</div>
-<div class="support-links">
-<a id="link_telegram" href="https://t.me/ChalovCrypto" target="_blank" data-i18n="TELEGRAM">TELEGRAM</a>
-<a id="link_youtube" href="https://www.youtube.com/@ChalovCrypto" target="_blank" data-i18n="YOUTUBE">YOUTUBE</a>
-</div>
+<!-- Новый блок каналов (вместо старого) -->
+<div class="channel-container">
+    <div class="channel-title" data-i18n="CHANNEL">CHANNEL</div>
+    <div class="social-buttons">
+        <a href="https://t.me/ChalovCrypto" target="_blank" class="social-button telegram" id="link_telegram">
+            <span class="icon">✈️</span>
+            <span data-i18n="TELEGRAM">TELEGRAM</span>
+        </a>
+        <a href="https://www.youtube.com/@ChalovCrypto" target="_blank" class="social-button youtube" id="link_youtube">
+            <span class="icon">📺</span>
+            <span data-i18n="YOUTUBE">YOUTUBE</span>
+        </a>
+    </div>
 </div>
 </div>
 </section>
