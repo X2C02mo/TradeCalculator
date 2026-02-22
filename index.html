@@ -1646,26 +1646,38 @@ Language and theme are saved to your account.
 </section>
 <section id="main_support" class="main-screen">
 <div class="support-wrap">
-<!-- Premium and Settings buttons moved here, using original iconbtn style -->
 <div class="support-quick-actions">
     <button class="iconbtn" id="premium_btn">💎 <span data-i18n="Premium">Premium</span></button>
     <button class="iconbtn" id="settings_btn">⚙️ <span data-i18n="Settings">Settings</span></button>
 </div>
-<div class="card" style="max-width:600px">
-<h3>💬 <span data-i18n="Support">Support</span></h3>
+
+<!-- Main support card -->
+<div class="card" style="max-width:600px; padding:20px;">
+    <h3 style="margin-bottom:20px; display:flex; align-items:center; gap:8px;">💬 <span data-i18n="Support">Support</span></h3>
+    
+    <!-- Wallet & Priority Support grid -->
+    <div class="grid2" style="margin-bottom:20px;">
+        <div class="card" style="padding:16px; background:var(--chip);">
+            <div style="font-size:14px; font-weight:600; margin-bottom:12px;">🔌 <span data-i18n="Wallet">Wallet</span></div>
+            <button class="btn" id="wallet_btn" style="width:100%;" data-i18n="Connect Wallet">Connect Wallet</button>
+        </div>
+        <div class="card" style="padding:16px; background:var(--chip);">
+            <div style="font-size:14px; font-weight:600; margin-bottom:12px;">⭐ <span data-i18n="Priority Support">Priority Support</span> <span class="small">(Premium)</span></div>
+            <button class="btn ghost" id="priority_support_btn" style="width:100%;" data-i18n="Get priority">Get priority</button>
+        </div>
+    </div>
+    
+    <!-- Contact & legal buttons -->
+    <div style="margin-top:12px;">
+        <div class="small" style="margin-bottom:8px; color:var(--muted);" data-i18n="Legal">Legal</div>
+        <div class="controls" style="gap:8px;">
+            <button class="btn ghost" id="open_terms" style="flex:1;" data-i18n="Terms">Terms</button>
+            <button class="btn ghost" id="open_privacy" style="flex:1;" data-i18n="Privacy">Privacy</button>
+            <button class="btn ghost" id="open_support" style="flex:1;" data-i18n="Contact">Contact</button>
+        </div>
+    </div>
 </div>
-<div class="controls">
-<button class="btn" id="wallet_btn" data-i18n="Connect Wallet">Connect Wallet</button>
-<!-- Tip button removed as requested -->
-</div>
-<!-- Priority support button (Premium) -->
-<button class="btn ghost" id="priority_support_btn" style="margin-top:12px; width:100%;" data-i18n="Priority Support (Premium)">Priority Support (Premium)</button>
-<div class="controls" style="margin-top:20px">
-<button class="btn ghost" id="open_terms" data-i18n="Terms">Terms</button>
-<button class="btn ghost" id="open_privacy" data-i18n="Privacy">Privacy</button>
-<button class="btn ghost" id="open_support" data-i18n="Contact">Contact</button>
-</div>
-</div>
+
 <!-- Новый блок каналов (вместо старого) -->
 <div class="channel-container">
     <div class="channel-title" data-i18n="CHANNEL">CHANNEL</div>
@@ -1966,7 +1978,11 @@ ru: {
 "Premium only": "Только Premium",
 "Trade Analytics": "Аналитика сделок",
 "Priority Support (Premium)": "Приоритетная поддержка (Premium)",
-"Font": "Шрифт"
+"Font": "Шрифт",
+"Wallet": "Кошелёк",
+"Priority Support": "Приоритетная поддержка",
+"Get priority": "Получить приоритет",
+"Legal": "Правовая информация"
 },
 en: {
 "Calculator": "Calculator",
@@ -2128,7 +2144,11 @@ en: {
 "Premium only": "Premium only",
 "Trade Analytics": "Trade Analytics",
 "Priority Support (Premium)": "Priority Support (Premium)",
-"Font": "Font"
+"Font": "Font",
+"Wallet": "Wallet",
+"Priority Support": "Priority Support",
+"Get priority": "Get priority",
+"Legal": "Legal"
 }
 };
 let lang = 'en';
