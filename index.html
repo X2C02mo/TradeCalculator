@@ -1,62 +1,64 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Trader Calculator</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
+<script 
+    async 
+    src="https://tganalytics.xyz/index.js" 
+    onload="initTelegramAnalytics()" 
+    type="text/javascript"
+></script>
+
 <script type="module">
 const TG_ANALYTICS_TOKEN = "eyJhcHBfbmFtZSI6IlRyYWRlcl9DYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9DYWxjdWxhdG9yVHJhZGVyQm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdHJhZGUtY2FsY3VsYXRvci1maXZlLnZlcmNlbC5hcHAvIn0=!Han8Ki1y+RfdCegGGjRThkwfIMabRm3ei0m4J2UUz/M=";
 const TG_ANALYTICS_APP_NAME = "Trader_Calculator";
-function validateAnalyticsConfig() {
-return TG_ANALYTICS_TOKEN && TG_ANALYTICS_TOKEN.length > 10;
+
+function initTelegramAnalytics() {
+    if (!window.telegramAnalytics?.init) {
+        console.error('Telegram Analytics SDK not loaded');
+        return;
+    }
+    
+    try {
+        const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+        const userId = user?.id?.toString();
+        
+        window.telegramAnalytics.init({
+            token: TG_ANALYTICS_TOKEN,
+            appName: TG_ANALYTICS_APP_NAME,
+            autotrack: true,
+            debug: true 
+        });
+        
+        window.telegramAnalytics.trackEvent('app_launch', {
+            platform: navigator.platform,
+            user_id: userId,
+            theme: window.Telegram?.WebApp?.colorScheme,
+            user_agent: navigator.userAgent.substring(0, 100)
+        });
+        
+        window.telegramAnalytics.trackView('main_screen');
+        console.log('✓ Telegram Analytics initialized');
+        
+        
+        window.TelegramAnalytics = window.telegramAnalytics;
+        
+    } catch (error) {
+        console.error('✗ Analytics init error:', error);
+    }
 }
-window.TelegramAnalytics = {
-init: () => {},
-trackEvent: () => {},
-trackView: () => {}
-};
-const boot = async () => {
-if (!validateAnalyticsConfig()) {
-console.error('Invalid analytics token');
-return;
-}
-if (!window.Telegram?.WebApp) {
-console.log('Not in Telegram environment');
-return;
-}
-setTimeout(() => {
-import('https://esm.sh/@telegram-apps/analytics').then(({ init, trackEvent, trackView }) => {
-try {
-const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
-const userId = user?.id?.toString();
-init({
-token: TG_ANALYTICS_TOKEN,
-appName: TG_ANALYTICS_APP_NAME,
-autotrack: true,
-debug: false
-});
-trackEvent('app_launch', {
-platform: navigator.platform,
-user_id: userId,
-theme: window.Telegram?.WebApp?.colorScheme,
-user_agent: navigator.userAgent.substring(0, 100)
-});
-trackView('main_screen');
-console.log('Telegram Analytics SDK initialized');
-window.TelegramAnalytics = { init, trackEvent, trackView };
-} catch (error) {
-console.error('Telegram Analytics SDK error:', error);
-}
-});
-}, 1000);
-};
+
+
 if (document.readyState === 'loading') {
-document.addEventListener('DOMContentLoaded', () => { boot().catch(console.error); });
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.Telegram?.WebApp) {
+            window.Telegram.WebApp.ready();
+            if (window.telegramAnalytics) initTelegramAnalytics();
+        }
+    });
 } else {
-boot().catch(console.error);
+    if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.ready();
+        if (window.telegramAnalytics) initTelegramAnalytics();
+    }
 }
+</script>
 </script>
 <style>
 :root {
