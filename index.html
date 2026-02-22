@@ -123,77 +123,6 @@ min-height: 100vh;
 display: flex;
 flex-direction: column;
 }
-header {
-position: sticky;
-top: 0;
-z-index: 100;
-display: flex;
-align-items: center;
-justify-content: space-between;
-padding: 12px 16px;
-border-bottom: 1px solid var(--border);
-background: var(--panel);
-animation: slideDown 0.3s ease;
-}
-@keyframes slideDown {
-from { transform: translateY(-10px); opacity: 0; }
-to { transform: translateY(0); opacity: 1; }
-}
-.leftbar {
-display: flex;
-align-items: center;
-gap: 12px;
-flex-wrap: wrap;
-}
-.lang {
-display: flex;
-gap: 4px;
-background: var(--chip);
-padding: 4px;
-border-radius: 8px;
-border: 1px solid var(--border);
-animation: fadeIn 0.5s ease;
-}
-@keyframes fadeIn {
-from { opacity: 0; }
-to { opacity: 1; }
-}
-.lang button {
-background: transparent;
-border: none;
-color: var(--muted);
-padding: 4px 12px;
-cursor: pointer;
-border-radius: 6px;
-font-size: 13px;
-font-weight: 600;
-transition: all 0.2s ease;
-}
-.lang button.active {
-background: var(--accent);
-color: #000;
-transform: scale(1.05);
-box-shadow: 0 2px 8px rgba(124, 252, 0, 0.3);
-}
-.iconbtn {
-border: 1px solid var(--border);
-background: var(--chip);
-color: var(--text);
-padding: 6px 12px;
-border-radius: 8px;
-cursor: pointer;
-font-size: 13px;
-font-weight: 600;
-display: inline-flex;
-align-items: center;
-gap: 6px;
-transition: all 0.3s ease;
-}
-.iconbtn:hover {
-border-color: var(--accent);
-transform: translateY(-2px);
-box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
 main {
 flex: 1;
 padding: 16px;
@@ -518,6 +447,7 @@ margin-bottom: 4px;
 }
 .hist-actions {
 display: flex;
+flex-direction: column;
 gap: 6px;
 }
 .mini {
@@ -1240,26 +1170,31 @@ padding: 16px;
         gap: 15px;
     }
 }
+
+/* Support tab navigation buttons */
+.support-quick-actions {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    justify-content: center;
+    width: 100%;
+}
+.premium-nav-btn {
+    background: linear-gradient(145deg, var(--glass-strong), var(--chip));
+    border: 2px solid transparent;
+    border-image: linear-gradient(45deg, var(--accent), #ffaa00);
+    border-image-slice: 1;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+}
+.premium-nav-btn:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 8px 24px rgba(var(--accent-rgb), 0.4);
+}
 </style>
 </head>
 <body>
 <div id="app">
-<header>
-<div class="leftbar">
-<button class="iconbtn" id="card_btn">
-<span>🃏</span>
-<span data-i18n="Card">Card</span>
-</button>
-<button class="iconbtn" id="premium_btn">
-<span>💎</span>
-<span data-i18n="Premium">Premium</span>
-</button>
-<button class="iconbtn" id="settings_btn">
-<span>⚙️</span>
-<span data-i18n="Settings">Settings</span>
-</button>
-</div>
-</header>
 <main>
 <section id="main_calc" class="main-screen active">
 <div class="subtabs">
@@ -1556,27 +1491,27 @@ Add multiple entries to calculate average price, total volume and cost.
     <h3 style="margin-bottom: 15px; font-size: 18px; color: var(--accent);">✨ <span data-i18n="What you get">What you get</span></h3>
     <div class="feature-item">
         <span class="feature-icon">📊</span>
-        <span><strong data-i18n="Advanced Analytics">Advanced Analytics</strong> – deep trade statistics, charts, reports</span>
+        <span><strong data-i18n="Advanced Analytics Title"></strong><span data-i18n="Advanced Analytics Desc"></span></span>
     </div>
     <div class="feature-item">
         <span class="feature-icon">🤖</span>
-        <span><strong data-i18n="AI Tips">AI tips</strong> – entry/exit recommendations based on market data</span>
+        <span><strong data-i18n="AI Tips Title"></strong><span data-i18n="AI Tips Desc"></span></span>
     </div>
     <div class="feature-item">
         <span class="feature-icon">🏆</span>
-        <span><strong data-i18n="Secret Achievements">Secret achievements + ranks</strong> – unique badges and levels</span>
+        <span><strong data-i18n="Secret Achievements Title"></strong><span data-i18n="Secret Achievements Desc"></span></span>
     </div>
     <div class="feature-item">
         <span class="feature-icon">🎨</span>
-        <span><strong data-i18n="Personalization">Personalization</strong> – custom colors, fonts, widgets</span>
+        <span><strong data-i18n="Personalization Title"></strong><span data-i18n="Personalization Desc"></span></span>
     </div>
     <div class="feature-item">
         <span class="feature-icon">🌈</span>
-        <span><strong data-i18n="Premium Themes">Premium themes</strong> – exclusive color schemes (Neon, Gold, Midnight)</span>
+        <span><strong data-i18n="Premium Themes Title"></strong><span data-i18n="Premium Themes Desc"></span></span>
     </div>
     <div class="feature-item">
         <span class="feature-icon">⚡</span>
-        <span><strong data-i18n="Priority Support">Priority Support</strong> – faster responses</span>
+        <span><strong data-i18n="Priority Support Title"></strong><span data-i18n="Priority Support Desc"></span></span>
     </div>
 </div>
 
@@ -1652,6 +1587,11 @@ Language and theme are saved to your account.
 </section>
 <section id="main_support" class="main-screen">
 <div class="support-wrap">
+<!-- Premium and Settings buttons moved here -->
+<div class="support-quick-actions">
+    <button class="iconbtn premium-nav-btn" id="premium_btn">💎 <span data-i18n="Premium">Premium</span></button>
+    <button class="iconbtn premium-nav-btn" id="settings_btn">⚙️ <span data-i18n="Settings">Settings</span></button>
+</div>
 <div class="card" style="max-width:600px">
 <h3>💬 <span data-i18n="Support">Support</span></h3>
 <div class="small" style="margin-bottom:16px" data-i18n="Connect your wallet for tips and donations. Contact us through the links below.">
@@ -1711,8 +1651,8 @@ Connect your wallet for tips and donations. Contact us through the links below.
 <canvas id="card_canvas" width="600" height="200"></canvas>
 </div>
 <div id="modal_right">
-<button class="btn" id="card_save" data-i18n="Save PNG">Save PNG</button>
 <button class="btn ghost" id="card_copy" data-i18n="Copy">Copy</button>
+<button class="btn" id="card_save" data-i18n="Save PNG">Save PNG</button>
 <div id="modal_help" data-i18n="Use Save PNG for smartphones, Copy for computers">Use Save PNG for smartphones, Copy for computers</div>
 </div>
 </div>
@@ -1831,12 +1771,18 @@ ru: {
 "Lifetime note": "Разовая покупка, без срока действия.",
 "Payment note": "Оплата проходит внутри Telegram. После успешной оплаты премиум активируется на этом устройстве.",
 "What you get": "Что вы получаете",
-"Advanced Analytics": "Расширенная аналитика – глубокая статистика по сделкам, графики, отчёты",
-"AI Tips": "AI‑подсказки – рекомендации по входам/выходам на основе рыночных данных",
-"Secret Achievements": "Секретные достижения + ранги – уникальные значки и уровни",
-"Personalization": "Персонализация – кастомные цвета, шрифты, виджеты",
-"Premium Themes": "Премиум‑темы – эксклюзивные цветовые схемы (Neon, Gold, Midnight)",
-"Priority Support": "Приоритетная поддержка – быстрее ответы",
+"Advanced Analytics Title": "Расширенная аналитика",
+"Advanced Analytics Desc": " – глубокая статистика по сделкам, графики, отчёты",
+"AI Tips Title": "AI‑подсказки",
+"AI Tips Desc": " – рекомендации по входам/выходам на основе рыночных данных",
+"Secret Achievements Title": "Секретные достижения + ранги",
+"Secret Achievements Desc": " – уникальные значки и уровни",
+"Personalization Title": "Персонализация",
+"Personalization Desc": " – кастомные цвета, шрифты, виджеты",
+"Premium Themes Title": "Премиум‑темы",
+"Premium Themes Desc": " – эксклюзивные цветовые схемы (Neon, Gold, Midnight)",
+"Priority Support Title": "Приоритетная поддержка",
+"Priority Support Desc": " – быстрее ответы",
 "Themes note": "Темы применяются сразу (нужен Premium).",
 "Premium active until": "Premium активен до",
 "Premium lifetime": "Premium навсегда",
@@ -1956,7 +1902,7 @@ ru: {
 "Neon": "Неон",
 "Gold": "Золото",
 "Midnight_Pro": "Полуночный Про",
-"CHANNEL": "КАНАЛ",  // replaced AIRDROP_NEWS_TRADING
+"CHANNEL": "КАНАЛ",
 "Save": "Сохранить",
 "Saved to history": "Сохранено в историю",
 "Connect wallet in the support tab": "Подключите кошелёк во вкладке поддержки",
@@ -1987,12 +1933,18 @@ en: {
 "Lifetime note": "One-time purchase, no expiration.",
 "Payment note": "Payments are processed inside Telegram. After successful payment, Premium will be activated on this device.",
 "What you get": "What you get",
-"Advanced Analytics": "Advanced Analytics – deep trade statistics, charts, reports",
-"AI Tips": "AI tips – entry/exit recommendations based on market data",
-"Secret Achievements": "Secret achievements + ranks – unique badges and levels",
-"Personalization": "Personalization – custom colors, fonts, widgets",
-"Premium Themes": "Premium themes – exclusive color schemes (Neon, Gold, Midnight)",
-"Priority Support": "Priority Support – faster responses",
+"Advanced Analytics Title": "Advanced Analytics",
+"Advanced Analytics Desc": " – deep trade statistics, charts, reports",
+"AI Tips Title": "AI tips",
+"AI Tips Desc": " – entry/exit recommendations based on market data",
+"Secret Achievements Title": "Secret achievements + ranks",
+"Secret Achievements Desc": " – unique badges and levels",
+"Personalization Title": "Personalization",
+"Personalization Desc": " – custom colors, fonts, widgets",
+"Premium Themes Title": "Premium themes",
+"Premium Themes Desc": " – exclusive color schemes (Neon, Gold, Midnight)",
+"Priority Support Title": "Priority Support",
+"Priority Support Desc": " – faster responses",
 "Themes note": "Themes apply instantly (premium required).",
 "Premium active until": "Premium active until",
 "Premium lifetime": "Premium lifetime",
@@ -2112,7 +2064,7 @@ en: {
 "Neon": "Neon",
 "Gold": "Gold",
 "Midnight_Pro": "Midnight Pro",
-"CHANNEL": "CHANNEL",  // replaced AIRDROP_NEWS_TRADING
+"CHANNEL": "CHANNEL",
 "Save": "Save",
 "Saved to history": "Saved to history",
 "Connect wallet in the support tab": "Connect wallet in the support tab",
@@ -2568,12 +2520,13 @@ onAchievementEvent('dca_add');
 document.getElementById('dca_clear').addEventListener('click', clearDCA);
 dcaGoal.addEventListener('input', calcDCA);
 dcaNext.addEventListener('input', calcDCA);
-function saveCalculationToHistory(type, summary) {
+function saveCalculationToHistory(type, summary, data) {
 const arr = loadHistory();
 arr.unshift({
 t: Date.now(),
 type: type,
-summary: summary
+summary: summary,
+data: data
 });
 if (arr.length > 50) arr.length = 50;
 saveHistory(arr);
@@ -2583,15 +2536,48 @@ showToast(t('Saved to history'));
 }
 document.getElementById('dca_save').addEventListener('click', () => {
 const summary = `DCA: Avg ${dcaAvgEl.textContent}, Vol ${dcaTotalVolEl.textContent}, Cost ${dcaTotalCostEl.textContent}`;
-saveCalculationToHistory('DCA', summary);
+const data = {
+type: 'dca',
+values: {
+avg: dcaAvgEl.textContent,
+totalVol: dcaTotalVolEl.textContent,
+totalCost: dcaTotalCostEl.textContent
+}
+};
+saveCalculationToHistory('DCA', summary, data);
 });
 document.getElementById('rr_save').addEventListener('click', () => {
 const summary = `R/R: Gross ${rrGross.textContent}, Net ${rrNet.textContent} (Entry: ${rrEntry.value}, SL: ${rrSl.value}, TP: ${rrTp.value}, Fee: ${rrFee.value}%)`;
-saveCalculationToHistory('R/R', summary);
+const data = {
+type: 'rr',
+values: {
+gross: rrGross.textContent,
+net: rrNet.textContent,
+entry: rrEntry.value,
+sl: rrSl.value,
+tp: rrTp.value,
+fee: rrFee.value
+}
+};
+saveCalculationToHistory('R/R', summary, data);
 });
 document.getElementById('cap_save').addEventListener('click', () => {
 const summary = `Capital: Pos ${capPos.textContent}, Risk $${capRiskUsd.textContent}, Margin $${capMargin.textContent}`;
-saveCalculationToHistory('Capital', summary);
+const data = {
+type: 'cap',
+values: {
+pos: capPos.textContent,
+riskUsd: capRiskUsd.textContent,
+margin: capMargin.textContent,
+deposit: capDep.value,
+risk: capRisk.value,
+lev: capLev.value,
+entry: capEntry.value,
+sl: capSl.value,
+fee: capFee.value
+}
+};
+saveCalculationToHistory('Capital', summary, data);
 });
 async function copyText(text) {
 if (!text || text === '—') return false;
@@ -2907,6 +2893,17 @@ const ok = await copyText(it.summary);
 if (ok) showToast(t('Copied!'));
 });
 right.appendChild(btnCopy);
+if (it.data) {
+const btnCard = document.createElement('button');
+btnCard.className = 'mini';
+btnCard.textContent = t('Card');
+btnCard.addEventListener('click', () => {
+drawCard(it.data);
+openModal();
+onAchievementEvent('card_opened');
+});
+right.appendChild(btnCard);
+}
 node.appendChild(left);
 node.appendChild(right);
 list.appendChild(node);
@@ -2944,7 +2941,7 @@ modalClose.addEventListener('click', closeModal);
 modalBackdrop.addEventListener('click', (e) => {
 if (e.target === modalBackdrop) closeModal();
 });
-function drawCard() {
+function drawCard(customData = null) {
 const ctx = cardCanvas.getContext('2d');
 const w = cardCanvas.width, h = cardCanvas.height;
 ctx.clearRect(0, 0, w, h);
@@ -2960,9 +2957,34 @@ ctx.fillRect(20, 20, w - 40, h - 40);
 ctx.fillStyle = text;
 ctx.font = 'bold 24px Inter';
 ctx.fillText('Trader Calculator', 40, 60);
-const tab = activeTab();
 let title = t('Trade Card');
 let data = [];
+if (customData) {
+const type = customData.type;
+const vals = customData.values;
+if (type === 'dca') {
+title = 'DCA Calculation';
+data = [
+`AVG: ${vals.avg}`,
+`VOL: ${vals.totalVol}`,
+`COST: ${vals.totalCost}`
+];
+} else if (type === 'rr') {
+title = 'Risk/Reward';
+data = [
+`Gross: ${vals.gross}`,
+`Net: ${vals.net}`
+];
+} else if (type === 'cap') {
+title = 'Capital Management';
+data = [
+`POS: ${vals.pos}`,
+`Risk: $${vals.riskUsd}`,
+`Margin: $${vals.margin}`
+];
+}
+} else {
+const tab = activeTab();
 if (tab === 'dca') {
 title = 'DCA Calculation';
 data = [
@@ -2983,6 +3005,7 @@ data = [
 `Risk: $${capRiskUsd.textContent}`,
 `Margin: $${capMargin.textContent}`
 ];
+}
 }
 ctx.fillStyle = accent;
 ctx.font = 'bold 20px Inter';
@@ -3050,11 +3073,6 @@ window.TelegramAnalytics.trackEvent('card_copied');
 saveCardUniversal();
 }
 }, 'image/png');
-});
-document.getElementById('card_btn').addEventListener('click', () => {
-drawCard();
-openModal();
-onAchievementEvent('card_opened');
 });
 const TONCONNECT_MANIFEST_URL = 'https://trade-calculator-five.vercel.app/tonconnect-manifest.json';
 const TIP_ADDRESS = 'UQD04FKshVmZaQjZq9y2AtBXWklkzQfK4sEJWrsYfqbNHGGz';
