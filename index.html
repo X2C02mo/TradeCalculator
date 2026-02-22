@@ -2276,19 +2276,18 @@ showToast(`${t('Premium required')} • ${reason || ''}`.trim());
 setMainTab('premium');
 return false;
 }
-const ACH_KEY = 'tc_achievements_v1';
+// --- Achievements using server storage (__mem) ---
+let achState; // will be initialized after loadServerStorage
 function loadAchState() {
-try {
-const raw = localStorage.getItem(ACH_KEY);
-if (!raw) return { unlocked: {}, counters: {} };
-const j = JSON.parse(raw);
-return { unlocked: j?.unlocked || {}, counters: j?.counters || {} };
-} catch(e) {
+const data = __mem["tc_achievements"];
+if (data && typeof data === 'object') {
+return { unlocked: data.unlocked || {}, counters: data.counters || {} };
+}
 return { unlocked: {}, counters: {} };
 }
-}
 function saveAchState(state) {
-try { localStorage.setItem(ACH_KEY, JSON.stringify(state)); } catch(e) {}
+__mem["tc_achievements"] = state;
+scheduleSave();
 }
 const achievements = [
 { id: 'first_launch', icon: '✨', titleKey: 'ACH_WELCOME_TITLE', descKey: 'ACH_WELCOME_DESC', type: 'one' },
@@ -2305,7 +2304,8 @@ const achievements = [
 { id: 'theme_master', icon: '🌈', titleKey: 'ACH_THEME_TITLE', descKey: 'ACH_THEME_DESC', type: 'count', counter: 'premium_themes', need: 3, premium: true },
 { id: 'analytics_view', icon: '📊', titleKey: 'ACH_ANALYTICS_TITLE', descKey: 'ACH_ANALYTICS_DESC', type: 'one', premium: true }
 ];
-let achState = loadAchState();
+// Initialize achState after server load
+achState = loadAchState();
 function isUnlocked(id) { return !!achState.unlocked[id]; }
 function unlockAchievement(id) {
 if (isUnlocked(id)) return false;
@@ -3226,7 +3226,6 @@ const resp = await fetch(`${API_BASE}/api/ton/order?plan=${encodeURIComponent(pl
 method:'GET',
 headers:{ 'X-Telegram-Init-Data': initData }
 });
-// Проверяем статус ответа и пытаемся получить тело ошибки
 let errorText = '';
 try {
 const text = await resp.text();
